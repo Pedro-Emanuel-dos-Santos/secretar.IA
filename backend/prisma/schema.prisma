@@ -16,6 +16,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   reminders Reminder[]
+  events Event[]
 }
 
 model Reminder {
@@ -29,4 +30,25 @@ model Reminder {
   updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String
+
+  source    String
+
+  payload   Json
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+
+  @@index([type])
+
+  @@index([createdAt])
 }

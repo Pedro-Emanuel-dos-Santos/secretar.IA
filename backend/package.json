@@ -1,9 +1,16 @@
 {
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "bullmq": "^5.78.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "ioredis": "^5.11.1",
+    "openai": "^6.45.0",
     "prisma": "^6.19.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
