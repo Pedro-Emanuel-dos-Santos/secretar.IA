@@ -1,6 +1,7 @@
 import { AIInterpretation } from "../types/ai.types";
 import { parseInterpretation } from "./interpretation.validation";
 import { relativeReminderTime, relativeRescheduleTime } from "./relative-time";
+import { buttonInterpretation } from "./reminder.buttons";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string };
 export type ConversationDependencies = {
@@ -9,12 +10,17 @@ export type ConversationDependencies = {
 };
 
 export async function prepareConversation(message: IncomingConversation, deps: ConversationDependencies, timeoutMs = 45000) {
+  const button = buttonInterpretation(message.text, message.receivedAt);
+  if (button) return button;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([(async () => {
       const context = await deps.buildContext(message);
       const interpretation = await deps.interpret(context);
       const validated = parseInterpretation(JSON.stringify(interpretation));
+      // Optimistic version checks are attached by our deterministic button parser,
+      // not invented by the language model.
+      delete validated.expectedVersion;
       if (validated.action === "create_reminder") {
         const relative = relativeReminderTime(message.text, message.receivedAt);
         if (relative) validated.datetime = relative;

@@ -20,6 +20,21 @@ async function make(){
 }
 const intent=(id,extra={})=>({action:'reschedule_reminder',title:null,description:null,datetime:'2099-07-21T10:00:00-03:00',amount:null,category:null,reply:'ok',reminderId:id,...extra});
 const manage=i=>p.$transaction(tx=>manageReminders(phone,business,i,tx));
+
+test('botão de adiar aceita aviso enviado uma vez e rejeita versão antiga e outra pessoa',async()=>{
+ await clear();const r=await make();
+ await p.reminder.update({where:{id:r.id},data:{status:'provider_accepted',providerMessageId:'wamid.previous',deliveryStatus:'read',deliveryErrorCodes:[]}});
+ const i=intent(r.id,{expectedVersion:0});
+ const wrong=await p.$transaction(tx=>manageReminders('5511000000000',business,i,tx));
+ assert.match(wrong,/Não encontrei/);
+ assert.match(await manage(i),/Alterei o horário/);
+ const updated=await p.reminder.findUniqueOrThrow({where:{id:r.id}});
+ assert.equal(updated.scheduleVersion,1);assert.equal(updated.providerMessageId,null);assert.equal(updated.deliveryStatus,null);
+ assert.match(await manage(i),/aviso antigo/);
+ assert.equal((await p.reminder.findUniqueOrThrow({where:{id:r.id}})).scheduleVersion,1);
+ assert.match(await manage(intent(r.id,{action:'complete_reminder',expectedVersion:0})),/aviso antigo/);
+ assert.match(await manage(intent(r.id,{action:'complete_reminder',expectedVersion:1})),/concluído/);
+});
 test('reagendamento preserva lembrete, cria nova versão e ignora jobs antigos',async()=>{
  await clear();const r=await make();const jobs=[];const queue={add:async(name,data,options)=>jobs.push({data,options})};
  await relaySchedules(p,queue,{phoneNumberId:business});

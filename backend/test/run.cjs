@@ -180,3 +180,4 @@ test("recibo de destinatário desconhecido não cria usuário ou evento", async 
 require("./recipient.test.cjs");
 require("./whatsapp.policy.test.cjs");
 require("./redis.test.cjs");
+require("./buttons.test.cjs");

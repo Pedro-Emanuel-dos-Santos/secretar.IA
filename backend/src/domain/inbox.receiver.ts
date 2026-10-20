@@ -24,12 +24,15 @@ export function extractMessages(payload: unknown, expectedPhoneNumberId: string)
       if (!Array.isArray(value.messages)) throw new InvalidWebhookError("Mensagens inválidas.");
       for (const message of value.messages) {
         if (!object(message)) throw new InvalidWebhookError("Mensagem inválida.");
-        if (message.type !== "text") continue;
+        if (message.type !== "text" && message.type !== "interactive") continue;
+        if (message.type === "interactive" && message.interactive?.type !== "button_reply") continue;
+        const text = message.type === "text" ? message.text?.body : message.interactive?.button_reply?.id;
         if (typeof message.id !== "string" || !message.id || message.id.length > 512 ||
             typeof message.from !== "string" || !/^\d{8,15}$/.test(message.from) ||
-            !object(message.text) || typeof message.text.body !== "string" ||
-            !message.text.body.trim() || message.text.body.length > 16000) throw new InvalidWebhookError("Texto inválido.");
-        messages.push({ providerMessageId: message.id, phoneNumberId: expectedPhoneNumberId, phone: message.from, text: message.text.body });
+            typeof text !== "string" || !text.trim() || text.length > (message.type === "text" ? 16000 : 256)) throw new InvalidWebhookError("Texto inválido.");
+        // Ignore unrelated interactive products; their display title is not a command.
+        if (message.type === "interactive" && !text.startsWith("sr1:")) continue;
+        messages.push({ providerMessageId: message.id, phoneNumberId: expectedPhoneNumberId, phone: message.from, text });
       }
     }
   }

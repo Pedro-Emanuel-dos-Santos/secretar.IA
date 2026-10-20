@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { AIInterpretation } from "../types/ai.types";
 import { parseTimestamp, validateReminder } from "./reminder.validation";
 
@@ -45,6 +45,9 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     target = await tx.reminder.findFirst({ where: { ...scope, id: intent.reminderId } });
   } else return "Qual lembrete você quer " + (intent.action === "cancel_reminder" ? "cancelar?" : intent.action === "reschedule_reminder" ? "reagendar?" : "concluir?");
   if (!target) return "Não encontrei esse lembrete entre os seus pendentes.";
+  if (intent.expectedVersion !== undefined && target.scheduleVersion !== intent.expectedVersion) {
+    return "Esse botão é de um aviso antigo. Use o aviso mais recente ou me diga o que deseja alterar.";
+  }
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
   const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template"];
@@ -53,12 +56,21 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     let reminderDate: Date;
     try { reminderDate = validateReminder({ phone, title: target.title, remindAt: intent.datetime }).reminderDate; }
     catch { return "Preciso de uma data e horário válidos no futuro. Quando devo te lembrar?"; }
-    if (!cancellable.includes(target.status)) return "Esse aviso já entrou em envio. Para evitar repetição, crie um novo lembrete se precisar de outro aviso.";
+    const reschedulable = [...cancellable, "provider_accepted"];
+    if (!reschedulable.includes(target.status)) return "Esse aviso já entrou em envio. Ainda não consigo confirmar o resultado para reagendar com segurança.";
     const changed = await tx.reminder.updateMany({
-      where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, status: { in: cancellable } },
-      data: { remindAt: reminderDate, scheduleVersion: { increment: 1 }, status: "scheduling_pending" },
+      where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, status: { in: reschedulable } },
+      data: { remindAt: reminderDate, scheduleVersion: { increment: 1 }, status: "scheduling_pending",
+        providerMessageId: null, deliveryStartedAt: null, deliveryStatus: null, deliveryUpdatedAt: null,
+        deliveryErrorCodes: Prisma.DbNull },
     });
     if (!changed.count) return "Esse lembrete mudou enquanto eu processava. Pode confirmar o que deseja?";
+    await tx.event.create({ data: {
+      userId: target.userId, type: "reminder_rescheduled", source: "secretaria",
+      payload: { reminderId: target.id, phoneNumberId, previousVersion: target.scheduleVersion,
+        previousProviderMessageId: target.providerMessageId, previousDeliveryStatus: target.deliveryStatus,
+        previousRemindAt: target.remindAt.toISOString(), remindAt: reminderDate.toISOString() },
+    } });
     await tx.scheduleOutbox.upsert({
       where: { reminderId: target.id },
       create: { reminderId: target.id, phoneNumberId },
@@ -69,7 +81,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   if (intent.action === "cancel_reminder" && !cancellable.includes(target.status)) return "Esse aviso já entrou em envio. Quer marcar como concluído?";
   const state = intent.action === "cancel_reminder" ? "cancelled" : "completed";
   const changed = await tx.reminder.updateMany({
-    where: { ...scope, id: target.id, state: "active", ...(state === "cancelled" ? { status: { in: cancellable } } : {}) },
+    where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, ...(state === "cancelled" ? { status: { in: cancellable } } : {}) },
     data: { state },
   });
   if (!changed.count) return "Esse lembrete mudou enquanto eu processava. Pode confirmar o que deseja?";

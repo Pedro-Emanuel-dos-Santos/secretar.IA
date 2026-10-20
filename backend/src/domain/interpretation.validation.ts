@@ -13,6 +13,10 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if ("expectedVersion" in record) {
+    if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
+    extra.expectedVersion = record.expectedVersion as number;
+  }
   for (const key of ["reminderId", "search", "rangeStart", "rangeEnd"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");

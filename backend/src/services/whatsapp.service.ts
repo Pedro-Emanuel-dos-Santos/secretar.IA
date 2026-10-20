@@ -2,8 +2,9 @@ import "dotenv/config";
 import { resolveWhatsAppRecipient } from "../domain/whatsapp.recipient";
 import { prisma } from "../config/prisma";
 import { whatsappPayload } from "../domain/whatsapp.policy";
+import type { ReminderControls } from "../domain/reminder.buttons";
 
-export async function sendWhatsAppMessage(phone: string, message: string, kind: "reply" | "reminder" = "reply") {
+export async function sendWhatsAppMessage(phone: string, message: string, kind: "reply" | "reminder" = "reply", controls?: ReminderControls) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const apiUrl = process.env.WHATSAPP_API_URL || "https://graph.facebook.com/v23.0";
@@ -16,7 +17,7 @@ export async function sendWhatsAppMessage(phone: string, message: string, kind: 
       name: process.env.WHATSAPP_REMINDER_TEMPLATE_NAME,
       language: process.env.WHATSAPP_REMINDER_TEMPLATE_LANGUAGE || "pt_BR",
       approved: process.env.WHATSAPP_REMINDER_TEMPLATE_APPROVED === "true",
-    });
+    }, Date.now(), controls);
 
   const response = await fetch(`${apiUrl}/${phoneNumberId}/messages`, {
     method: "POST",
@@ -38,4 +39,4 @@ export async function sendWhatsAppMessage(phone: string, message: string, kind: 
   return data;
 }
 
-export const sendWhatsAppReminder = (phone: string, message: string) => sendWhatsAppMessage(phone, message, "reminder");
+export const sendWhatsAppReminder = (phone: string, message: string, controls?: ReminderControls) => sendWhatsAppMessage(phone, message, "reminder", controls);

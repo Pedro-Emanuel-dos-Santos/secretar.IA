@@ -1,8 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
 import { WhatsAppPreflightError } from "./whatsapp.policy";
+import type { ReminderControls } from "./reminder.buttons";
 
 type Store = Pick<PrismaClient, "reminder">;
-type Sender = (phone: string, text: string) => Promise<unknown>;
+type Sender = (phone: string, text: string, controls?: ReminderControls) => Promise<unknown>;
 
 export async function deliverReminder(reminderId: string, phoneNumberId: string, store: Store, send: Sender, expectedVersion = 0,
   reconcile?: (providerMessageId: string) => Promise<void>) {
@@ -19,7 +20,8 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
   if (!claimed.count) return "skipped";
   try {
     const late = Date.now() - reminder.remindAt.getTime() > 60_000;
-    const result = await send(reminder.user.phone, `⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}`);
+    const result = await send(reminder.user.phone, `⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}`,
+      { id: reminder.id, version: expectedVersion });
     const id = (result as { messages?: { id?: unknown }[] } | null)?.messages?.[0]?.id;
     if (typeof id !== "string" || !id) throw new Error("Provedor não confirmou a identidade da mensagem.");
     await store.reminder.updateMany({

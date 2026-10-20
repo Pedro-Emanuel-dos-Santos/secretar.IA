@@ -20,4 +20,5 @@ export type AIInterpretation = {
   search?: string | null;
   rangeStart?: string | null;
   rangeEnd?: string | null;
+  expectedVersion?: number;
 };
