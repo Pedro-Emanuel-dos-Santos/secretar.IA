@@ -1,16 +1,19 @@
 import type { PrismaClient } from "@prisma/client";
+import { WhatsAppPreflightError } from "./whatsapp.policy";
 
 type Store = Pick<PrismaClient, "reminder">;
 type Sender = (phone: string, text: string) => Promise<unknown>;
 
-export async function deliverReminder(reminderId: string, phoneNumberId: string, store: Store, send: Sender) {
+export async function deliverReminder(reminderId: string, phoneNumberId: string, store: Store, send: Sender, expectedVersion = 0,
+  reconcile?: (providerMessageId: string) => Promise<void>) {
   const reminder = await store.reminder.findUnique({
     where: { id: reminderId }, include: { user: true, scheduleOutbox: true },
   });
   if (!reminder) return "missing";
   if (reminder.scheduleOutbox && reminder.scheduleOutbox.phoneNumberId !== phoneNumberId) throw new Error("Número comercial incompatível.");
+  if ((reminder.scheduleVersion ?? 0) !== expectedVersion) return "stale";
   const claimed = await store.reminder.updateMany({
-    where: { id: reminderId, state: "active", status: { in: ["pending", "scheduled", "scheduling_pending", "scheduling_failed"] } },
+    where: { id: reminderId, scheduleVersion: expectedVersion, state: "active", status: { in: ["pending", "scheduled", "scheduling_pending", "scheduling_failed"] } },
     data: { status: "sending", deliveryStartedAt: new Date() },
   });
   if (!claimed.count) return "skipped";
@@ -22,10 +25,14 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
     await store.reminder.updateMany({
       where: { id: reminderId, status: "sending" }, data: { status: "provider_accepted", providerMessageId: id },
     });
+    if (reconcile) {
+      try { await reconcile(id); } catch { console.error("Recibo persistido aguarda reconciliação operacional."); }
+    }
     return "provider_accepted";
-  } catch {
+  } catch (error) {
     await store.reminder.updateMany({
-      where: { id: reminderId, status: "sending" }, data: { status: "delivery_unknown" },
+      where: { id: reminderId, status: "sending" },
+      data: { status: error instanceof WhatsAppPreflightError ? "blocked_template" : "delivery_unknown" },
     });
     throw new Error("Não foi possível confirmar o resultado do envio do lembrete.");
   }

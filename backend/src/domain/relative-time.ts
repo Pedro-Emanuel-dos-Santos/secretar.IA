@@ -9,3 +9,9 @@ export function relativeReminderTime(text: string, receivedAt: Date): string | n
   if (!Number.isSafeInteger(amount) || amount <= 0 || !Number.isFinite(timestamp) || Math.abs(timestamp) > 8640000000000000) return null;
   return new Date(timestamp).toISOString();
 }
+
+export function relativeRescheduleTime(text: string, receivedAt: Date): string | null {
+  const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const match = normalized.match(/^(?:adia|adie|adiar|reagenda|reagende|muda|mude)\b.{0,160}?\b(?:por|em|para daqui a)\s+(\d+)\s+(segundos?|minutos?|horas?)[.!?]?\s*$/);
+  return match ? relativeReminderTime(`em ${match[1]} ${match[2]}`, receivedAt) : null;
+}

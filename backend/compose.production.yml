@@ -1,0 +1,69 @@
+x-runtime: &runtime
+  build: .
+  image: secretaria-ia:local
+  env_file: ${SECRETARIA_ENV_FILE:-../.env.production}
+  restart: unless-stopped
+  init: true
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-secretaria}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure a senha em .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:-secretaria_ia}
+    volumes:
+      - production_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7
+    command: [redis-server, --appendonly, "yes"]
+    restart: unless-stopped
+    volumes:
+      - production_redis:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+  migrate:
+    build: .
+    image: secretaria-ia:local
+    env_file: ${SECRETARIA_ENV_FILE:-../.env.production}
+    command: [node, node_modules/prisma/build/index.js, migrate, deploy]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    <<: *runtime
+    command: [node, dist/server.js]
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  inbox:
+    <<: *runtime
+    command: [node, dist/inbox-worker.js]
+  reminders:
+    <<: *runtime
+    command: [node, dist/queue/reminder.worker.js]
+
+volumes:
+  production_postgres:
+  production_redis:

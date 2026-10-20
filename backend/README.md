@@ -2,6 +2,8 @@
 
 Backend TypeScript de secretária pessoal pelo WhatsApp oficial da Meta.
 
+Atualização de 20/10/2026: reagendamento com versões de job, projeção de recibos e seleção texto/template estão implementados. Veja [OPERATIONS.md](OPERATIONS.md) para estados novos, limites, backup e configurações de hospedagem. O rascunho de template ainda exige aprovação da Meta; publicar em nuvem continua pendente.
+
 ## Fluxo atual
 
 POST /webhook → assinatura sobre os bytes originais → validação do lote → PostgreSQL IncomingMessage → HTTP 200.
@@ -101,7 +103,7 @@ Não apague identidades de mensagens indiscriminadamente: elas sustentam a dedup
 - A migração não retoma automaticamente estados antigos processing/processing_unknown nem reenvia respostas históricas.
 - Esgotar tentativas de preparação/execução aparece em failed na operação; ainda não há alerta automático ou mensagem de falha automática para a pessoa.
 - A IA recebe contexto recente limitado: até quatro trocas dos últimos 30 minutos e doze lembretes ativos, sempre por pessoa e número comercial. Resposta pendente não é apresentada como fala já enviada. Isso ainda não substitui um estado formal de esclarecimento nem garante compreensão correta sem avaliação real do modelo.
-- Consultar, cancelar e concluir estão implementados no fluxo transacional de conversa. Alterar título/horário, recorrência, áudio e gastos continuam pendentes.
+- Consultar, cancelar, concluir e reagendar estão implementados no fluxo transacional de conversa. Alterar título, recorrência, áudio e gastos continuam pendentes.
 - O worker processa um lote por vez. Mais workers podem executar mensagens diferentes da mesma pessoa em paralelo; antes de contexto persistente, implementar serialização por usuário.
 - O número comercial é configurado por ambiente. Isso não é um SaaS com várias contas comerciais isoladas.
 - Retenção, exclusão/exportação e limites de consumo ainda precisam de implementação.

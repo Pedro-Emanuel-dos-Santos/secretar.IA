@@ -1,6 +1,6 @@
 import { AIInterpretation } from "../types/ai.types";
 
-const actions = new Set(["conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "create_expense", "unknown"]);
+const actions = new Set(["conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "create_expense", "unknown"]);
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);

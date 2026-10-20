@@ -164,7 +164,8 @@ test("extrai status e códigos sem guardar payload privado", () => {
 });
 test("recibos repetidos usam a mesma identidade e não guardam telefone no evento", async () => {
   const writes = [];
-  const tx = { user: { upsert: async () => ({ id: "user" }) }, event: { upsert: async args => writes.push(args) } };
+  const tx = { user: { upsert: async () => ({ id: "user" }) }, event: { upsert: async args => writes.push(args) },
+    reminder: { updateMany: async () => ({ count: 0 }) }, replyOutbox: { updateMany: async () => ({ count: 0 }) } };
   const store = { incomingMessage: { findFirst: async () => ({ id: "known" }) }, $transaction: fn => fn(tx) };
   await receiveDeliveryReceipts(receiptPayload(receiptRow), "biz", store);
   await receiveDeliveryReceipts(receiptPayload(receiptRow), "biz", store);
@@ -175,3 +176,7 @@ test("recibos repetidos usam a mesma identidade e não guardam telefone no event
 test("recibo de destinatário desconhecido não cria usuário ou evento", async () => {
   await receiveDeliveryReceipts(receiptPayload(receiptRow), "biz", { incomingMessage: { findFirst: async () => null }, $transaction: () => assert.fail() });
 });
+
+require("./recipient.test.cjs");
+require("./whatsapp.policy.test.cjs");
+require("./redis.test.cjs");

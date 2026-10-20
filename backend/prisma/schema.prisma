@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model IncomingMessage {
@@ -42,6 +42,9 @@ model ReplyOutbox {
   attempts          Int      @default(0)
   providerMessageId String?
   startedAt         DateTime?
+  deliveryStatus    String?
+  deliveryErrorCodes Json?
+  deliveryUpdatedAt DateTime?
   finishedAt        DateTime?
   createdAt         DateTime @default(now())
   message           IncomingMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
@@ -74,6 +77,10 @@ model Reminder {
   sourceMessageId   String? @unique
   deliveryStartedAt DateTime?
   providerMessageId String?
+  scheduleVersion Int @default(0)
+  deliveryStatus String?
+  deliveryErrorCodes Json?
+  deliveryUpdatedAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   sourceMessage IncomingMessage? @relation(fields: [sourceMessageId], references: [id], onDelete: Restrict)

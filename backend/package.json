@@ -1,12 +1,14 @@
 {
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "bullmq": "^5.78.0",
     "cors": "^2.8.6",
+    "dotenv": "18.0.8",
     "express": "^5.2.1",
     "ioredis": "^5.11.1",
     "openai": "^6.45.0",
-    "prisma": "^6.19.3"
+    "prisma": "7.10.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -15,16 +17,20 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/server.ts",
-    "start": "node --import tsx --env-file=.env src/server.ts",
-    "worker": "node --import tsx --env-file=.env src/queue/reminder.worker.ts",
+    "dev": "tsx watch --env-file-if-exists=../.env --env-file-if-exists=.env src/server.ts",
+    "start": "node --import tsx --env-file-if-exists=../.env --env-file-if-exists=.env src/server.ts",
+    "worker": "node --import tsx --env-file-if-exists=../.env --env-file-if-exists=.env src/queue/reminder.worker.ts",
     "test": "node test/run.cjs",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate deploy",
-    "worker:inbox": "node --import tsx --env-file=.env src/inbox-worker.ts",
+    "db:generate": "node --env-file-if-exists=../.env --env-file-if-exists=.env node_modules/prisma/build/index.js generate",
+    "db:migrate": "node --env-file-if-exists=../.env --env-file-if-exists=.env node_modules/prisma/build/index.js migrate deploy",
+    "worker:inbox": "node --import tsx --env-file-if-exists=../.env --env-file-if-exists=.env src/inbox-worker.ts",
     "test:integration": "node test/integration.cjs",
-    "ops": "node --env-file=.env scripts/operations.cjs"
+    "ops": "node --env-file-if-exists=../.env --env-file-if-exists=.env scripts/operations.cjs",
+    "start:compiled": "node --env-file-if-exists=../.env --env-file-if-exists=.env dist/server.js"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

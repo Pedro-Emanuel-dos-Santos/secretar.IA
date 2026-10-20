@@ -33,6 +33,43 @@ export async function receiveDeliveryReceipts(payload: unknown, phoneNumberId: s
       await tx.event.upsert({ where: { id }, update: {}, create: {
         id, userId: user.id, type: "whatsapp_delivery", source: "meta", payload: { ...safe, phoneNumberId },
       } });
+      // Receipts may arrive out of order. Never turn a read/delivered message back into sent/failed.
+      const predecessors: Record<string, string[]> = {
+        sent: ["sent"], failed: ["sent", "failed"], delivered: ["sent", "failed", "delivered"], read: ["sent", "failed", "delivered", "read"],
+      };
+      const allowed = predecessors[receipt.status];
+      if (!allowed) return;
+      const receivedAt = new Date(Number(receipt.timestamp) * 1000);
+      const progress = {
+        providerMessageId: receipt.providerMessageId,
+        AND: [
+          { OR: [{ deliveryStatus: null }, { deliveryStatus: { in: allowed } }] },
+          { OR: [{ deliveryUpdatedAt: null }, { deliveryUpdatedAt: { lte: receivedAt } }] },
+        ],
+      };
+      const data = { deliveryStatus: receipt.status, deliveryErrorCodes: receipt.errorCodes, deliveryUpdatedAt: receivedAt };
+      await tx.reminder.updateMany({ where: {
+        ...progress, user: { phone }, OR: [{ sourceMessage: { phoneNumberId } }, { scheduleOutbox: { phoneNumberId } }],
+      }, data });
+      await tx.replyOutbox.updateMany({ where: { ...progress, message: { phone, phoneNumberId } }, data });
     });
+  }
+}
+
+// A receipt can beat the HTTP send response. Reapply already-persisted receipts after
+// recording the provider ID, so an early read/failed receipt is not lost in the summary.
+export async function reconcileStoredDelivery(store: PrismaClient, phoneNumberId: string, providerMessageId: string) {
+  const events = await store.event.findMany({
+    where: { type: "whatsapp_delivery", AND: [
+      { payload: { path: ["phoneNumberId"], equals: phoneNumberId } },
+      { payload: { path: ["providerMessageId"], equals: providerMessageId } },
+    ] }, include: { user: { select: { phone: true } } }, orderBy: { createdAt: "asc" }, take: 20,
+  });
+  for (const event of events) {
+    const receipt = event.payload as { status: string; timestamp: string; errorCodes: number[] };
+    await receiveDeliveryReceipts({ entry: [{ changes: [{ field: "messages", value: {
+      metadata: { phone_number_id: phoneNumberId }, statuses: [{ id: providerMessageId, status: receipt.status,
+        timestamp: receipt.timestamp, recipient_id: event.user.phone, errors: receipt.errorCodes.map(code => ({ code })) }],
+    } }] }] }, phoneNumberId, store);
   }
 }

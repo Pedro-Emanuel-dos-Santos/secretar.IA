@@ -4,6 +4,7 @@ export type AIAction =
   | "list_reminders"
   | "cancel_reminder"
   | "complete_reminder"
+  | "reschedule_reminder"
   | "create_expense"
   | "unknown";
 

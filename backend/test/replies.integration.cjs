@@ -2,13 +2,13 @@ require("./register.cjs");
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
-const { PrismaClient } = require("@prisma/client");
+const { createPrismaClient } = require("../src/config/database.ts");
 const { processInboxBatch } = require("../src/domain/inbox.processor.ts");
 const { relayReplies } = require("../src/domain/reply.relay.ts");
 const { relaySchedules } = require("../src/domain/schedule.relay.ts");
 const { operationalOverview } = require("../src/domain/operations.overview.ts");
 const databaseUrl = require("./integration.database.cjs");
-const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
+const prisma = createPrismaClient(databaseUrl);
 const numberId = "replies-" + randomUUID();
 const phone = "5597" + String(Date.now()).slice(-11);
 const intent = { action: "create_reminder", title: "Conteúdo privado", datetime: "2099-07-20T10:00:00-03:00", description: null, amount: null, category: null, reply: "Não usar para confirmar execução." };
@@ -43,7 +43,7 @@ test("snapshot persistido retoma a ação sem consultar IA", async () => {
 test("resposta pendente é recuperada por outro cliente sem repetir a ação", async () => {
   await clear();
   const row = await prepare();
-  const client = new PrismaClient({ datasourceUrl: databaseUrl });
+  const client = createPrismaClient(databaseUrl);
   let sends = 0;
   try {
     const send = async () => { sends++; return accepted(); };

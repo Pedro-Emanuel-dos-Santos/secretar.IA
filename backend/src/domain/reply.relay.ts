@@ -1,10 +1,12 @@
 import type { PrismaClient } from "@prisma/client";
 import { formatReminderReply } from "./action.executor";
+import { WhatsAppPreflightError } from "./whatsapp.policy";
 
 type Store = Pick<PrismaClient, "replyOutbox" | "$transaction">;
 type Sender = (phone: string, text: string) => Promise<unknown>;
 
-export async function relayReplies(store: Store, send: Sender, phoneNumberId: string) {
+export async function relayReplies(store: Store, send: Sender, phoneNumberId: string,
+  reconcile?: (providerMessageId: string) => Promise<void>) {
   const rows = await store.replyOutbox.findMany({
     where: { status: "pending", message: { phoneNumberId, status: "reply_pending" } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }], take: 20,
@@ -41,14 +43,18 @@ export async function relayReplies(store: Store, send: Sender, phoneNumberId: st
           where: { id: row.messageId, status: "reply_sending" }, data: { status: "completed", finishedAt: new Date() },
         });
       });
+      if (reconcile) {
+        try { await reconcile(id); } catch { console.error("Recibo persistido aguarda reconciliação operacional."); }
+      }
       accepted++;
-    } catch {
+    } catch (error) {
+      const blocked = error instanceof WhatsAppPreflightError;
       await store.$transaction(async tx => {
         const marked = await tx.replyOutbox.updateMany({
-          where: { id: row.id, status: "sending" }, data: { status: "delivery_unknown", finishedAt: new Date() },
+          where: { id: row.id, status: "sending" }, data: { status: blocked ? "blocked_window" : "delivery_unknown", finishedAt: new Date() },
         });
         if (marked.count) await tx.incomingMessage.updateMany({
-          where: { id: row.messageId, status: "reply_sending" }, data: { status: "reply_unknown", lastError: "reply_delivery_unknown" },
+          where: { id: row.messageId, status: "reply_sending" }, data: { status: blocked ? "reply_blocked" : "reply_unknown", lastError: blocked ? "reply_window_closed" : "reply_delivery_unknown" },
         });
       });
     }

@@ -2,12 +2,12 @@ require("./register.cjs");
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { randomUUID } = require("node:crypto");
-const { PrismaClient } = require("@prisma/client");
+const { createPrismaClient } = require("../src/config/database.ts");
 const { persistReminder } = require("../src/domain/reminder.creator.ts");
 const { relaySchedules } = require("../src/domain/schedule.relay.ts");
 const { deliverReminder } = require("../src/domain/reminder.delivery.ts");
 const databaseUrl = require("./integration.database.cjs");
-const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
+const prisma = createPrismaClient(databaseUrl);
 const numberId = "durability-" + randomUUID();
 const phone = "5598" + String(Date.now()).slice(-11);
 const input = { phone, title: "Internet", remindAt: "2099-07-20T10:00:00-03:00" };
@@ -63,7 +63,7 @@ test("origem de outra pessoa ou número comercial é rejeitada", async () => {
 test("queda após commit é recuperada sem reconstruir o lembrete", async () => {
   await clear();
   const { reminder } = await create();
-  const restarted = new PrismaClient({ datasourceUrl: process.env.INBOX_TEST_DATABASE_URL });
+  const restarted = createPrismaClient(process.env.INBOX_TEST_DATABASE_URL);
   const jobs = [];
   try {
     await relaySchedules(restarted, { add: async (...args) => { jobs.push(args); } }, { phoneNumberId: numberId });
@@ -131,7 +131,7 @@ test("cinco tentativas persistentes encerram publicação mesmo após reiniciar 
   const queue = { add: async () => { calls++; throw Error("redis"); } };
   for (let attempt = 0; attempt < 5; attempt++) {
     await eligible(reminder.id);
-    const client = new PrismaClient({ datasourceUrl: process.env.INBOX_TEST_DATABASE_URL });
+    const client = createPrismaClient(process.env.INBOX_TEST_DATABASE_URL);
     try { await relaySchedules(client, queue, { phoneNumberId: numberId }); }
     finally { await client.$disconnect(); }
   }

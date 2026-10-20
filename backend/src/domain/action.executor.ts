@@ -14,6 +14,7 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
   }
   if (reminder.status === "sending" || reminder.status === "delivery_unknown") return "O lembrete já entrou em envio. Ainda não consigo confirmar o resultado.";
   if (reminder.status === "provider_accepted") return "Esse lembrete já foi aceito pelo provedor para envio.";
+  if (reminder.status === "blocked_template") return "O lembrete foi registrado, mas o envio está bloqueado até configurar um modelo aprovado pelo WhatsApp.";
   return `Combinado. Em ${date}, eu te lembro de: ${reminder.title}.`;
 }
 
@@ -33,6 +34,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
     case "list_reminders":
     case "cancel_reminder":
     case "complete_reminder":
+    case "reschedule_reminder":
       return manage ? manage(interpretation) : "Ainda não consigo executar essa operação por aqui.";
     case "create_expense": return "Ainda não consigo registrar gastos.";
     case "unknown": return "Não entendi o que você precisa. Pode explicar de outro jeito?";

@@ -1,6 +1,6 @@
 import { AIInterpretation } from "../types/ai.types";
 import { parseInterpretation } from "./interpretation.validation";
-import { relativeReminderTime } from "./relative-time";
+import { relativeReminderTime, relativeRescheduleTime } from "./relative-time";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string };
 export type ConversationDependencies = {
@@ -17,6 +17,10 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       const validated = parseInterpretation(JSON.stringify(interpretation));
       if (validated.action === "create_reminder") {
         const relative = relativeReminderTime(message.text, message.receivedAt);
+        if (relative) validated.datetime = relative;
+      }
+      if (validated.action === "reschedule_reminder") {
+        const relative = relativeRescheduleTime(message.text, message.receivedAt);
         if (relative) validated.datetime = relative;
       }
       return validated;

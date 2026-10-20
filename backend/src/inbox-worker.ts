@@ -6,6 +6,7 @@ import { relaySchedules } from "./domain/schedule.relay";
 import { reminderQueue } from "./queue/reminder.queue";
 import { relayReplies } from "./domain/reply.relay";
 import { sendWhatsAppMessage } from "./services/whatsapp.service";
+import { reconcileStoredDelivery } from "./domain/delivery.receipts";
 
 const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 if (!phoneNumberId) throw new Error("Configure WHATSAPP_PHONE_NUMBER_ID antes de iniciar o worker de entrada.");
@@ -22,7 +23,7 @@ async function main() {
     try { await relaySchedules(prisma, reminderQueue, { phoneNumberId: phoneNumberId! }); }
     catch { console.error("Falha ao recuperar agendamentos; pendências preservadas no banco."); }
     if (process.env.WHATSAPP_ACCESS_TOKEN) {
-      try { await relayReplies(prisma, sendWhatsAppMessage, phoneNumberId!); }
+      try { await relayReplies(prisma, sendWhatsAppMessage, phoneNumberId!, id => reconcileStoredDelivery(prisma, phoneNumberId!, id)); }
       catch { console.error("Falha ao confirmar respostas; consulte os estados persistidos."); }
     }
     if (!stopping) await new Promise(resolve => setTimeout(resolve, 1000));

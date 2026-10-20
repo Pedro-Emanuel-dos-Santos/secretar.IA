@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { AIInterpretation } from "../types/ai.types";
-import { parseTimestamp } from "./reminder.validation";
+import { parseTimestamp, validateReminder } from "./reminder.validation";
 
 export const reminderScope = (phone: string, phoneNumberId: string): Prisma.ReminderWhereInput => ({
   user: { phone }, OR: [{ sourceMessage: { phoneNumberId } }, { scheduleOutbox: { phoneNumberId } }],
@@ -11,7 +11,7 @@ const displayDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", {
 const displayTitle = (title: string) => title.length > 100 ? title.slice(0, 97) + "..." : title;
 
 export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient) {
-  if (!["list_reminders", "cancel_reminder", "complete_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
+  if (!["list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
   const scope = reminderScope(phone, phoneNumberId);
   let range: Prisma.DateTimeFilter | undefined;
   if (intent.rangeStart || intent.rangeEnd) {
@@ -43,11 +43,29 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     if (intent.reminderId && target && intent.reminderId !== target.id) return "Não consegui identificar o lembrete com segurança. Qual é o título?";
   } else if (intent.reminderId) {
     target = await tx.reminder.findFirst({ where: { ...scope, id: intent.reminderId } });
-  } else return "Qual lembrete você quer " + (intent.action === "cancel_reminder" ? "cancelar?" : "concluir?");
+  } else return "Qual lembrete você quer " + (intent.action === "cancel_reminder" ? "cancelar?" : intent.action === "reschedule_reminder" ? "reagendar?" : "concluir?");
   if (!target) return "Não encontrei esse lembrete entre os seus pendentes.";
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
-  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed"];
+  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template"];
+  if (intent.action === "reschedule_reminder") {
+    if (!intent.datetime) return "Para qual dia e horário você quer mudar esse lembrete?";
+    let reminderDate: Date;
+    try { reminderDate = validateReminder({ phone, title: target.title, remindAt: intent.datetime }).reminderDate; }
+    catch { return "Preciso de uma data e horário válidos no futuro. Quando devo te lembrar?"; }
+    if (!cancellable.includes(target.status)) return "Esse aviso já entrou em envio. Para evitar repetição, crie um novo lembrete se precisar de outro aviso.";
+    const changed = await tx.reminder.updateMany({
+      where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, status: { in: cancellable } },
+      data: { remindAt: reminderDate, scheduleVersion: { increment: 1 }, status: "scheduling_pending" },
+    });
+    if (!changed.count) return "Esse lembrete mudou enquanto eu processava. Pode confirmar o que deseja?";
+    await tx.scheduleOutbox.upsert({
+      where: { reminderId: target.id },
+      create: { reminderId: target.id, phoneNumberId },
+      update: { status: "pending", attempts: 0, nextAttemptAt: new Date(), leaseToken: null, leaseUntil: null, lastError: null },
+    });
+    return `Alterei o horário de ${target.title} para ${displayDate(reminderDate)}. O novo agendamento ainda está sendo confirmado.`;
+  }
   if (intent.action === "cancel_reminder" && !cancellable.includes(target.status)) return "Esse aviso já entrou em envio. Quer marcar como concluído?";
   const state = intent.action === "cancel_reminder" ? "cancelled" : "completed";
   const changed = await tx.reminder.updateMany({

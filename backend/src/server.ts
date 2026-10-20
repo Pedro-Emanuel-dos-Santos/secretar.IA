@@ -1,5 +1,7 @@
 import { app } from "./app";
 
-app.listen(3000, () => {
-  console.log("🚀 Secretár.IA API rodando em http://localhost:3000");
+const port = Number(process.env.PORT || 3000);
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("PORT inválida.");
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Secretár.IA API rodando na porta ${port}`);
 });

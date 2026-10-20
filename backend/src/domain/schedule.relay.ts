@@ -27,14 +27,15 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
   });
   let published = 0;
   for (const row of rows) {
+    const version = row.reminder.scheduleVersion;
     if (row.attempts >= row.maxAttempts) {
       await store.$transaction(async tx => {
         const failed = await tx.scheduleOutbox.updateMany({
-          where: { id: row.id, status: row.status, attempts: row.attempts, leaseToken: row.leaseToken },
+          where: { id: row.id, status: row.status, attempts: row.attempts, leaseToken: row.leaseToken, reminder: { scheduleVersion: version } },
           data: { status: "failed", leaseToken: null, leaseUntil: null, lastError: "attempt_limit_or_publish_unknown" },
         });
         if (failed.count) await tx.reminder.updateMany({
-          where: { id: row.reminderId, status: "scheduling_pending" }, data: { status: "scheduling_failed" },
+          where: { id: row.reminderId, scheduleVersion: version, status: "scheduling_pending" }, data: { status: "scheduling_failed" },
         });
       });
       continue;
@@ -43,7 +44,7 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
     const attempt = row.attempts + 1;
     const claim = await store.scheduleOutbox.updateMany({
       where: {
-        id: row.id, attempts: row.attempts,
+        id: row.id, attempts: row.attempts, reminder: { scheduleVersion: version },
         OR: [{ status: "pending", nextAttemptAt: { lte: now } }, { status: "publishing", leaseUntil: { lte: now } }],
       },
       data: { status: "publishing", attempts: { increment: 1 }, leaseToken: token, leaseUntil: new Date(now.getTime() + leaseMs) },
@@ -52,8 +53,9 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
     try {
       await boundedPublish(queue.add("send-reminder", {
         reminderId: row.reminderId,
+        scheduleVersion: version,
       }, {
-        delay: Math.max(0, row.reminder.remindAt.getTime() - Date.now()), jobId: row.reminderId,
+        delay: Math.max(0, row.reminder.remindAt.getTime() - Date.now()), jobId: version ? `${row.reminderId}-v${version}` : row.reminderId,
         removeOnComplete: false, removeOnFail: false,
       }), options.publishTimeoutMs ?? 5000);
       await store.$transaction(async tx => {
@@ -62,7 +64,7 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
           data: { status: "published", leaseToken: null, leaseUntil: null, lastError: null },
         });
         if (marked.count) await tx.reminder.updateMany({
-          where: { id: row.reminderId, status: "scheduling_pending" }, data: { status: "scheduled" },
+          where: { id: row.reminderId, scheduleVersion: version, status: "scheduling_pending" }, data: { status: "scheduled" },
         });
       });
       published++;
@@ -79,7 +81,7 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
           },
         });
         if (updated.count && failed) await tx.reminder.updateMany({
-          where: { id: row.reminderId, status: "scheduling_pending" }, data: { status: "scheduling_failed" },
+          where: { id: row.reminderId, scheduleVersion: version, status: "scheduling_pending" }, data: { status: "scheduling_failed" },
         });
       });
     }
