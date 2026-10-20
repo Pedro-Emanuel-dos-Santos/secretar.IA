@@ -1,22 +1,7 @@
 import { AIInterpretation } from "../types/ai.types";
-import { executeReminderAction } from "../actions/reminder.action";
+import { createReminder } from "../services/reminder.service";
+import { executeAction } from "../domain/action.executor";
 
-export async function dispatchAction(
-  phone: string,
-  interpretation: AIInterpretation
-) {
-  switch (interpretation.action) {
-    case "create_reminder":
-      await executeReminderAction(phone, interpretation);
-      break;
-
-    case "conversation":
-      break;
-
-    case "unknown":
-      break;
-
-    default:
-      console.log("Ação ainda não implementada:", interpretation.action);
-  }
+export function dispatchAction(phone: string, interpretation: AIInterpretation, sourceMessageId?: string) {
+  return executeAction(phone, interpretation, data => createReminder(data, sourceMessageId));
 }

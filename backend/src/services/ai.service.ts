@@ -3,6 +3,7 @@ import "dotenv/config";
 import { secretaryPrompt } from "../prompts/secretary.prompt";
 import { AIInterpretation } from "../types/ai.types";
 import { aiRouter } from "../ai/ai-router";
+import { parseInterpretation } from "../domain/interpretation.validation";
 
 export async function interpretMessage(
   context: any
@@ -28,5 +29,5 @@ export async function interpretMessage(
     ],
   });
 
-  return JSON.parse(response.content);
+  return parseInterpretation(response.content);
 }

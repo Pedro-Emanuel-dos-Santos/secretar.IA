@@ -7,6 +7,7 @@ export async function sendWhatsAppMessage(phone: string, message: string) {
 
   const response = await fetch(`${apiUrl}/${phoneNumberId}/messages`, {
     method: "POST",
+    signal: AbortSignal.timeout(15000),
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -23,10 +24,8 @@ export async function sendWhatsAppMessage(phone: string, message: string) {
 
   const data = await response.json();
 
-  console.log("Resposta da Meta:", data);
-
   if (!response.ok) {
-    console.error("Erro ao enviar WhatsApp:", data);
+    console.error("Erro HTTP ao enviar WhatsApp:", response.status);
     throw new Error("Erro ao enviar WhatsApp");
   }
 

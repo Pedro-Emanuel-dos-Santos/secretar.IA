@@ -1,29 +1,8 @@
 import { buildContext } from "../context/context.builder";
 import { interpretMessage } from "./ai.service";
-import { dispatchAction } from "../dispatcher/action.dispatcher";
-import { sendWhatsAppMessage } from "./whatsapp.service";
+import { ConversationDependencies } from "../domain/conversation.processor";
 
-export async function handleIncomingMessage(
-  phone: string,
-  message: string
-) {
-
-  console.log("🧠 Construindo contexto...");
-
-  const context = await buildContext(phone, message);
-
-  console.log(context);
-
-  const interpretation = await interpretMessage(context);
-
-  console.log("🤖 IA");
-
-  console.log(interpretation);
-
-  await dispatchAction(phone, interpretation);
-
-  await sendWhatsAppMessage(
-    phone,
-    interpretation.reply
-  );
-}
+export const conversationDependencies: ConversationDependencies = {
+  buildContext: message => buildContext(message.phone, message.text, message.receivedAt, message.phoneNumberId),
+  interpret: interpretMessage,
+};

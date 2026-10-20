@@ -7,6 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model IncomingMessage {
+  id                String   @id @default(uuid())
+  providerMessageId String
+  phoneNumberId     String
+  phone             String
+  text              String
+  status            String   @default("received")
+  receivedAt        DateTime @default(now())
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  reminder          Reminder?
+  interpretation    Json?
+  interpretationAttempts Int @default(0)
+  executionAttempts Int @default(0)
+  maxAttempts       Int @default(5)
+  nextAttemptAt     DateTime @default(now())
+  leaseToken        String?
+  leaseUntil        DateTime?
+  lastError         String?
+  reply             ReplyOutbox?
+
+  @@unique([phoneNumberId, providerMessageId])
+  @@index([phoneNumberId, status, receivedAt])
+  @@index([phoneNumberId, status, nextAttemptAt])
+}
+
+model ReplyOutbox {
+  id                String   @id @default(uuid())
+  messageId         String   @unique
+  text              String
+  refreshReminder   Boolean  @default(false)
+  status            String   @default("pending")
+  attempts          Int      @default(0)
+  providerMessageId String?
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime @default(now())
+  message           IncomingMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String?
@@ -26,10 +68,35 @@ model Reminder {
   description String?
   remindAt    DateTime
   status      String   @default("pending")
+  state       String   @default("active")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  sourceMessageId   String? @unique
+  deliveryStartedAt DateTime?
+  providerMessageId String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceMessage IncomingMessage? @relation(fields: [sourceMessageId], references: [id], onDelete: Restrict)
+  scheduleOutbox ScheduleOutbox?
+  @@index([userId, state, remindAt])
+}
+
+model ScheduleOutbox {
+  id             String   @id @default(uuid())
+  reminderId     String   @unique
+  phoneNumberId  String
+  status         String   @default("pending")
+  attempts       Int      @default(0)
+  maxAttempts    Int      @default(5)
+  nextAttemptAt  DateTime @default(now())
+  leaseToken     String?
+  leaseUntil     DateTime?
+  lastError      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  reminder       Reminder @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+
+  @@index([phoneNumberId, status, nextAttemptAt])
 }
 
 model Event {

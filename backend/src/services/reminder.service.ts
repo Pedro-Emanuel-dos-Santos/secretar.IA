@@ -1,49 +1,14 @@
 import { prisma } from "../config/prisma";
 import { reminderQueue } from "../queue/reminder.queue";
+import { ReminderInput } from "../domain/reminder.validation";
+import { persistReminder } from "../domain/reminder.creator";
+import { relaySchedules } from "../domain/schedule.relay";
 
-export async function createReminder(data: {
-  phone: string;
-  title: string;
-  description?: string;
-  remindAt: string;
-}) {
-  const { phone, title, description, remindAt } = data;
-
-  const user = await prisma.user.upsert({
-    where: { phone },
-    update: {},
-    create: {
-      phone,
-      name: null,
-      timezone: "America/Sao_Paulo",
-    },
-  });
-
-  const reminderDate = new Date(remindAt);
-  const delay = reminderDate.getTime() - Date.now();
-
-  if (delay <= 0) {
-    throw new Error("A data do lembrete precisa ser no futuro.");
-  }
-
-  const reminder = await prisma.reminder.create({
-    data: {
-      userId: user.id,
-      title,
-      description,
-      remindAt: reminderDate,
-    },
-  });
-
-  await reminderQueue.add(
-    "send-reminder",
-    {
-      reminderId: reminder.id,
-      phone,
-      message: `⏰ Lembrete: ${title}`,
-    },
-    { delay }
-  );
-
-  return reminder;
+export async function createReminder(data: ReminderInput, sourceMessageId?: string) {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  if (!phoneNumberId) throw new Error("Configure WHATSAPP_PHONE_NUMBER_ID.");
+  const reminder = await persistReminder(data, prisma, { phoneNumberId, sourceMessageId });
+  try { await relaySchedules(prisma, reminderQueue, { phoneNumberId, reminderId: reminder.id }); }
+  catch { console.error("Publicação não confirmada; agendamento preservado no banco."); }
+  return (await prisma.reminder.findUnique({ where: { id: reminder.id } })) ?? reminder;
 }

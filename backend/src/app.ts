@@ -3,10 +3,13 @@ import cors from "cors";
 
 import { reminderRoutes } from "./routes/reminder.routes";
 import { webhookRoutes } from "./routes/webhook.routes";
+import { createAdminGuard } from "./http/admin.guard";
+import { operationsRoutes } from "./routes/operations.routes";
 
 export const app = express();
 
 app.use(cors());
+app.use("/", webhookRoutes);
 app.use(express.json());
 
 /*
@@ -28,9 +31,8 @@ app.get("/", (req, res) => {
 |--------------------------------------------------------------------------
 */
 
-app.use("/", webhookRoutes);
-
-app.use("/reminders", reminderRoutes);
+app.use("/reminders", createAdminGuard(() => process.env.ADMIN_API_TOKEN), reminderRoutes);
+app.use("/operations", operationsRoutes);
 
 /*
 |--------------------------------------------------------------------------

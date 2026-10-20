@@ -4,6 +4,8 @@ const greetings = ["oi", "olá", "ola", "bom dia", "boa tarde", "boa noite"];
 const thanks = ["obrigado", "obrigada", "valeu", "vlw", "thanks"];
 
 export function tryRules(input: AIChatInput): AIChatOutput | null {
+  // Plain text greetings cannot satisfy the structured interpretation contract.
+  if (input.jsonMode) return null;
   const lastMessage = input.messages[input.messages.length - 1]?.content
     ?.trim()
     .toLowerCase();

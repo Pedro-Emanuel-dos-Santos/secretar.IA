@@ -18,8 +18,9 @@ export async function createReminderController(req: Request, res: Response) {
       remindAt,
     });
 
-    return res.status(201).json({
-      message: "Lembrete criado e agendado com sucesso.",
+    const waiting = ["scheduling_pending", "scheduling_failed"].includes(reminder.status);
+    return res.status(waiting ? 202 : 201).json({
+      message: waiting ? "Lembrete registrado. O agendamento ainda não foi confirmado." : "Lembrete criado e agendado com sucesso.",
       reminder,
     });
   } catch (error: any) {
