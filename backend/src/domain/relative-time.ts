@@ -1,6 +1,11 @@
 // Simple elapsed durations are measured from receipt, independently of time zones.
+const spokenAmounts: Record<string,number> = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,quinze:15,vinte:20,trinta:30,sessenta:60};
+function normalizeDuration(text:string) {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+    .replace(/\b(um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|quinze|vinte|trinta|sessenta)(?=\s+(?:segundos?|minutos?|horas?)\b)/g, word=>String(spokenAmounts[word]));
+}
 export function relativeReminderTime(text: string, receivedAt: Date): string | null {
-  const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const normalized = normalizeDuration(text);
   const match = normalized.match(/^(?:(?:me (?:lembra|lembre)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\s+)?(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)(?=\s+(?:de|para)\b|[.!?]?\s*$)/);
   if (!match) return null;
   const amount = Number(match[1]);
@@ -11,7 +16,7 @@ export function relativeReminderTime(text: string, receivedAt: Date): string | n
 }
 
 export function relativeRescheduleTime(text: string, receivedAt: Date): string | null {
-  const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const normalized = normalizeDuration(text);
   const match = normalized.match(/^(?:adia|adie|adiar|reagenda|reagende|muda|mude)\b.{0,160}?\b(?:por|em|para daqui a)\s+(\d+)\s+(segundos?|minutos?|horas?)[.!?]?\s*$/);
   return match ? relativeReminderTime(`em ${match[1]} ${match[2]}`, receivedAt) : null;
 }
