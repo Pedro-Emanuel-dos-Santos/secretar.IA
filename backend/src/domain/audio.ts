@@ -1,4 +1,11 @@
+import { createHash } from "node:crypto";
 export class AudioRejectedError extends Error {}
+export function matchesMediaHash(bytes: Buffer, expected: string) {
+  const digest = createHash("sha256").update(bytes).digest();
+  return /^[a-fA-F0-9]{64}$/.test(expected)
+    ? digest.toString("hex") === expected.toLowerCase()
+    : digest.toString("base64") === expected;
+}
 export const audioFallback = "Não consegui entender esse áudio com segurança. Pode mandar o pedido por texto ou gravar um áudio curto e claro?";
 export const maxAudioBytes = 5 * 1024 * 1024;
 export const audioExtensions: Record<string,string> = {

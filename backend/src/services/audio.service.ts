@@ -1,6 +1,5 @@
 import OpenAI, { toFile } from "openai";
-import { createHash } from "node:crypto";
-import { AudioRejectedError, audioMime, audioExtensions, limitedAudio, maxAudioBytes, mediaDownloadUrl } from "../domain/audio";
+import { AudioRejectedError, audioMime, audioExtensions, limitedAudio, maxAudioBytes, mediaDownloadUrl, matchesMediaHash } from "../domain/audio";
 import { transcribeLocalAudio } from "./local-audio.service";
 
 export async function transcribeWhatsAppAudio(message: {mediaId: string; mediaMimeType: string | null; phoneNumberId: string; phone: string}) {
@@ -27,7 +26,7 @@ export async function transcribeWhatsAppAudio(message: {mediaId: string; mediaMi
   const response = await fetch(mediaDownloadUrl(media.url), {headers,redirect:"error",signal:AbortSignal.timeout(12000)});
   if (!response.ok) throw new Error("Falha temporária ao baixar áudio.");
   const bytes = await limitedAudio(response);
-  if (media.sha256 && createHash("sha256").update(bytes).digest("base64") !== media.sha256) throw new AudioRejectedError("Conteúdo incompatível.");
+  if (media.sha256 && !matchesMediaHash(bytes, media.sha256)) throw new AudioRejectedError("Conteúdo incompatível.");
   try {
     if (provider === "local") return await transcribeLocalAudio(bytes);
     // No automatic paid fallback: the provider must be explicitly configured.

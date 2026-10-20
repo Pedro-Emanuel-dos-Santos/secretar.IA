@@ -2,6 +2,14 @@ require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {extractMessages}=require('../src/domain/inbox.receiver.ts');
 const {audioMime,mediaDownloadUrl,limitedAudio,maxAudioBytes}=require('../src/domain/audio.ts');
+test('hash da mídia Meta aceita hexadecimal e Base64 sem aceitar conteúdo alterado',()=>{
+ const {matchesMediaHash}=require('../src/domain/audio.ts');
+ const bytes=Buffer.from('audio de teste'),digest=require('node:crypto').createHash('sha256').update(bytes).digest();
+ for(const expected of [digest.toString('hex'),digest.toString('hex').toUpperCase(),digest.toString('base64')]){
+  assert.equal(matchesMediaHash(bytes,expected),true);assert.equal(matchesMediaHash(Buffer.from('alterado'),expected),false);
+ }
+ assert.equal(matchesMediaHash(bytes,'invalid'),false);
+});
 test('duração falada usa recebimento em vez do fim da transcrição',()=>{
  const {relativeReminderTime}=require('../src/domain/relative-time.ts');
  const now=new Date('2099-01-01T12:00:00Z');
