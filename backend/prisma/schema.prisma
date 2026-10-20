@@ -78,6 +78,10 @@ model Reminder {
   deliveryStartedAt DateTime?
   providerMessageId String?
   scheduleVersion Int @default(0)
+  seriesId String?
+  occurrenceIndex Int?
+  recurrenceFrequency String?
+  recurrenceCount Int?
   deliveryStatus String?
   deliveryErrorCodes Json?
   deliveryUpdatedAt DateTime?
@@ -86,6 +90,7 @@ model Reminder {
   sourceMessage IncomingMessage? @relation(fields: [sourceMessageId], references: [id], onDelete: Restrict)
   scheduleOutbox ScheduleOutbox?
   @@index([userId, state, remindAt])
+  @@unique([seriesId, occurrenceIndex])
 }
 
 model ScheduleOutbox {

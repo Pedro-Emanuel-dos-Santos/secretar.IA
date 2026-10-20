@@ -13,6 +13,16 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if (record.recurrence !== undefined && record.recurrence !== null) {
+    const r = record.recurrence as Record<string,unknown>;
+    if (typeof r !== "object" || Array.isArray(r) || !["daily", "weekly", "monthly"].includes(r.frequency as string) ||
+        (r.count !== null && (!Number.isSafeInteger(r.count) || (r.count as number) < 2 || (r.count as number) > 12))) throw new Error("Recorrência inválida.");
+    extra.recurrence = { frequency: r.frequency as "daily" | "weekly" | "monthly", count: r.count as number | null };
+  }
+  if (record.cancelSeries !== undefined) {
+    if (typeof record.cancelSeries !== "boolean") throw new Error("Escopo inválido.");
+    extra.cancelSeries = record.cancelSeries;
+  }
   if ("expectedVersion" in record) {
     if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
     extra.expectedVersion = record.expectedVersion as number;

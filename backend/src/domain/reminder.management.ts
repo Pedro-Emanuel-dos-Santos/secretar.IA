@@ -36,9 +36,9 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   if (search) {
     const matches = await tx.reminder.findMany({
       where: { ...scope, state: "active", title: { contains: search, mode: "insensitive" }, remindAt: range },
-      orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 2,
+      orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: intent.cancelSeries ? 13 : 2,
     });
-    if (matches.length > 1) return "Qual deles?\n" + matches.map(r => `• ${displayTitle(r.title)} — ${displayDate(r.remindAt)}`).join("\n");
+    if (matches.length > 1 && !(intent.cancelSeries && matches[0].seriesId && matches.every(r => r.seriesId === matches[0].seriesId))) return "Qual deles?\n" + matches.map(r => `• ${displayTitle(r.title)} — ${displayDate(r.remindAt)}`).join("\n");
     target = matches[0];
     if (intent.reminderId && target && intent.reminderId !== target.id) return "Não consegui identificar o lembrete com segurança. Qual é o título?";
   } else if (intent.reminderId) {
@@ -51,6 +51,18 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
   const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template"];
+  if (intent.cancelSeries) {
+    if (intent.action !== "cancel_reminder") return "Posso cancelar os próximos avisos da série. Para adiar ou concluir, escolha um aviso.";
+    if (!target.seriesId) return "Esse lembrete não pertence a uma série.";
+    // Status is rechecked atomically: cancellation must never claim to undo a send
+    // that won the race. No new occurrences are generated after this transaction.
+    const cancelled = await tx.reminder.updateMany({
+      where: { ...scope, seriesId: target.seriesId, state: "active", status: { in: cancellable } }, data: { state: "cancelled" },
+    });
+    await tx.scheduleOutbox.updateMany({ where: { phoneNumberId, reminder: { ...scope, seriesId: target.seriesId, state: "cancelled" } },
+      data: { status: "cancelled", leaseToken: null, leaseUntil: null } });
+    return `Cancelei ${cancelled.count} próximos avisos da série ${target.title}. Avisos cujo envio já começou não são desfeitos.`;
+  }
   if (intent.action === "reschedule_reminder") {
     if (!intent.datetime) return "Para qual dia e horário você quer mudar esse lembrete?";
     let reminderDate: Date;

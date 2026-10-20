@@ -1,5 +1,7 @@
 import type { PrismaClient, Prisma } from "@prisma/client";
 import { ReminderInput, validateReminder } from "./reminder.validation";
+import { recurrenceDates } from "./recurrence";
+import { randomUUID } from "node:crypto";
 
 type Store = Pick<PrismaClient, "$transaction" | "reminder">;
 type Source = { phoneNumberId: string; sourceMessageId?: string };
@@ -13,13 +15,23 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
     if (existing) return existing;
   }
   const { phone, title, description, reminderDate } = validateReminder(input);
+  const dates = recurrenceDates(input.remindAt, input.recurrence);
   const user = await tx.user.upsert({
     where: { phone }, update: {}, create: { phone, name: null, timezone: "America/Sao_Paulo" },
   });
-  return tx.reminder.create({
+  const seriesId = input.recurrence ? randomUUID() : null;
+  const recurrence = input.recurrence ? { seriesId, occurrenceIndex: 0,
+    recurrenceFrequency: input.recurrence.frequency, recurrenceCount: input.recurrence.count } : {};
+  const first = await tx.reminder.create({
     data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",
+      ...recurrence,
       sourceMessageId: source.sourceMessageId, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
   });
+  for (let index = 1; index < dates.length; index++) await tx.reminder.create({
+    data: { userId: user.id, title, description, remindAt: dates[index], status: "scheduling_pending",
+      ...recurrence, occurrenceIndex: index, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
+  });
+  return first;
 }
 
 export async function persistReminder(input: ReminderInput, store: Store, source: Source) {

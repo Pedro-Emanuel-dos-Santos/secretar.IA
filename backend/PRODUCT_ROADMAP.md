@@ -9,6 +9,8 @@ Promessa inicial: transformar uma mensagem em compromisso claro, permitir corrig
 ## Entrega atual
 
 - Texto: criar, consultar, adiar, cancelar e concluir.
+- Recorrência limitada: diária, semanal e mensal, de 2 a 12 ocorrências incluindo a primeira, no horário de Brasília. Sem quantidade, a assistente pergunta. Meses sem o dia escolhido são pulados. Cada ocorrência é persistida com sua própria outbox na mesma transação; reentrega da origem não duplica a série.
+- Cancelar série: cancela somente os avisos cujo envio ainda não começou. Concluir e adiar afetam apenas uma ocorrência. Séries de mesmo título pedem escolha.
 - Lembrete na janela de atendimento: Concluir, Adiar 10 min, Adiar 1 hora.
 - Botões são processados sem IA; o título visual do botão não decide a ação.
 - Identidade, pessoa, número comercial, versão e estado são conferidos no banco.
@@ -19,7 +21,7 @@ Implementação atual validada em testes locais. Não representa publicação ne
 
 ## Próximas entregas e critérios de aceite
 
-1. Recorrência: diária, semanal e mensal, com fuso explícito, regra de fim, prévia das próximas datas e confirmação. Persistir série e ocorrências separadas. Adiar afeta apenas a ocorrência; cancelar deve perguntar ocorrência ou série. Dia 31, meses curtos, dias úteis e horário de verão exigem regra explícita. Publicação de próxima ocorrência deve ser transacional e idempotente, sem depender de reenviar a ocorrência anterior. Não gerar avisos retroativos em massa após indisponibilidade.
+1. Ampliar recorrência após validar a versão limitada: prévia de datas, fuso escolhido por pessoa, dias úteis e regras de término por data. Não oferecer repetição infinita na versão atual. Revisar tratamento de avisos acumulados após indisponibilidade antes de ampliar o piloto.
 2. Áudio: mídia autenticada da Meta, tamanho/duração limitados, download com domínio permitido, transcrição com prazo e tentativas limitadas. Áudio não vira ação se a data estiver ambígua. Guardar o mínimo necessário e definir descarte; informar ao usuário o processamento externo. Testar mídia expirada, silêncio, datas relativas, duplicatas e indisponibilidade do transcritor antes de habilitar.
 3. Entrada no piloto: fuso confirmado, exemplos curtos para o trabalho, consentimento para avisos e saída simples. Persistir preferências de forma isolada por pessoa e conta. Resumo diário opcional, desativado por padrão.
 4. Cobrança: planos e cotas aplicados no servidor, consumo verificável, período de teste claro e política de cancelamento. Nenhuma promessa de ilimitado ou cobrança automática no piloto atual.

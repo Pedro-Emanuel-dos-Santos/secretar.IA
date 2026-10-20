@@ -181,3 +181,4 @@ require("./recipient.test.cjs");
 require("./whatsapp.policy.test.cjs");
 require("./redis.test.cjs");
 require("./buttons.test.cjs");
+require("./recurrence.test.cjs");
