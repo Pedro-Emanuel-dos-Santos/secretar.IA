@@ -19,21 +19,24 @@ def main():
     samples = []
     count = 0
     # Stop decoding at 90 seconds even when container duration is missing/forged.
-    with av.open(io.BytesIO(data)) as container:
-        resampler = av.AudioResampler(format="s16", layout="mono", rate=16000)
-        for frame in container.decode(audio=0):
-            for output in resampler.resample(frame):
+    try:
+        with av.open(io.BytesIO(data)) as container:
+            resampler = av.AudioResampler(format="s16", layout="mono", rate=16000)
+            for frame in container.decode(audio=0):
+                for output in resampler.resample(frame):
+                    part = output.to_ndarray().flatten()
+                    count += part.size
+                    if count > 90 * 16000:
+                        raise ValueError("audio_too_long")
+                    samples.append(part)
+            for output in resampler.resample(None):
                 part = output.to_ndarray().flatten()
                 count += part.size
                 if count > 90 * 16000:
                     raise ValueError("audio_too_long")
                 samples.append(part)
-        for output in resampler.resample(None):
-            part = output.to_ndarray().flatten()
-            count += part.size
-            if count > 90 * 16000:
-                raise ValueError("audio_too_long")
-            samples.append(part)
+    except (av.error.FFmpegError, IndexError):
+        raise ValueError("invalid_audio") from None
     if count < 1600:
         raise ValueError("invalid_audio")
     audio = np.concatenate(samples).astype(np.float32) / 32768.0

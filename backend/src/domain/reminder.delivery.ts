@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { WhatsAppPreflightError } from "./whatsapp.policy";
 import type { ReminderControls } from "./reminder.buttons";
+import { WhatsAppSendRejected } from "./whatsapp.errors";
 
 type Store = Pick<PrismaClient, "reminder">;
 type Sender = (phone: string, text: string, controls?: ReminderControls) => Promise<unknown>;
@@ -34,7 +35,11 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
   } catch (error) {
     await store.reminder.updateMany({
       where: { id: reminderId, status: "sending" },
-      data: { status: error instanceof WhatsAppPreflightError ? "blocked_template" : "delivery_unknown" },
+      data: { status: error instanceof WhatsAppPreflightError
+        ? error.reason === "reminders_paused" ? "blocked_paused" : "blocked_template"
+        : error instanceof WhatsAppSendRejected ? "provider_rejected" : "delivery_unknown",
+        ...(error instanceof WhatsAppSendRejected ? {deliveryStatus:"failed",deliveryErrorCodes:error.code === undefined ? [] : [error.code],deliveryUpdatedAt:new Date()} : {}),
+      },
     });
     throw new Error("Não foi possível confirmar o resultado do envio do lembrete.");
   }

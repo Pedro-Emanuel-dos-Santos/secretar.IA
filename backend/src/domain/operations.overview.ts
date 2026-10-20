@@ -4,7 +4,7 @@ type Store = Pick<PrismaClient, "incomingMessage" | "replyOutbox" | "scheduleOut
 export async function operationalOverview(store: Store, phoneNumberId: string) {
   const now = new Date();
   const stalled = new Date(now.getTime() - 120000);
-  const [inbox, replies, schedules, reminders, expiredPreparation, uncertainReplies, legacyProcessing, uncertainReminders, reminderStates, deliveryStates, replyDeliveryStates] = await Promise.all([
+  const [inbox, replies, schedules, reminders, expiredPreparation, uncertainReplies, legacyProcessing, uncertainReminders, reminderStates, deliveryStates, replyDeliveryStates, unreadableAudio, failedRequests, limitedRequests] = await Promise.all([
     store.incomingMessage.groupBy({ by: ["status"], where: { phoneNumberId }, _count: { _all: true } }),
     store.replyOutbox.groupBy({ by: ["status"], where: { message: { phoneNumberId } }, _count: { _all: true } }),
     store.scheduleOutbox.groupBy({ by: ["status"], where: { phoneNumberId }, _count: { _all: true } }),
@@ -22,6 +22,9 @@ export async function operationalOverview(store: Store, phoneNumberId: string) {
     store.reminder.groupBy({ by: ["state"], where: { OR: [{ sourceMessage: { phoneNumberId } }, { scheduleOutbox: { phoneNumberId } }] }, _count: { _all: true } }),
     store.reminder.groupBy({ by: ["deliveryStatus"], where: { OR: [{ sourceMessage: { phoneNumberId } }, { scheduleOutbox: { phoneNumberId } }] }, _count: { _all: true } }),
     store.replyOutbox.groupBy({ by: ["deliveryStatus"], where: { message: { phoneNumberId } }, _count: { _all: true } }),
+    store.incomingMessage.count({where:{phoneNumberId,lastError:"audio_unreadable"}}),
+    store.incomingMessage.count({where:{phoneNumberId,lastError:{in:["interpreting_attempt_limit","executing_attempt_limit"]}}}),
+    store.incomingMessage.count({where:{phoneNumberId,lastError:"request_quota"}}),
   ]);
   const counts = (rows: { status: string; _count: { _all: number } }[]) =>
     Object.fromEntries(rows.map(row => [row.status, row._count._all]));
@@ -33,8 +36,11 @@ export async function operationalOverview(store: Store, phoneNumberId: string) {
       replies: Object.fromEntries(replyDeliveryStates.map(row => [row.deliveryStatus ?? "not_confirmed", row._count._all])),
     },
     attention: { expiredPreparation, uncertainReplies, legacyProcessing,
+      unreadableAudio, failedRequests, limitedRequests,
       failedMessages: counts(inbox).failed ?? 0, failedSchedules: counts(schedules).failed ?? 0,
       uncertainReminders, blockedTemplates: counts(reminders).blocked_template ?? 0, blockedReplies: counts(replies).blocked_window ?? 0,
+      pausedReminders: counts(reminders).blocked_paused ?? 0, missedReminders: counts(reminders).missed ?? 0,
+      rejectedReminders: counts(reminders).provider_rejected ?? 0, rejectedReplies: counts(replies).provider_rejected ?? 0,
       failedDeliveries: deliveryStates.find(row => row.deliveryStatus === "failed")?._count._all ?? 0 },
   };
 }

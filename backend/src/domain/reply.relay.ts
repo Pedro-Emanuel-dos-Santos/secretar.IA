@@ -1,18 +1,20 @@
 import type { PrismaClient } from "@prisma/client";
 import { formatReminderReply } from "./action.executor";
 import { WhatsAppPreflightError } from "./whatsapp.policy";
+import { WhatsAppSendRejected } from "./whatsapp.errors";
 
 type Store = Pick<PrismaClient, "replyOutbox" | "$transaction">;
 type Sender = (phone: string, text: string) => Promise<unknown>;
 
 export async function relayReplies(store: Store, send: Sender, phoneNumberId: string,
-  reconcile?: (providerMessageId: string) => Promise<void>) {
+  reconcile?: (providerMessageId: string) => Promise<void>, shouldStop=()=>false) {
   const rows = await store.replyOutbox.findMany({
     where: { status: "pending", message: { phoneNumberId, status: "reply_pending" } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }], take: 20,
   });
   let accepted = 0;
   for (const row of rows) {
+    if (shouldStop()) break;
     const claimed = await store.$transaction(async tx => {
       const claim = await tx.replyOutbox.updateMany({
         where: { id: row.id, status: "pending" }, data: { status: "sending", startedAt: new Date(), attempts: { increment: 1 } },
@@ -49,12 +51,15 @@ export async function relayReplies(store: Store, send: Sender, phoneNumberId: st
       accepted++;
     } catch (error) {
       const blocked = error instanceof WhatsAppPreflightError;
+      const rejected = error instanceof WhatsAppSendRejected;
       await store.$transaction(async tx => {
         const marked = await tx.replyOutbox.updateMany({
-          where: { id: row.id, status: "sending" }, data: { status: blocked ? "blocked_window" : "delivery_unknown", finishedAt: new Date() },
+          where: { id: row.id, status: "sending" }, data: { status: blocked ? "blocked_window" : rejected ? "provider_rejected" : "delivery_unknown", finishedAt: new Date(),
+            ...(rejected ? {deliveryStatus:"failed",deliveryErrorCodes:error.code === undefined ? [] : [error.code],deliveryUpdatedAt:new Date()} : {}),
+          },
         });
         if (marked.count) await tx.incomingMessage.updateMany({
-          where: { id: row.messageId, status: "reply_sending" }, data: { status: blocked ? "reply_blocked" : "reply_unknown", lastError: blocked ? "reply_window_closed" : "reply_delivery_unknown" },
+          where: { id: row.messageId, status: "reply_sending" }, data: { status: blocked ? "reply_blocked" : rejected ? "reply_rejected" : "reply_unknown", lastError: blocked ? "reply_window_closed" : rejected ? "reply_provider_rejected" : "reply_delivery_unknown" },
         });
       });
     }

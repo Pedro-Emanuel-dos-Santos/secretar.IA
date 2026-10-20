@@ -62,3 +62,13 @@ test("job de outro número comercial não inicia envio", async () => {
   await assert.rejects(deliverReminder("reminder", "other-number", store, async () => assert.fail()), /incompatível/);
   assert.equal(store.row.status, "scheduled");
 });
+test('recusa conhecida do lembrete e pausa não viram envio incerto',async()=>{
+ const {WhatsAppSendRejected}=require('../src/domain/whatsapp.errors.ts');
+ const {WhatsAppPreflightError}=require('../src/domain/whatsapp.policy.ts');
+ const rejected=deliveryStore();
+ await assert.rejects(deliverReminder('reminder','number',rejected,async()=>{throw new WhatsAppSendRejected(400,131030)}));
+ assert.equal(rejected.row.status,'provider_rejected');assert.deepEqual(rejected.row.deliveryErrorCodes,[131030]);
+ const paused=deliveryStore();
+ await assert.rejects(deliverReminder('reminder','number',paused,async()=>{throw new WhatsAppPreflightError('reminders_paused')}));
+ assert.equal(paused.row.status,'blocked_paused');
+});

@@ -5,6 +5,7 @@ export async function ollamaChat(input: AIChatInput): Promise<AIChatOutput> {
 
   const response = await fetch(`${baseUrl}/api/chat`, {
     method: "POST",
+    signal:AbortSignal.timeout(12000),
     headers: {
       "Content-Type": "application/json",
     },

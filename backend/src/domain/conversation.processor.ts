@@ -2,6 +2,7 @@ import { AIInterpretation } from "../types/ai.types";
 import { parseInterpretation } from "./interpretation.validation";
 import { relativeReminderTime, relativeRescheduleTime } from "./relative-time";
 import { buttonInterpretation } from "./reminder.buttons";
+import { localCommandIntent } from "./local.commands";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -13,6 +14,8 @@ export type ConversationDependencies = {
 export async function prepareConversation(message: IncomingConversation, deps: ConversationDependencies, timeoutMs = 45000) {
   const button = !message.mediaId && buttonInterpretation(message.text, message.receivedAt);
   if (button) return button;
+  const command = localCommandIntent(message.text);
+  if (command) return command;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([(async () => {

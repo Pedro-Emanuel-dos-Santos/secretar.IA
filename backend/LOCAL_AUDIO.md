@@ -4,7 +4,7 @@ O provedor padrão de áudio é local. Não existe fallback automático para a A
 
 ## Instalação
 
-Criar um ambiente virtual com Python 3.9+ e instalar `pip install -r scripts/requirements-audio.txt`. Baixar uma vez o modelo público usando `WhisperModel('base', device='cpu', compute_type='int8', download_root='CAMINHO_DO_CACHE')`. Nenhum áudio é necessário para esse download.
+Criar um ambiente virtual com Python 3.12 e instalar `pip install -r scripts/requirements-audio.txt`. Baixar uma vez o modelo público usando `WhisperModel('base', device='cpu', compute_type='int8', download_root='CAMINHO_DO_CACHE')`. Nenhum áudio é necessário para esse download.
 
 No ambiente do worker de entrada, configurar:
 
@@ -23,6 +23,6 @@ Somente mídia autenticada da Meta é baixada. O serviço externo continua neces
 
 ## Publicação
 
-Esta instalação habilita o computador local. O Dockerfile atual da API/worker não instala Python/modelo: para transcrever na Railway será preciso preparar um worker com runtime e cache próprios, medir CPU/memória e seu custo. Não copiar caminhos Windows para a Railway nem declarar áudio em nuvem disponível só porque a API está publicada.
+Esta instalação habilita o computador local. O Dockerfile padrão da API/worker não instala Python/modelo. A opção Dockerfile.inbox-audio inclui Node, Python, dependências e o modelo base em /models; railway.inbox.local-audio.json aponta para essa imagem apenas no worker de entrada. O build Linux passou, inclusive execução offline como usuário sem privilégios. Nenhum serviço dessa imagem foi publicado na Railway. É necessário medir CPU/memória e custo na nuvem. Não copiar caminhos Windows para a Railway nem declarar áudio em nuvem disponível só porque a API está publicada.
 
 Referência: https://github.com/SYSTRAN/faster-whisper

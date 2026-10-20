@@ -77,8 +77,10 @@ test("falha de execução impede confirmação", async () => {
 function fixture({ dbFailure = false } = {}) {
   const calls = [];
   const store = {
+    contactPreference:{findUnique:async()=>null},
     user: { upsert: async args => { calls.push(["user", args]); return { id: "user-1" }; } },
     reminder: {
+      count: async () => 0,
       create: async args => { calls.push(["create", args]); if (dbFailure) throw Error("db"); return { id: "reminder-1", title: args.data.title, remindAt: args.data.remindAt, status: args.data.status }; },
       updateMany: async args => { calls.push(["update", args]); },
     },
@@ -117,12 +119,12 @@ test("preparação produz interpretação validada sem executar ou enviar", asyn
   assert.deepEqual(result, interpretation);
 });
 test("falha antes da interpretação interrompe a preparação", async () => {
-  await assert.rejects(prepareConversation({ phone: input.phone, text: "oi", receivedAt: new Date() }, {
+  await assert.rejects(prepareConversation({ phone: input.phone, text: "Me lembra de algo amanhã", receivedAt: new Date() }, {
     buildContext: async () => { throw Error("contexto"); }, interpret: async () => assert.fail(),
   }), /contexto/);
 });
 test("preparação rejeita saída sem contrato antes de qualquer ação", async () => {
-  await assert.rejects(prepareConversation({ phone: input.phone, text: "oi", receivedAt: new Date() }, {
+  await assert.rejects(prepareConversation({ phone: input.phone, text: "Me lembra de algo amanhã", receivedAt: new Date() }, {
     buildContext: async () => ({}), interpret: async () => ({ ...interpretation, reply: null }),
   }));
 });
@@ -183,3 +185,7 @@ require("./redis.test.cjs");
 require("./buttons.test.cjs");
 require("./recurrence.test.cjs");
 require("./audio.test.cjs");
+require("./commands.test.cjs");
+require("./ai-provider.test.cjs");
+require("./preflight.test.cjs");
+require("./reminder.http.test.cjs");

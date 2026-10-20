@@ -4,6 +4,7 @@ x-runtime: &runtime
   env_file: ${SECRETARIA_ENV_FILE:-../.env.production}
   restart: unless-stopped
   init: true
+  stop_grace_period: 120s
   depends_on:
     postgres:
       condition: service_healthy

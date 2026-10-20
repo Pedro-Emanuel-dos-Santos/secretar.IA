@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { prepareConversation } = require("../src/domain/conversation.processor.ts");
 
 test("preparação sem resposta tem prazo e não inicia efeitos externos", async () => {
-  await assert.rejects(prepareConversation({ phone: "5511999990000", text: "oi", receivedAt: new Date() }, {
+  await assert.rejects(prepareConversation({ phone: "5511999990000", text: "Me lembra de algo amanhã", receivedAt: new Date() }, {
     buildContext: async () => ({}), interpret: () => new Promise(() => {}),
   }, 5), /no prazo/);
 });

@@ -30,6 +30,17 @@ async function prepare() {
   return prisma.incomingMessage.findUniqueOrThrow({ where: { id: row.id }, include: { reply: true, reminder: true } });
 }
 
+test('recusa conhecida da Meta fica visível sem reenviar nem guardar texto privado do erro',async()=>{
+ await clear();const row=await prepare();let sends=0;
+ const {WhatsAppSendRejected}=require('../src/domain/whatsapp.errors.ts');
+ await relayReplies(prisma,async()=>{sends++;throw new WhatsAppSendRejected(400,131030)},numberId);
+ await relayReplies(prisma,()=>assert.fail(),numberId);
+ const result=await prisma.incomingMessage.findUniqueOrThrow({where:{id:row.id},include:{reply:true}});
+ assert.equal(result.status,'reply_rejected');assert.equal(result.reply.status,'provider_rejected');
+ assert.deepEqual(result.reply.deliveryErrorCodes,[131030]);assert.equal(sends,1);
+ assert.equal((await operationalOverview(prisma,numberId)).attention.rejectedReplies,1);
+});
+
 test("snapshot persistido retoma a ação sem consultar IA", async () => {
   await clear();
   const row = await incoming({ status: "interpreted", interpretation: intent });
@@ -78,15 +89,23 @@ test("última tentativa abandonada não reinicia limite de interpretação", asy
   const row = await incoming({ status: "interpreting", interpretationAttempts: 5, leaseToken: "crashed", leaseUntil: new Date(0) });
   await processInboxBatch(prisma, neverInterpret, numberId);
   const result = await prisma.incomingMessage.findUniqueOrThrow({ where: { id: row.id } });
-  assert.equal(result.status, "failed");
+  assert.equal(result.status, "reply_pending");
+  assert.match((await prisma.replyOutbox.findUniqueOrThrow({where:{messageId:row.id}})).text,/Não consegui entender/);
   assert.equal(result.interpretationAttempts, 5);
 });
 test("última tentativa abandonada não reinicia limite de execução", async () => {
   await clear();
   const row = await incoming({ status: "executing", interpretation: intent, executionAttempts: 5, leaseToken: "crashed", leaseUntil: new Date(0) });
   await processInboxBatch(prisma, neverInterpret, numberId);
-  assert.equal((await prisma.incomingMessage.findUniqueOrThrow({ where: { id: row.id } })).status, "failed");
+  assert.equal((await prisma.incomingMessage.findUniqueOrThrow({ where: { id: row.id } })).status, "reply_pending");
+  assert.match((await prisma.replyOutbox.findUniqueOrThrow({where:{messageId:row.id}})).text,/Não consegui confirmar/);
   assert.equal(await prisma.reminder.count({ where: { sourceMessageId: row.id } }), 0);
+});
+test('tentativa esgotada em estado pronto gera uma resposta de falha uma única vez',async()=>{
+ await clear();const row=await incoming({status:'received',interpretationAttempts:5});
+ await processInboxBatch(prisma,neverInterpret,numberId);await processInboxBatch(prisma,neverInterpret,numberId);
+ assert.equal(await prisma.replyOutbox.count({where:{messageId:row.id}}),1);
+ assert.equal(await prisma.reminder.count({where:{sourceMessageId:row.id}}),0);
 });
 test("dois remetentes de resposta disputam o mesmo registro uma vez", async () => {
   await clear();

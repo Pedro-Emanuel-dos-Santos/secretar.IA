@@ -8,6 +8,10 @@ Promessa inicial: transformar uma mensagem em compromisso claro, permitir corrig
 
 ## Entrega atual
 
+Comandos sem IA: AJUDA, MEU DIA, PRIVACIDADE, PARAR e RETOMAR. A pausa é por pessoa e número comercial. A retomada não reenvia automaticamente avisos vencidos durante a pausa. Há limite de atraso configurável (padrão: 60 minutos) para evitar disparos acumulados após indisponibilidade.
+
+Proteções técnicas do piloto, configuráveis: 100 pendências, 50 novos avisos em 24 horas, 200 pedidos em 24 horas e 20 áudios em 24 horas, por pessoa/conta. Séries consomem uma posição por aviso. Comandos de controle e botões continuam disponíveis depois de esgotar a cota de interpretação. Esses limites não são um plano comercial nem garantem um teto de custos totais da plataforma.
+
 - Texto: criar, consultar, adiar, cancelar e concluir.
 - Recorrência limitada: diária, semanal e mensal, de 2 a 12 ocorrências incluindo a primeira, no horário de Brasília. Sem quantidade, a assistente pergunta. Meses sem o dia escolhido são pulados. Cada ocorrência é persistida com sua própria outbox na mesma transação; reentrega da origem não duplica a série.
 - Cancelar série: cancela somente os avisos cujo envio ainda não começou. Concluir e adiar afetam apenas uma ocorrência. Séries de mesmo título pedem escolha.

@@ -28,7 +28,9 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     });
     if (!reminders.length) return "Você não tem lembretes pendentes nesse período.";
     return "Seus lembretes pendentes:\n" + reminders.slice(0, 10).map((r, index) =>
-      `${index + 1}. ${displayTitle(r.title)} — ${displayDate(r.remindAt)}`).join("\n") +
+      `${index + 1}. ${displayTitle(r.title)} — ${displayDate(r.remindAt)}` +
+      (r.status === "blocked_paused" ? " (não enviado durante a pausa)" : r.status === "missed" ? " (vencido, não enviado)"
+        : r.status === "provider_rejected" ? " (recusado pelo WhatsApp)" : "")).join("\n") +
       (reminders.length > 10 ? "\nMostrei os dez primeiros. Qual período você quer ver?" : "");
   }
   const search = intent.search?.trim() || intent.title?.trim();
@@ -50,7 +52,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   }
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
-  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template"];
+  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected"];
   if (intent.cancelSeries) {
     if (intent.action !== "cancel_reminder") return "Posso cancelar os próximos avisos da série. Para adiar ou concluir, escolha um aviso.";
     if (!target.seriesId) return "Esse lembrete não pertence a uma série.";

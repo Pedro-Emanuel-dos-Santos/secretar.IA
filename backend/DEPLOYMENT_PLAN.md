@@ -1,6 +1,6 @@
 # Secretár.IA — proposta de publicação na Railway
 
-Preparado em 20/10/2026. Nenhum novo serviço, cobrança, push ou upload de segredos foi realizado nesta preparação.
+Atualizado em 20/10/2026. A publicação foi autorizada e o código foi enviado à branch codex/railway-ready-20261020. As tentativas de criação na Railway foram recusadas pela pausa temporária da plataforma; nenhum novo serviço foi confirmado. Não houve upload de segredos para novos serviços.
 
 ## Conta e repositório conferidos
 
@@ -34,9 +34,11 @@ Fonte oficial consultada em 20/10/2026: https://railway.com/pricing
 
 Hipótese de piloto: 0,6–1 GB de memória média total nos cinco serviços, CPU média baixa e poucos GB de dados/tráfego. Estimativa de planejamento: US$ 8–15/mês de consumo da Secretár.IA. Essa faixa precisa ser confirmada com métricas reais após 24–72 horas de operação e revisada com o crescimento. Cinco serviços não significam cinco mensalidades de plano, mas os recursos consumidos por todos são cobrados.
 
+Essa estimativa original não media o transcritor local em nuvem. A imagem opcional Dockerfile.inbox-audio inclui Python e Whisper base, com processamento em CPU. Software sem tarifa de API não significa processamento gratuito na Railway: medir CPU, memória e duração dos áudios antes de recalcular a faixa. A instalação Windows do piloto não se transfere automaticamente para o contêiner.
+
 Os US$ 5 incluídos no Hobby são compartilhados com os demais projetos. A fatura total depende do consumo agregado e da regra de crédito do plano; não somar automaticamente US$ 5 a cada projeto nem presumir que a Secretár.IA cabe em crédito livre. Esta estimativa exclui OpenAI, tarifas da Meta, câmbio, impostos e eventuais taxas do cartão.
 
-Não é um teto rígido. Nenhum limite global de gastos será modificado sem decisão explícita, pois ele poderia afetar gestao-associativa e outros serviços. É necessário aprovar um orçamento e as configurações de controle/alerta antes de criar recursos.
+Não é um teto rígido. O usuário autorizou prosseguir com o piloto e aceitou a possibilidade de gasto acima da mensalidade atual. Nenhum limite global de gastos será modificado sem decisão explícita, pois ele poderia afetar gestao-associativa e outros serviços.
 
 ## Dados que precisam ir para a Railway
 
@@ -56,3 +58,9 @@ Aplicar mínimo necessário: API precisa banco, Redis (healthcheck/rotas interna
 8. Validar um lembrete fora de 24 horas somente com template aprovado; rascunho em templates/secretaria_lembrete_v1.json.
 
 O número atual é de teste; acesso público a assinantes e venda do serviço exigem preparação adicional. O piloto não está publicado só porque o repositório apareceu na lista da Railway.
+
+## Verificação antes de subir
+
+Executar build e `node --env-file=../.env scripts/preflight.cjs api|inbox|reminders --production` usando o ambiente de destino, um papel por vez. O comando é somente leitura e não imprime segredos. Caminhos Windows e banco/Redis localhost são erros para publicação. Um template ainda não aprovado é um aviso explícito; não habilitar a flag com base no rascunho.
+
+Para a imagem opcional de áudio, usar railway.inbox.local-audio.json apenas no serviço de entrada. Manter o JSON padrão nos outros serviços. O áudio permanece desabilitado nos exemplos até definir participantes, informar processamento e configurar a lista permitida. Iniciar API/migração antes dos workers. Preferências e índices das últimas migrações precisam existir antes de receber mensagens no código novo.

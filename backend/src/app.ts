@@ -16,6 +16,7 @@ app.use(express.json());
 
 app.get("/health/live", (_, res) => res.json({ status: "alive" }));
 app.get("/health/ready", async (_, res) => {
+  if(app.locals.shuttingDown)return res.status(503).json({status:"unavailable"});
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([

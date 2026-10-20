@@ -26,6 +26,7 @@ export async function aiRouter(input: AIChatInput): Promise<AIChatOutput> {
   if (ruleResponse) return ruleResponse;
 
   const mode = process.env.AI_MODE || "hybrid";
+  if (!["openai","ollama","hybrid"].includes(mode)) throw new Error("AI_MODE inválido.");
 
   if (mode === "openai") {
     return openaiChat(input);
@@ -41,8 +42,8 @@ export async function aiRouter(input: AIChatInput): Promise<AIChatOutput> {
 
   try {
     return await ollamaChat(input);
-  } catch (error) {
-    console.error("Ollama falhou. Usando OpenAI como fallback.", error);
+  } catch {
+    console.error("Provedor local indisponível; usando o fallback de texto configurado.");
     return openaiChat(input);
   }
 }

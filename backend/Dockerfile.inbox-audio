@@ -1,0 +1,33 @@
+FROM node:24-bookworm-slim AS build
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+ENV NODE_OPTIONS=--max-old-space-size=256
+COPY package*.json ./
+RUN npm ci
+COPY prisma ./prisma
+COPY prisma.config.cjs ./
+RUN npx prisma generate
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build && npm prune --omit=dev
+
+FROM python:3.12-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates libgomp1 && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY scripts/requirements-audio.txt /tmp/requirements-audio.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-audio.txt
+ENV HF_HUB_DISABLE_TELEMETRY=1 HF_HUB_DISABLE_SYMLINKS_WARNING=1
+# Public weights only. Runtime transcription will use the local cache offline.
+RUN python -c "from faster_whisper import WhisperModel; WhisperModel('base',device='cpu',compute_type='int8',download_root='/models',cpu_threads=1)"
+COPY --from=build /usr/local/bin/node /usr/local/bin/node
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.cjs ./
+COPY --from=build /app/package*.json ./
+COPY scripts ./scripts
+RUN useradd --uid 1000 --create-home secretaria
+ENV NODE_ENV=production AUDIO_TRANSCRIPTION_PROVIDER=local LOCAL_WHISPER_PYTHON=/usr/local/bin/python LOCAL_WHISPER_CACHE=/models LOCAL_WHISPER_MODEL=base HF_HUB_OFFLINE=1
+USER secretaria
+RUN node --version && python -c "import io,wave,subprocess,sys,json; b=io.BytesIO(); w=wave.open(b,'wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(16000); w.writeframes(bytes(32000)); w.close(); r=subprocess.run([sys.executable,'scripts/transcribe-local.py'],input=b.getvalue(),capture_output=True); assert r.returncode == 2, 'offline audio smoke failed'; assert json.loads(r.stdout).get('error') == 'invalid_audio'; print('Offline audio runtime smoke passed as non-root.')"
+CMD ["node", "dist/inbox-worker.js"]

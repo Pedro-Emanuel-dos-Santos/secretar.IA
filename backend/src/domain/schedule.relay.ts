@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 
 type Store = Pick<PrismaClient, "scheduleOutbox" | "reminder" | "$transaction">;
 export type ReminderQueue = { add(name: string, data: any, options: any): Promise<unknown> };
-type Options = { phoneNumberId: string; reminderId?: string; now?: Date; publishTimeoutMs?: number };
+type Options = { phoneNumberId: string; reminderId?: string; now?: Date; publishTimeoutMs?: number; shouldStop?:()=>boolean };
 const leaseMs = 120_000;
 export const schedulingBackoff = (attempt: number) => Math.min(900_000, 30_000 * 2 ** (attempt - 1));
 
@@ -27,6 +27,7 @@ export async function relaySchedules(store: Store, queue: ReminderQueue, options
   });
   let published = 0;
   for (const row of rows) {
+    if (options.shouldStop?.()) break;
     const version = row.reminder.scheduleVersion;
     if (row.attempts >= row.maxAttempts) {
       await store.$transaction(async tx => {

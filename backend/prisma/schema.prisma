@@ -34,6 +34,17 @@ model IncomingMessage {
   @@unique([phoneNumberId, providerMessageId])
   @@index([phoneNumberId, status, receivedAt])
   @@index([phoneNumberId, status, nextAttemptAt])
+  @@index([phoneNumberId, phone, receivedAt])
+}
+
+model ContactPreference {
+  phoneNumberId String
+  phone String
+  remindersPaused Boolean @default(false)
+  pausedAt DateTime?
+  updatedAt DateTime @updatedAt
+
+  @@id([phoneNumberId, phone])
 }
 
 model ReplyOutbox {
@@ -93,6 +104,7 @@ model Reminder {
   sourceMessage IncomingMessage? @relation(fields: [sourceMessageId], references: [id], onDelete: Restrict)
   scheduleOutbox ScheduleOutbox?
   @@index([userId, state, remindAt])
+  @@index([userId, createdAt])
   @@unique([seriesId, occurrenceIndex])
 }
 
