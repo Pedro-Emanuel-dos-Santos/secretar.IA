@@ -6,6 +6,7 @@ import { executeAction } from "./action.executor";
 import { persistReminderInTransaction } from "./reminder.creator";
 import { schedulingBackoff } from "./schedule.relay";
 import { manageReminders } from "./reminder.management";
+import { AudioRejectedError, audioFallback } from "./audio";
 
 type Store = Pick<PrismaClient, "incomingMessage" | "$transaction">;
 const leaseMs = 120_000;
@@ -39,7 +40,24 @@ async function prepareIntent(store: Store, row: IncomingMessage, deps: Conversat
   });
   if (!claim.count) return;
   try {
-    const result = await prepareConversation(row, deps);
+    let audioError = false;
+    if (row.mediaId && !row.transcribedAt) {
+      try {
+        if (!deps.transcribe) throw new AudioRejectedError("Áudio indisponível.");
+        const text = await deps.transcribe({mediaId:row.mediaId,mediaMimeType:row.mediaMimeType,phoneNumberId:row.phoneNumberId,phone:row.phone});
+        if (typeof text !== "string" || !text.trim() || text.length > 16000) throw new AudioRejectedError("Transcrição inválida.");
+        const saved = await store.incomingMessage.updateMany({
+          where:{id:row.id,status:"interpreting",leaseToken:token},data:{text,transcribedAt:new Date()},
+        });
+        if (!saved.count) return;
+        row = {...row,text,transcribedAt:new Date()};
+      } catch (error) {
+        if (!(error instanceof AudioRejectedError) && row.interpretationAttempts + 1 < row.maxAttempts) throw error;
+        audioError = true;
+      }
+    }
+    const result = audioError ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:audioFallback}
+      : await prepareConversation(row, deps);
     await store.incomingMessage.updateMany({
       where: { id: row.id, status: "interpreting", leaseToken: token },
       data: { interpretation: JSON.parse(JSON.stringify(result)), status: "interpreted", nextAttemptAt: new Date(),

@@ -55,9 +55,9 @@ test("percorre todas as entradas, alterações e mensagens", () => {
   data.entry.push({ changes: [change("4", "5")] });
   assert.deepEqual(extractMessages(data, numberId).map(m => m.providerMessageId), ["1", "2", "3", "4", "5"]);
 });
-test("ignora status, mídia e destinatário diferente", () => {
+test("ignora status, imagem e destinatário diferente", () => {
   const data = payload();
-  data.entry[0].changes[0].value.messages.push({ type: "audio" });
+  data.entry[0].changes[0].value.messages.push({ type: "image" });
   data.entry[0].changes.push({ field: "messages", value: { metadata: { phone_number_id: numberId }, statuses: [{}] } });
   const other = change("other");
   other.value.metadata.phone_number_id = "different";

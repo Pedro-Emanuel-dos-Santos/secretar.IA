@@ -3,6 +3,8 @@ export type IncomingText = {
   phoneNumberId: string;
   phone: string;
   text: string;
+  mediaId?: string;
+  mediaMimeType?: string;
 };
 
 export class InvalidWebhookError extends Error {}
@@ -24,7 +26,16 @@ export function extractMessages(payload: unknown, expectedPhoneNumberId: string)
       if (!Array.isArray(value.messages)) throw new InvalidWebhookError("Mensagens inválidas.");
       for (const message of value.messages) {
         if (!object(message)) throw new InvalidWebhookError("Mensagem inválida.");
-        if (message.type !== "text" && message.type !== "interactive") continue;
+        if (!["text", "interactive", "audio"].includes(message.type)) continue;
+        if (message.type === "audio") {
+          if (typeof message.id !== "string" || !message.id || message.id.length > 512 ||
+              typeof message.from !== "string" || !/^\d{8,15}$/.test(message.from) ||
+              !object(message.audio) || typeof message.audio.id !== "string" || !/^\d{1,128}$/.test(message.audio.id) ||
+              typeof message.audio.mime_type !== "string" || message.audio.mime_type.length > 100) throw new InvalidWebhookError("Áudio inválido.");
+          messages.push({providerMessageId: message.id, phoneNumberId: expectedPhoneNumberId, phone: message.from,
+            text: "[Mensagem de voz]", mediaId: message.audio.id, mediaMimeType: message.audio.mime_type});
+          continue;
+        }
         if (message.type === "interactive" && message.interactive?.type !== "button_reply") continue;
         const text = message.type === "text" ? message.text?.body : message.interactive?.button_reply?.id;
         if (typeof message.id !== "string" || !message.id || message.id.length > 512 ||

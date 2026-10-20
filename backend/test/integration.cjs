@@ -4,3 +4,4 @@ require("./replies.integration.cjs");
 require("./management.integration.cjs");
 require("./reschedule.integration.cjs");
 require("./recurrence.integration.cjs");
+require("./audio.integration.cjs");

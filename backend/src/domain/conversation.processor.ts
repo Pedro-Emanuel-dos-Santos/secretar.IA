@@ -3,14 +3,15 @@ import { parseInterpretation } from "./interpretation.validation";
 import { relativeReminderTime, relativeRescheduleTime } from "./relative-time";
 import { buttonInterpretation } from "./reminder.buttons";
 
-export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string };
+export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
   buildContext(message: IncomingConversation): Promise<unknown>;
   interpret(context: any): Promise<AIInterpretation>;
+  transcribe?(message: {mediaId: string; mediaMimeType: string | null; phoneNumberId: string; phone: string}): Promise<string>;
 };
 
 export async function prepareConversation(message: IncomingConversation, deps: ConversationDependencies, timeoutMs = 45000) {
-  const button = buttonInterpretation(message.text, message.receivedAt);
+  const button = !message.mediaId && buttonInterpretation(message.text, message.receivedAt);
   if (button) return button;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {

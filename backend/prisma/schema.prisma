@@ -13,6 +13,9 @@ model IncomingMessage {
   phoneNumberId     String
   phone             String
   text              String
+  mediaId           String?
+  mediaMimeType     String?
+  transcribedAt     DateTime?
   status            String   @default("received")
   receivedAt        DateTime @default(now())
   startedAt         DateTime?

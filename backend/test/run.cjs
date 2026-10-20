@@ -182,3 +182,4 @@ require("./whatsapp.policy.test.cjs");
 require("./redis.test.cjs");
 require("./buttons.test.cjs");
 require("./recurrence.test.cjs");
+require("./audio.test.cjs");
