@@ -3,9 +3,10 @@ import type { AIInterpretation } from "../types/ai.types";
 export function explicitClock(text:string){
  const s=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const hour='(?:\\d{1,2}|uma|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|vinte(?: e (?:uma|duas|tres))?)';
+ const minute='(?:\\d{1,2}|meia|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|(?:vinte|trinta|quarenta|cinquenta)(?: e (?:um|dois|tres|quatro|cinco|seis|sete|oito|nove))?)';
  return /\b\d{1,2}(?:h(?:\d{2})?|:\d{2})\b|\bmeio[ -]dia\b|\bmeia[ -]noite\b/.test(s)
   || new RegExp('\\b(?:as|pelas|umas|por volta das)\\s+'+hour+'\\b').test(s)
-  || new RegExp('^(?:(?:melhor|na verdade|para|pode ser|isso,?)\\s+)?'+hour+'(?:\\s+e\\s+(?:meia|quinze|trinta|\\d{1,2}))?[.!?]?\\s*$').test(s);
+  || new RegExp('^(?:(?:melhor|na verdade|para|pode ser|isso,?)\\s+)?'+hour+'(?:\\s+horas?)?(?:\\s+e\\s+'+minute+')?(?:\\s+(?:da|de|a)\\s+(?:manha|tarde|noite|madrugada))?[.!?]?\\s*$').test(s);
 }
 export function guardUnstatedTime(intent:AIInterpretation,text:string,context:any){
  if(intent.action!=="create_reminder" || !intent.datetime)return;

@@ -20,9 +20,9 @@ async function turn(text){
 async function main(){try{
  let r=await turn('Amanhã preciso falar com o João sobre o orçamento. Me lembra disso.');
  assert.equal(r.interpretation.action,'create_reminder');assert.equal(r.interpretation.datetime,null);assert.ok(r.interpretation.draft?.date);
- r=await turn('Às nove.');assert.equal(r.interpretation.action,'create_reminder');
+ r=await turn('Nove e meia da manhã.');assert.equal(r.interpretation.action,'create_reminder');
  let reminders=await p.reminder.findMany({where:{user:{phone}}});assert.equal(reminders.length,1);const id=reminders[0].id;
- assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(reminders[0].remindAt),'09:00');
+ assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(reminders[0].remindAt),'09:30');
  r=await turn('Melhor nove e meia.');assert.equal(r.interpretation.action,'reschedule_reminder');
  let target=await p.reminder.findUniqueOrThrow({where:{id}});
  assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(target.remindAt),'09:30');

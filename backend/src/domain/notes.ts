@@ -33,5 +33,5 @@ export async function executeNote(phone:string,phoneNumberId:string,intent:AIInt
   if(text.length>1500)return "Pode dividir essa anotação em partes menores? Cada uma pode ter até 1.500 caracteres.";
   const user=await tx.user.upsert({where:{phone},create:{phone},update:{}});
   await tx.event.create({data:{userId:user.id,type:"secretary_note",source:"secretaria",payload:{phoneNumberId,text,searchText:normalized(text)}}});
-  return "Anotei: "+text+"\nPode me perguntar sobre isso depois. Não criei um aviso com horário.";
+  return "Anotei: "+text;
 }

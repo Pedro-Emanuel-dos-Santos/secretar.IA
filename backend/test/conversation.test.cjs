@@ -12,8 +12,9 @@ test('dia sem hora vira rascunho em vez de aceitar horário inventado pela IA',a
 test('hora informada antes permanece disponível quando pessoa completa só o dia',async()=>{
  const r=await prepareConversation({text:'amanhã',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({conversationState:{pendingRequest:{draft:{date:null,time:'09:00'}}}}),interpret:async()=>({...base})});
  assert.equal(r.datetime,base.datetime);
- for(const text of ['às nove','umas nove','melhor nove e meia.','9h30','meio-dia'])assert.equal(explicitClock(text),true,text);
+ for(const text of ['às nove','umas nove','melhor nove e meia.','nove e meia da manhã','nove e meia da manha','duas e meia da tarde','oito da noite','melhor nove e meia da manhã.','9h30','meio-dia'])assert.equal(explicitClock(text),true,text);
  assert.equal(explicitClock('comprar nove caixas amanhã'),false);
+ for(const text of ['nove horas e meia da manhã','duas e vinte e cinco da tarde','oito e quarenta e cinco da noite'])assert.equal(explicitClock(text),true,text);
 });
 test('rascunhos rejeitam hora inválida e não podem acompanhar anotação',()=>{
  assert.throws(()=>parseInterpretation(JSON.stringify({...base,draft:{date:null,time:'25:30'}})));
