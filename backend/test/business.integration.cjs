@@ -84,6 +84,13 @@ test('histórico de compromisso cancelado mostra mudanças e respeita pessoa e c
  assert.match(await call('appointment_history',{appointmentId:id},phone,biz+'-other'),/Não encontrei/);
  assert.match(await call('appointment_history'),/qual compromisso/);
 });
+test('histórico com título ambíguo pede escolha sem revelar registros de outra conta',async()=>{
+ await call('create_appointment',{title:'Revisão mensal Alfa',datetime:'2099-07-01T10:00:00-03:00'});
+ await call('create_appointment',{title:'Revisão mensal Beta',datetime:'2099-07-02T10:00:00-03:00'});
+ await call('create_appointment',{title:'Revisão mensal SEGREDO',datetime:'2099-07-03T10:00:00-03:00'},phone,biz+'-other');
+ const reply=await call('appointment_history',{search:'Revisão mensal'});
+ assert.match(reply,/Qual deles/);assert.match(reply,/Alfa/);assert.match(reply,/Beta/);assert.doesNotMatch(reply,/SEGREDO/);
+});
 test('MEU DIA mostra horário do evento sem duplicar seus avisos como tarefas',async()=>{
  const row=await incoming();await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Agenda do dia',datetime:'2099-05-03T10:00:00-03:00',alertMinutes:[30,0]}),tx,row.id));
  const summary=await p.$transaction(tx=>dayOverview(phone,biz,tx,new Date('2099-05-03T12:00:00Z')));
