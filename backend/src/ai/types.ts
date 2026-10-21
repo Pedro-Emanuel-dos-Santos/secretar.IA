@@ -1,3 +1,5 @@
+import type { UsageReport } from "../domain/ai.usage";
+
 export type AIProviderName = "openai" | "ollama" | "rules";
 
 export type AIMessage = {
@@ -16,4 +18,5 @@ export type AIChatOutput = {
   provider: AIProviderName;
   content: string;
   raw?: unknown;
+  usage?: UsageReport;
 };

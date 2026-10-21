@@ -1,13 +1,17 @@
 import OpenAI, { toFile } from "openai";
 import { AudioRejectedError, audioMime, audioExtensions, limitedAudio, maxAudioBytes, mediaDownloadUrl, matchesMediaHash } from "../domain/audio";
 import { transcribeLocalAudio } from "./local-audio.service";
+import type { PrismaClient } from "@prisma/client";
 
-export async function transcribeWhatsAppAudio(message: {mediaId: string; mediaMimeType: string | null; phoneNumberId: string; phone: string}) {
+export async function transcribeWhatsAppAudio(message: {mediaId: string; mediaMimeType: string | null; phoneNumberId: string; phone: string},suppliedStore?:Pick<PrismaClient,"contactPreference">) {
   if (process.env.WHATSAPP_AUDIO_ENABLED !== "true") throw new AudioRejectedError("Áudio ainda não habilitado.");
   const allowed = (process.env.WHATSAPP_AUDIO_ALLOWED_PHONES || "").split(",").map(value=>value.trim()).filter(Boolean);
   if (!allowed.includes(message.phone)) throw new AudioRejectedError("Áudio não habilitado para essa pessoa.");
   const token = process.env.WHATSAPP_ACCESS_TOKEN, key = process.env.OPENAI_API_KEY;
   const provider = process.env.AUDIO_TRANSCRIPTION_PROVIDER || "local";
+  const store=suppliedStore || (await import("../config/prisma.js")).prisma;
+  const preference=await store.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:message.phoneNumberId,phone:message.phone}}});
+  if(!preference?.audioConsent || preference.audioConsentProvider!==provider)throw new AudioRejectedError("Envie AUDIO por texto para conhecer e autorizar a transcrição.");
   if (!["local", "openai"].includes(provider) || (provider === "openai" && !key)) throw new AudioRejectedError("Transcritor indisponível.");
   if (!token || message.phoneNumberId !== process.env.WHATSAPP_PHONE_NUMBER_ID || !/^\d{1,128}$/.test(message.mediaId)) throw new AudioRejectedError("Áudio indisponível.");
   const expectedMime = audioMime(message.mediaMimeType || "");

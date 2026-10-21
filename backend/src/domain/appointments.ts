@@ -1,3 +1,4 @@
+import { contactTimezone } from "./preferences";
 import { Prisma } from "@prisma/client";
 import type { Appointment } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
@@ -7,7 +8,7 @@ import { reminderLimits } from "./reminder.limits";
 import { reminderScope } from "./reminder.management";
 import { resolveSubject, normalizeName } from "./business.memory";
 
-const display=(date:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}).format(date);
+const formatDate=(date:Date,timeZone:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone,dateStyle:"short",timeStyle:"short"}).format(date);
 const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"];
 async function normalizedMatches(tx:Prisma.TransactionClient,scope:Prisma.AppointmentWhereInput,search:string){
   const words=normalizeName(search).split(/[^a-z0-9]+/).filter(w=>w && !["a","o","as","os","de","da","do","das","dos","com","para","um","uma"].includes(w));
@@ -17,8 +18,10 @@ async function normalizedMatches(tx:Prisma.TransactionClient,scope:Prisma.Appoin
   return candidates.filter(a=>{const titleWords=normalizeName(a.title).split(/[^a-z0-9]+/);return words.every(w=>titleWords.includes(w));});
 }
 export async function executeAppointment(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId:string) {
+  const timezone=await contactTimezone(tx,phone,phoneNumberId);
+  const display=(date:Date)=>formatDate(date,timezone);
   const scope={user:{phone},phoneNumberId};
-  if(intent.action==="appointment_history")return appointmentHistory(phone,phoneNumberId,intent,tx);
+  if(intent.action==="appointment_history")return appointmentHistory(phone,phoneNumberId,intent,tx,timezone);
   if(intent.action==="list_appointments") {
     let range:Prisma.DateTimeFilter|undefined;
     if(intent.rangeStart || intent.rangeEnd){try{const start=parseTimestamp(intent.rangeStart),end=parseTimestamp(intent.rangeEnd);if(start>=end)throw Error();range={gte:start,lt:end};}catch{return "Qual dia ou período você quer consultar?";}}
@@ -101,7 +104,8 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     (future.length ? " O agendamento dos avisos está sendo confirmado." : "");
 }
 
-async function appointmentHistory(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient){
+async function appointmentHistory(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,timezone:string){
+  const display=(date:Date)=>formatDate(date,timezone);
   const search=intent.search?.trim();
   if(!intent.appointmentId && !search)return "De qual compromisso você quer ver o histórico?";
   let matches=await tx.appointment.findMany({where:{user:{phone},phoneNumberId,...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});

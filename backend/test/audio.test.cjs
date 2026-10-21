@@ -45,7 +45,22 @@ test('provedor local não usa API paga como fallback quando Python falha',async(
    requests++;assert.ok(String(url).startsWith('https://graph.facebook.com/')||String(url).startsWith('https://lookaside.fbsbx.com/'));
    return requests===1?Response.json({url:'https://lookaside.fbsbx.com/media',mime_type:'audio/wav'}):new Response(new Uint8Array([1,2]));
   };
-  await assert.rejects(transcribeWhatsAppAudio({mediaId:'123',mediaMimeType:'audio/wav',phoneNumberId:'biz',phone:'5511999990000'}));
+  await assert.rejects(transcribeWhatsAppAudio({mediaId:'123',mediaMimeType:'audio/wav',phoneNumberId:'biz',phone:'5511999990000'},{contactPreference:{findUnique:async()=>({audioConsent:true,audioConsentProvider:'local'})}}));
   assert.equal(requests,2);
  }finally{global.fetch=originalFetch;for(const k of names){if(before[k]===undefined)delete process.env[k];else process.env[k]=before[k]}}
+});
+
+test('sem consentimento ou com outro provedor não baixa áudio nem chama transcritor',async()=>{
+ const {transcribeWhatsAppAudio}=require('../src/services/audio.service.ts');
+ const names=['WHATSAPP_AUDIO_ENABLED','WHATSAPP_AUDIO_ALLOWED_PHONES','AUDIO_TRANSCRIPTION_PROVIDER'];
+ const before=Object.fromEntries(names.map(k=>[k,process.env[k]])),originalFetch=global.fetch;
+ let requests=0;
+ try{
+  Object.assign(process.env,{WHATSAPP_AUDIO_ENABLED:'true',WHATSAPP_AUDIO_ALLOWED_PHONES:'5511999990000',AUDIO_TRANSCRIPTION_PROVIDER:'openai'});
+  global.fetch=async()=>{requests++;throw Error('network must not run');};
+  for(const preference of [null,{audioConsent:false,audioConsentProvider:'openai'},{audioConsent:true,audioConsentProvider:'local'}]){
+   await assert.rejects(transcribeWhatsAppAudio({mediaId:'123',mediaMimeType:'audio/ogg',phoneNumberId:'biz',phone:'5511999990000'},{contactPreference:{findUnique:async()=>preference}}),/autorizar/);
+  }
+  assert.equal(requests,0);
+ }finally{global.fetch=originalFetch;for(const k of names){if(before[k]===undefined)delete process.env[k];else process.env[k]=before[k];}}
 });

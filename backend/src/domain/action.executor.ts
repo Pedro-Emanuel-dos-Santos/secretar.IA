@@ -5,11 +5,11 @@ import { ReminderQuotaError, RemindersPausedError } from "./reminder.limits";
 
 type CreateReminder = (data: ReminderInput) => Promise<{ title: string; remindAt: Date; status?: string; state?: string }>;
 
-export function formatReminderReply(reminder: { title: string; remindAt: Date; status?: string; state?: string; recurrenceFrequency?: string | null; recurrenceCount?: number | null }) {
+export function formatReminderReply(reminder: { title: string; remindAt: Date; status?: string; state?: string; recurrenceFrequency?: string | null; recurrenceCount?: number | null; scheduleTimezone?:string }, timeZone=reminder.scheduleTimezone || "America/Sao_Paulo") {
   if (reminder.state === "cancelled") return "Esse lembrete está cancelado.";
   if (reminder.state === "completed") return "Esse lembrete já está concluído.";
   const date = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short",
+    timeZone, dateStyle: "short", timeStyle: "short",
   }).format(reminder.remindAt);
   if (reminder.status === "scheduling_pending" || reminder.status === "scheduling_failed") {
     return `Registrei: ${reminder.title}, em ${date}. O agendamento ainda não foi confirmado.` + recurrenceSummary(reminder);
@@ -24,7 +24,7 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 }
 
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
-  manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>): Promise<string> {
+  manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo"): Promise<string> {
   switch (interpretation.action) {
     case "appointment_history": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_appointment": case "list_appointments": case "reschedule_appointment": case "cancel_appointment": case "set_appointment_alerts":
@@ -36,12 +36,12 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
       if (interpretation.recurrence && !interpretation.recurrence.count) return "Quantos avisos você quer nessa série? Posso preparar de 2 a 12.";
       const recurrence = interpretation.recurrence ? { frequency: interpretation.recurrence.frequency, count: interpretation.recurrence.count! } : undefined;
       const input = { phone, title: interpretation.title, description: interpretation.description ?? undefined, remindAt: interpretation.datetime, recurrence };
-      try { validateReminder(input); recurrenceDates(input.remindAt, recurrence); } catch {
+      try { validateReminder(input); recurrenceDates(input.remindAt, recurrence,timeZone); } catch {
         return "Preciso de uma data e horário válidos no futuro. Quando devo te lembrar?";
       }
       try {
         const reminder = await create(input);
-        return formatReminderReply(reminder);
+        return formatReminderReply(reminder,timeZone);
       } catch (error) {
         if (error instanceof ReminderQuotaError || error instanceof RemindersPausedError) return error.reply;
         throw error;
@@ -56,7 +56,8 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
       return manage ? manage(interpretation) : "Ainda não consigo executar essa operação por aqui.";
     case "create_expense": return "Ainda não consigo registrar gastos.";
     case "save_note":
-    case "search_notes": return notes ? notes(interpretation) : "As anotações ainda não estão disponíveis aqui.";
+    case "search_notes": case "edit_note": case "delete_note": return notes ? notes(interpretation) : "As anotações ainda não estão disponíveis aqui.";
+    case "set_preferences": case "show_preferences": case "usage_summary": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "discard_draft": return "Tudo bem, deixei esse pedido em aberto de lado. Os lembretes já salvos continuam como estavam.";
     case "unknown": return "Não entendi o que você precisa. Pode explicar de outro jeito?";
     case "conversation": return interpretation.reply;

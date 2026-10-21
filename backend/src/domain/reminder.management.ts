@@ -1,18 +1,22 @@
+import { contactTimezone } from "./preferences";
 import { Prisma } from "@prisma/client";
 import { AIInterpretation } from "../types/ai.types";
 import { parseTimestamp, validateReminder } from "./reminder.validation";
 
-export const reminderScope = (phone: string, phoneNumberId: string): Prisma.ReminderWhereInput => ({
+export const reminderScope = (phone: string, phoneNumberId: string,includeSystem=false): Prisma.ReminderWhereInput => ({
+  ...(includeSystem?{}:{kind:"task"}),
   user: { phone }, OR: [{ sourceMessage: { phoneNumberId } }, { scheduleOutbox: { phoneNumberId } }],
 });
-const displayDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short",
+const formatDate = (date: Date,timeZone:string) => new Intl.DateTimeFormat("pt-BR", {
+  timeZone, dateStyle: "short", timeStyle: "short",
 }).format(date);
 const displayTitle = (title: string) => title.length > 100 ? title.slice(0, 97) + "..." : title;
 
 export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient) {
   if (!["list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "mark_waiting", "edit_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
   const scope = reminderScope(phone, phoneNumberId);
+  const timezone=await contactTimezone(tx,phone,phoneNumberId);
+  const displayDate=(date:Date)=>formatDate(date,timezone);
   let range: Prisma.DateTimeFilter | undefined;
   if (intent.rangeStart || intent.rangeEnd) {
     try {

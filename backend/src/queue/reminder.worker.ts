@@ -41,7 +41,7 @@ async function main(){
   // The API deployment runs additive migrations. Do not claim jobs before it
   // has added the fields needed by this generated Prisma client.
   while(!stopping){
-    try{await prisma.reminder.findFirst({select:{id:true,appointmentId:true,appointmentOffsetMinutes:true,taskProgress:true,waitingFor:true,progressUpdatedAt:true}});break;}
+    try{await prisma.reminder.findFirst({select:{id:true,appointmentId:true,appointmentOffsetMinutes:true,taskProgress:true,waitingFor:true,progressUpdatedAt:true,scheduleTimezone:true,kind:true,digestKey:true}});break;}
     catch{console.error("Aguardando migração dos avisos; fila preservada.");await new Promise(resolve=>setTimeout(resolve,10000));}
   }
   if(stopping)return;

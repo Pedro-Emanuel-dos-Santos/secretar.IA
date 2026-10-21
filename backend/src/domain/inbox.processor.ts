@@ -12,8 +12,9 @@ import { requestBudget } from "./request.budget";
 import { executeNote } from "./notes";
 import { executeFact } from "./business.memory";
 import { executeAppointment } from "./appointments";
+import { executePreferences,contactTimezone } from "./preferences";
 
-type Store = Pick<PrismaClient, "incomingMessage" | "$transaction">;
+type Store = Pick<PrismaClient, "incomingMessage" | "$transaction"> & Partial<Pick<PrismaClient,"aiUsage">>;
 const leaseMs = 120_000;
 
 async function finishFailure(store:Store,id:string,phase:"interpreting" | "executing",token:string | null,reason:string) {
@@ -73,7 +74,15 @@ async function prepareIntent(store: Store, row: IncomingMessage, deps: Conversat
       }
     }
     const result = budgetReply || audioError ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:budgetReply || audioFallback}
-      : await prepareConversation(row, deps);
+      : await prepareConversation(row, {...deps,
+        interpret:async(context,onUsage)=>{
+          if(store.aiUsage)await store.aiUsage.upsert({where:{messageId_attempt:{messageId:row.id,attempt:row.interpretationAttempts+1}},create:{messageId:row.id,attempt:row.interpretationAttempts+1,provider:"unknown"},update:{}});
+          return deps.interpret(context,onUsage);
+        },
+        onUsage:async usage=>{
+          if(store.aiUsage)await store.aiUsage.update({where:{messageId_attempt:{messageId:row.id,attempt:row.interpretationAttempts+1}},data:{...usage,model:usage.model || null,inputTokens:usage.inputTokens ?? null,outputTokens:usage.outputTokens ?? null,cachedInputTokens:usage.cachedInputTokens ?? null,elapsedMs:usage.elapsedMs ?? null}});
+          if(deps.onUsage)await deps.onUsage(usage);
+        }});
     await store.incomingMessage.updateMany({
       where: { id: row.id, status: "interpreting", leaseToken: token },
       data: { interpretation: JSON.parse(JSON.stringify(result)), status: "interpreted", nextAttemptAt: new Date(),
@@ -109,9 +118,10 @@ async function prepareAction(store: Store, row: IncomingMessage) {
       const interpretation = parseInterpretation(JSON.stringify(row.interpretation));
       let refreshReminder = false;
       const command = localCommand(row.text);
+      const timezone=await contactTimezone(tx,row.phone,row.phoneNumberId);
       const preference = !command && ["create_reminder","reschedule_reminder"].includes(interpretation.action)
         ? await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:row.phoneNumberId,phone:row.phone}}}) : null;
-      const reply = command ? await executeLocalCommand(command,row.phone,row.phoneNumberId,tx)
+      const reply = command ? await executeLocalCommand(command,row.phone,row.phoneNumberId,tx,row)
         : preference?.remindersPaused ? "Seus avisos estão pausados. Envie RETOMAR antes de criar ou reagendar lembretes."
         : await executeAction(row.phone, interpretation, async input => {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });
@@ -119,7 +129,8 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         return reminder;
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
       intent=>["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
-        : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id));
+        : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx)
+        : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({
         where: { id: row.id }, data: { status: "reply_pending", leaseToken: null, leaseUntil: null, lastError: ["audio_unreadable","request_quota"].includes(row.lastError || "") ? row.lastError : null },

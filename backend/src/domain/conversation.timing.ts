@@ -19,12 +19,12 @@ export function guardUnstatedTime(intent:AIInterpretation,text:string,context:an
  let time=pending?.draft?.time || null;
  const focused=context?.conversationState?.focusedAppointment;
  if(!date && /\b(?:no mesmo dia|nesse dia|no dia da reuniao)\b/.test(normalized) && focused?.startsAt && Number.isFinite(new Date(focused.startsAt).getTime())){
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(focused.startsAt));
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:context?.user?.timezone || 'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(focused.startsAt));
   const part=(type:string)=>parts.find(p=>p.type===type)?.value;
   date=`${part('year')}-${part('month')}-${part('day')}`;
  }
  if(Number.isFinite(new Date(intent.datetime).getTime())){
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(intent.datetime));
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:context?.user?.timezone || 'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(intent.datetime));
   const part=(type:string)=>parts.find(p=>p.type===type)?.value;
   if(statedDay)date=`${part('year')}-${part('month')}-${part('day')}`;
   if(explicitClock(text))time=`${part('hour')}:${part('minute')}`;

@@ -1,10 +1,19 @@
 import type { Prisma } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
 import { dayOverview } from "./day.overview";
+import { presentAudioDisclosure,setAudioConsent,executePreferences } from "./preferences";
+import { requestContentDeletion,confirmContentDeletion } from "./privacy";
 
-export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today";
+export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
+  if(value==="audio" || value==="como funciona o audio")return "audio_info";
+  if(value==="aceito audio")return "audio_accept";
+  if(value==="desativar audio")return "audio_revoke";
+  if(value==="meu perfil")return "profile";
+  if(value==="meu consumo")return "usage";
+  if(value==="apagar meus dados")return "erase_request";
+  if(/^confirmar exclusao [a-f0-9]{8}$/.test(value))return "erase_confirm";
   if (["ajuda", "menu", "comecar", "como funciona"].includes(value)) return "help";
   if (["privacidade", "meus dados"].includes(value)) return "privacy";
   if (["parar", "stop", "pausar lembretes", "nao quero receber lembretes"].includes(value)) return "pause";
@@ -16,7 +25,12 @@ export function localCommand(text: string): LocalCommand | null {
 export function localCommandIntent(text: string): AIInterpretation | null {
   return localCommand(text) ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:"Vou conferir seu pedido."} : null;
 }
-export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient) {
+export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string}) {
+  if(command==="erase_request")return requestContentDeletion(phone,phoneNumberId,tx);
+  if(command==="erase_confirm")return current?confirmContentDeletion(phone,phoneNumberId,tx,current):"Envie APAGAR MEUS DADOS para receber as instruções de confirmação.";
+  if(command==="audio_info")return presentAudioDisclosure(phone,phoneNumberId,tx);
+  if(command==="audio_accept" || command==="audio_revoke")return setAudioConsent(phone,phoneNumberId,command==="audio_accept",tx);
+  if(command==="profile" || command==="usage")return executePreferences(phone,phoneNumberId,{action:command==="profile"?"show_preferences":"usage_summary",title:null,description:null,datetime:null,category:null,amount:null,reply:"interno"},tx);
   if (command === "today") return dayOverview(phone,phoneNumberId,tx);
   if (command === "help") return "Sou a Secretár.IA. Posso ajudar com suas tarefas e prazos. Exemplos:\n" +
     "• Me lembra amanhã às 9h de enviar o orçamento.\n• Quais são meus lembretes de hoje?\n• Adia o lembrete do orçamento para amanhã às 10h.\n" +

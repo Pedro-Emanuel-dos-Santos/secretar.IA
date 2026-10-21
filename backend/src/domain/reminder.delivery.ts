@@ -24,11 +24,11 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
     const text=`⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}`+
       (reminder.appointmentId && reminder.description ? `\n${reminder.description.slice(0,300)}` : "");
     const result = await send(reminder.user.phone, text,
-      reminder.appointmentId ? undefined : { id: reminder.id, version: expectedVersion });
+      reminder.appointmentId || reminder.kind==="daily_summary" ? undefined : { id: reminder.id, version: expectedVersion });
     const id = (result as { messages?: { id?: unknown }[] } | null)?.messages?.[0]?.id;
     if (typeof id !== "string" || !id) throw new Error("Provedor não confirmou a identidade da mensagem.");
     await store.reminder.updateMany({
-      where: { id: reminderId, status: "sending" }, data: { status: "provider_accepted", providerMessageId: id },
+      where: { id: reminderId, status: "sending" }, data: { status: "provider_accepted", providerMessageId: id,...(reminder.kind==="daily_summary"?{state:"completed",taskProgress:"completed"}:{}) },
     });
     if (reconcile) {
       try { await reconcile(id); } catch { console.error("Recibo persistido aguarda reconciliação operacional."); }

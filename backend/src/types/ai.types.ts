@@ -1,4 +1,5 @@
 export type AIAction =
+  | "edit_note" | "delete_note" | "set_preferences" | "show_preferences" | "usage_summary"
   | "mark_waiting"
   | "forget_fact"
   | "edit_reminder"
@@ -33,6 +34,13 @@ export type AIInterpretation = {
   factValue?: string | null;
   includeHistory?: boolean;
   reminderId?: string | null;
+  noteId?: string | null;
+  timezone?: string | null;
+  displayName?: string | null;
+  businessType?: string | null;
+  audioConsent?: boolean;
+  summaryEnabled?: boolean;
+  summaryTime?: string | null;
   waitingFor?: string | null;
   newTitle?: string | null;
   taskFilter?: "pending" | "waiting" | "completed" | "cancelled" | "overdue";

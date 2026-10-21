@@ -3,7 +3,7 @@ import { reminderScope } from "./reminder.management";
 import { IncomingConversation } from "./conversation.processor";
 import { findNotes } from "./notes";
 import { parseInterpretation } from "./interpretation.validation";
-type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject">;
+type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
   const since = new Date(message.receivedAt.getTime() - 30 * 60_000);
@@ -34,10 +34,15 @@ export async function conversationContext(store: Store, message: IncomingConvers
       select:{text:true,receivedAt:true,interpretation:true,reminder:{select:{id:true,title:true,remindAt:true,status:true,state:true}}}}),
     findNotes(store,message.phone,message.phoneNumberId),
   ]);
-  const [appointments,subjects,recentAlerts]=await Promise.all([
+  let memories=notes;
+  for(const row of draftHistory){
+    try{const intent=parseInterpretation(JSON.stringify(row.interpretation));if(intent.action==="search_notes"){memories=await findNotes(store,message.phone,message.phoneNumberId,intent.search || "");break;}if(["save_note","edit_note","delete_note"].includes(intent.action))break;}catch{}
+  }
+  const [appointments,subjects,recentAlerts,preference]=await Promise.all([
     store.appointment.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,state:"active"},include:{reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}},orderBy:{startsAt:"asc"},take:12}),
     store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{name:true,kind:true,facts:{where:{supersededAt:null},select:{key:true,value:true,revision:true},take:5,orderBy:{createdAt:"desc"}}},orderBy:{updatedAt:"desc"},take:8}),
     store.reminder.findMany({where:{...reminderScope(message.phone,message.phoneNumberId),state:"active",status:"provider_accepted",deliveryStartedAt:{gte:new Date(message.receivedAt.getTime()-7*86400000),lte:message.receivedAt}},select:{id:true,title:true,remindAt:true,deliveryStartedAt:true,deliveryStatus:true,taskProgress:true,waitingFor:true},orderBy:[{deliveryStartedAt:"desc"},{id:"desc"}],take:3}),
+    store.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:message.phoneNumberId,phone:message.phone}}}),
   ]);
   let pendingRequest: unknown=null,focusedReminder:unknown=null,focusedAppointment:unknown=null;
   // Resolve the latest appointment reference through persisted, scoped records.
@@ -64,8 +69,9 @@ export async function conversationContext(store: Store, message: IncomingConvers
     }
   }
   return {
-    now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user,
-    currentMessage: message.text, memories: notes, subjects, appointments, recentAlerts, habits: [],
+    now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
+    preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
+    currentMessage: message.text, memories, subjects, appointments, recentAlerts, habits: [],
     conversationState:{pendingRequest,focusedReminder,focusedAppointment,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().map(row => ({

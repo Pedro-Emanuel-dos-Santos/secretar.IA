@@ -4,12 +4,17 @@ import { secretaryPrompt } from "../prompts/secretary.prompt";
 import { AIInterpretation } from "../types/ai.types";
 import { aiRouter } from "../ai/ai-router";
 import { parseInterpretation } from "../domain/interpretation.validation";
+import { observeUsage, UsageObserver } from "../domain/ai.usage";
 
 export async function interpretMessage(
-  context: any
+  context: any,
+  onUsage?: UsageObserver,
+  router:typeof aiRouter=aiRouter
 ): Promise<AIInterpretation> {
 
-  const response = await aiRouter({
+  const started=performance.now();
+  let response:Awaited<ReturnType<typeof aiRouter>>;
+  try{response = await router({
     task: "conversation",
 
     temperature: 0.2,
@@ -27,7 +32,15 @@ export async function interpretMessage(
         content: JSON.stringify(context),
       },
     ],
-  });
+  });}catch(error){
+    const mode=process.env.AI_MODE;
+    await observeUsage(onUsage,{provider:mode==="openai"||mode==="ollama"?mode:"unknown",elapsedMs:Math.max(0,Math.round(performance.now()-started)),outcome:"failed_or_unknown"});
+    throw error;
+  }
+
+  // Persist real usage before parsing: malformed model JSON still consumed
+  // tokens. Never infer missing token counts from text length or estimates.
+  await observeUsage(onUsage,response.usage || {provider:response.provider,elapsedMs:Math.max(0,Math.round(performance.now()-started)),outcome:"completed"});
 
   return parseInterpretation(response.content);
 }

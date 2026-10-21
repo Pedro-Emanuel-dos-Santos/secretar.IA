@@ -6,6 +6,7 @@ actions.add("appointment_history");
 actions.add("mark_waiting");
 actions.add("forget_fact");
 actions.add("edit_reminder");
+for(const action of ["edit_note","delete_note","set_preferences","show_preferences","usage_summary"])actions.add(action);
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
@@ -20,6 +21,14 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  for(const key of ["timezone","displayName","businessType"] as const){
+    if(record[key]===undefined || record[key]===null)continue;
+    if(typeof record[key]!=="string" || !record[key].trim() || record[key].length>100)throw Error("Preferência inválida.");
+    extra[key]=record[key].trim();
+  }
+  if(record.audioConsent!==undefined && record.audioConsent!==null){if(typeof record.audioConsent!=="boolean")throw Error("Consentimento inválido.");extra.audioConsent=record.audioConsent;}
+  if(record.summaryEnabled!==undefined && record.summaryEnabled!==null){if(typeof record.summaryEnabled!=="boolean")throw Error("Preferência de resumo inválida.");extra.summaryEnabled=record.summaryEnabled;}
+  if(record.summaryTime!==undefined && record.summaryTime!==null){if(typeof record.summaryTime!=="string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(record.summaryTime))throw Error("Hora do resumo inválida.");extra.summaryTime=record.summaryTime;}
   if(record.taskFilter!==undefined && record.taskFilter!==null){
     if(!["pending","waiting","completed","cancelled","overdue"].includes(record.taskFilter as string))throw Error("Filtro de tarefas inválido.");
     extra.taskFilter=record.taskFilter as AIInterpretation["taskFilter"];
@@ -58,7 +67,7 @@ export function parseInterpretation(content: string): AIInterpretation {
     if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
     extra.expectedVersion = record.expectedVersion as number;
   }
-  for (const key of ["reminderId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
+  for (const key of ["reminderId", "noteId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");
     extra[key] = record[key] as string | null;

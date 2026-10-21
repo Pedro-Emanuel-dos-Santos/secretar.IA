@@ -32,6 +32,7 @@ model IncomingMessage {
   leaseUntil        DateTime?
   lastError         String?
   reply             ReplyOutbox?
+  aiUsage AiUsage[]
 
   @@unique([phoneNumberId, providerMessageId])
   @@index([phoneNumberId, status, receivedAt])
@@ -44,6 +45,15 @@ model ContactPreference {
   phone String
   remindersPaused Boolean @default(false)
   pausedAt DateTime?
+  timezone String @default("America/Sao_Paulo")
+  displayName String?
+  businessType String?
+  onboardedAt DateTime?
+  audioConsent Boolean @default(false)
+  audioConsentAt DateTime?
+  audioConsentProvider String?
+  summaryEnabled Boolean @default(false)
+  summaryTime String?
   updatedAt DateTime @updatedAt
 
   @@id([phoneNumberId, phone])
@@ -86,8 +96,11 @@ model Reminder {
   id          String   @id @default(uuid())
   userId      String
   title       String
+  kind String @default("task")
+  digestKey String? @unique
   description String?
   remindAt    DateTime
+  scheduleTimezone String @default("America/Sao_Paulo")
   status      String   @default("pending")
   state       String   @default("active")
   taskProgress String @default("pending")
@@ -118,6 +131,23 @@ model Reminder {
   @@index([userId, createdAt])
   @@index([appointmentId])
   @@unique([seriesId, occurrenceIndex])
+}
+
+model AiUsage {
+ id String @id @default(uuid())
+ messageId String
+ attempt Int
+ provider String
+ model String?
+ inputTokens Int?
+ outputTokens Int?
+ cachedInputTokens Int?
+ elapsedMs Int?
+ outcome String @default("started")
+ createdAt DateTime @default(now())
+ message IncomingMessage @relation(fields:[messageId],references:[id],onDelete:Cascade)
+ @@unique([messageId,attempt])
+ @@index([createdAt])
 }
 
 model Appointment {

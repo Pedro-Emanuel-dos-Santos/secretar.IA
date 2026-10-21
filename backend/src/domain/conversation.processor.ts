@@ -6,11 +6,13 @@ import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
 import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conversation.timing";
 import { guardFactLookup } from "./conversation.reads";
+import type { UsageObserver } from "./ai.usage";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
   buildContext(message: IncomingConversation): Promise<unknown>;
-  interpret(context: any): Promise<AIInterpretation>;
+  interpret(context: any,onUsage?:UsageObserver): Promise<AIInterpretation>;
+  onUsage?:UsageObserver;
   transcribe?(message: {mediaId: string; mediaMimeType: string | null; phoneNumberId: string; phone: string}): Promise<string>;
 };
 
@@ -23,11 +25,15 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   try {
     return await Promise.race([(async () => {
       const context = await deps.buildContext(message);
-      const interpretation = await deps.interpret(context);
+      const interpretation = await deps.interpret(context,deps.onUsage);
       const validated = parseInterpretation(JSON.stringify(interpretation));
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      if(["edit_note","delete_note"].includes(validated.action) && validated.noteId){
+        const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId);
+        if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;
+      }
       guardFactLookup(validated,message.text,context);
       guardCorrectionTarget(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {

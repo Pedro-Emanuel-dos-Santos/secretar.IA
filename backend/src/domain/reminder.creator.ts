@@ -16,7 +16,6 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
     if (existing) return existing;
   }
   const { phone, title, description, reminderDate } = validateReminder(input);
-  const dates = recurrenceDates(input.remindAt, input.recurrence);
   const user = await tx.user.upsert({
     // A real upsert update locks the user row through the quota check and inserts.
     where: { phone }, update: {updatedAt:new Date()}, create: { phone, name: null, timezone: "America/Sao_Paulo" },
@@ -27,8 +26,10 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
   }
   const preference = await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:source.phoneNumberId,phone}}});
   if(preference?.remindersPaused)throw new RemindersPausedError();
+  const scheduleTimezone=preference?.timezone || "America/Sao_Paulo";
+  const dates=recurrenceDates(input.remindAt,input.recurrence,scheduleTimezone);
   const limits = source.limits ?? reminderLimits();
-  const scope = {userId:user.id,OR:[{sourceMessage:{phoneNumberId:source.phoneNumberId}},{scheduleOutbox:{phoneNumberId:source.phoneNumberId}}]};
+  const scope = {userId:user.id,kind:"task",OR:[{sourceMessage:{phoneNumberId:source.phoneNumberId}},{scheduleOutbox:{phoneNumberId:source.phoneNumberId}}]};
   const [active, recent] = await Promise.all([
     tx.reminder.count({where:{...scope,state:"active"}}),
     tx.reminder.count({where:{...scope,createdAt:{gte:new Date(Date.now()-24*60*60000)}}}),
@@ -43,12 +44,12 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
   const recurrence = input.recurrence ? { seriesId, occurrenceIndex: 0,
     recurrenceFrequency: input.recurrence.frequency, recurrenceCount: input.recurrence.count } : {};
   const first = await tx.reminder.create({
-    data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",
+    data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",scheduleTimezone,
       ...recurrence, appointmentId:source.appointmentId, appointmentOffsetMinutes:source.appointmentOffsetMinutes,
       sourceMessageId: source.sourceMessageId, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
   });
   for (let index = 1; index < dates.length; index++) await tx.reminder.create({
-    data: { userId: user.id, title, description, remindAt: dates[index], status: "scheduling_pending",
+    data: { userId: user.id, title, description, remindAt: dates[index], status: "scheduling_pending",scheduleTimezone,
       ...recurrence, occurrenceIndex: index, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
   });
   return first;
