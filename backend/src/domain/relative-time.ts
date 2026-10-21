@@ -2,6 +2,7 @@
 const spokenAmounts: Record<string,number> = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,quinze:15,vinte:20,trinta:30,sessenta:60};
 function normalizeDuration(text:string) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+    .replace(/\bmins?\b/g,"minuto").replace(/\bsegs?\b/g,"segundo")
     .replace(/\b(um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|quinze|vinte|trinta|sessenta)(?=\s+(?:segundos?|minutos?|horas?)\b)/g, word=>String(spokenAmounts[word]));
 }
 export function relativeReminderTime(text: string, receivedAt: Date): string | null {
@@ -9,9 +10,10 @@ export function relativeReminderTime(text: string, receivedAt: Date): string | n
   // Task-first requests are common in chat: "quero beber água em um minuto".
   // Only resolve one plain duration; mixed dates/durations need clarification.
   if (/\b(?:nao|amanha|ontem|hoje|depois de amanha)\b|\bas\s+\d|\b\d{1,2}:\d{2}\b/.test(normalized)) return null;
+  if (/^(?:ele|ela)\s+disse\b/.test(normalized)) return null;
   if ((normalized.match(/\b(?:segundos?|minutos?|horas?)\b/g)?.length || 0) !== 1) return null;
   const match = normalized.match(/^(?:(?:me (?:lembra|lembre)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\s+)?(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)(?=\s+(?:de|para)\b|[.!?]?\s*$)/)
-    || normalized.match(/^(?:me (?:lembra|lembre)|(?:eu )?(?:quero|queria|preciso|gostaria de)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\b.+?\b(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)[.!?]?\s*$/);
+    || normalized.match(/\b(?:daqui a|em)\s+(?:exatamente\s+)?(\d+)\s+(segundos?|minutos?|horas?)[.!?]?\s*$/);
   if (!match) return null;
   const amount = Number(match[1]);
   const factor = match[2].startsWith("segundo") ? 1000 : match[2].startsWith("minuto") ? 60000 : 3600000;

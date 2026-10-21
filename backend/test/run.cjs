@@ -152,7 +152,7 @@ test("duração atravessa meia-noite e aceita horas e segundos", () => {
 
 test("pedido com tarefa antes da duração não vira meia-noite", async () => {
   const receivedAt = new Date("2026-10-20T21:30:00Z");
-  for (const text of ["quero beber água em um minuto", "queria beber água em um minuto", "Me lembra de beber água daqui a 1 minuto", "Preciso ligar para o cliente em dois minutos."]) {
+  for (const text of ["quero beber água em um minuto", "queria beber água em um minuto", "Me lembra de beber água daqui a 1 minuto", "Me lembra de tomar água daqui a 1 min", "Isso um nome lembrete em exatamente 1 minuto", "Preciso ligar para o cliente em dois minutos."]) {
     const minutes = text.includes("dois") ? 2 : 1;
     const result = await prepareConversation({ phone: input.phone, phoneNumberId: "test", text, receivedAt }, {
       buildContext: async () => ({}), interpret: async () => ({ ...interpretation, datetime: "2026-10-21T00:00:00-03:00" }),
