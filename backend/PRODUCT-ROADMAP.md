@@ -15,7 +15,9 @@ Ordem de implementação e avaliação:
    recentes sem misturar clientes. Primeiro incremento implementado neste ciclo:
    `subject_overview` e referência explícita com validade de 30 minutos.
 2. Correções conversacionais de data/horário e seleção de itens: avaliar com
-   diálogos e listas persistidas, sem escolher o primeiro resultado. Seleção
+   diálogos e listas persistidas, sem escolher o primeiro resultado. Preservação
+   de dia/hora omitidos em reagendamento parcial implementada localmente para
+   tarefas e compromissos, com versão e fuso; ver RESCHEDULE-PARTS.md. Seleção
    ordinal usa um snapshot da lista efetivamente enviada: implementado localmente
    para tarefas, com validade de 15 minutos, escopo por contato/conta e revalidação
    antes de alterar. Notas/compromissos e escolha sem ação em vários turnos ainda

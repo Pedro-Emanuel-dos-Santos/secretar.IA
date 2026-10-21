@@ -44,6 +44,7 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     if(!appointment)return "Não encontrei esse compromisso entre os seus ativos.";
     await tx.$queryRaw`SELECT id FROM "Appointment" WHERE id=${appointment.id} FOR UPDATE`;
     appointment=await tx.appointment.findFirstOrThrow({where:{...scope,id:appointment.id,state:"active"}});
+    if(intent.expectedVersion!==undefined && appointment.version!==intent.expectedVersion)return "Esse compromisso mudou desde a consulta. Confira o horário atual antes de reagendar.";
     await tx.$queryRaw`SELECT id FROM "Reminder" WHERE "appointmentId"=${appointment.id} ORDER BY id FOR UPDATE`;
   } else {
     const replay=await tx.appointment.findFirst({where:{...scope,sourceMessageId}});

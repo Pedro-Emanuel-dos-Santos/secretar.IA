@@ -9,6 +9,7 @@ import { guardFactLookup } from "./conversation.reads";
 import { guardSubjectReference, mentionsName } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
 import { applyTaskSelection } from "./task.selection";
+import { preserveRescheduleParts } from "./reschedule.parts";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -73,6 +74,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       if (["reschedule_reminder","reschedule_appointment"].includes(validated.action)) {
         const relative = validated.action==="reschedule_appointment" && explicitClock(message.text) ? null : relativeRescheduleTime(message.text, message.receivedAt);
         if (relative) validated.datetime = relative;
+        else preserveRescheduleParts(validated,message.text,context,message.receivedAt);
       }
       return validated;
     })(), new Promise<never>((_, reject) => {

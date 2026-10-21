@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- Mais recente: reagendamento parcial preserva dia/hora não alterado em tarefas e compromissos. Resolução de hoje/amanhã/depois de amanhã/dia da semana simples usa recebimento/fuso; períodos vagos pedem detalhe. Versão do registro protege contra correção antiga. Build e 153 unitários passaram; suíte de 167 integrações passou. Ver RESCHEDULE-PARTS.md. Sem migração nova, publicação ou teste de IA real.
+
 - Direção de produto registrada em PRODUCT-ROADMAP.md. subject_overview reúne dados atuais, compromissos, tarefas explicitamente vinculadas e notas que mencionam o nome. Vínculo de novas tarefas/séries, correção/remoção de vínculo existente e seleção ordinal de lista enviada implementados localmente. Correção de vínculo exige título/ID inequívoco, sem ordinal ou alteração de série inteira.
 - Usuário decidiu aguardar Railway, continuar código local e manter callback atual. Túnel/API/workers iniciados para teste temporário foram desligados; banco e Redis locais permanecem disponíveis.
 - Verificação do incremento por cliente: build/TypeScript, 137 testes unitários e 141 integrações passaram; quatro cenários de cliente repetidos após o ajuste final também passaram. Provedores simulados e banco local isolado; interpretação com IA real ainda pendente. Nenhuma migração adicional necessária para este incremento.

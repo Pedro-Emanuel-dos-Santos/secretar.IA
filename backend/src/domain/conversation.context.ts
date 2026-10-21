@@ -23,7 +23,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
       orderBy: [{ receivedAt: "desc" }, { id: "desc" }], take: 4,
       select: { text: true, receivedAt: true,
         reply: { select: { text: true, status: true } },
-        reminder: { select: { id: true, title: true, remindAt: true, status: true, state: true } } },
+        reminder: { select: { id: true, title: true, remindAt: true, status: true, state: true,scheduleVersion:true } } },
     }),
   ]);
   // Drafts survive process restarts and short interruptions because they come
@@ -33,7 +33,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
       receivedAt:{gte:new Date(message.receivedAt.getTime()-7*86400000),lte:message.receivedAt},
       status:{in:["reply_pending","reply_sending","completed","reply_unknown"]}},
       orderBy:[{receivedAt:"desc"},{id:"desc"}],take:20,
-      select:{text:true,receivedAt:true,interpretation:true,reminder:{select:{id:true,title:true,remindAt:true,status:true,state:true}}}}),
+      select:{text:true,receivedAt:true,interpretation:true,reminder:{select:{id:true,title:true,remindAt:true,status:true,state:true,scheduleVersion:true}}}}),
     findNotes(store,message.phone,message.phoneNumberId),
   ]);
   let memories=notes;
