@@ -17,3 +17,4 @@ require("./task-subject.integration.cjs");
 require("./task-selection.integration.cjs");
 require("./task-relink.integration.cjs");
 require("./reschedule-parts.integration.cjs");
+require("./task-focus.integration.cjs");

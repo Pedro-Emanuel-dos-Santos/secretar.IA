@@ -16,7 +16,8 @@ const formatDate = (date: Date,timeZone:string) => new Intl.DateTimeFormat("pt-B
 const displayTitle = (title: string) => title.length > 100 ? title.slice(0, 97) + "..." : title;
 
 export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient,sourceMessageId?:string) {
-  if (!["list_reminders", "set_task_subject", "cancel_reminder", "complete_reminder", "reschedule_reminder", "mark_waiting", "edit_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
+  if (!["list_reminders", "select_task", "set_task_subject", "cancel_reminder", "complete_reminder", "reschedule_reminder", "mark_waiting", "edit_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
+  if(intent.action==="select_task" && (!intent.selectionListId || intent.selectionIndex===undefined || !sourceMessageId))return "Peça uma lista recente de tarefas e escolha o item que deseja.";
   if(!await validateTaskSelection(tx,phone,phoneNumberId,intent))return "Essa lista ou tarefa mudou desde a consulta. Peça uma nova lista antes de escolher pelo número.";
   const scope = reminderScope(phone, phoneNumberId);
   const timezone=await contactTimezone(tx,phone,phoneNumberId);
@@ -83,6 +84,12 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   }
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
+  if(intent.action==="select_task"){
+    const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId},select:{id:true}});
+    if(!source)throw Error("Origem da seleção incompatível.");
+    await tx.event.create({data:{userId:target.userId,type:"task_selection_focus",source:"secretaria",payload:{phoneNumberId,sourceMessageId:source.id,listId:intent.selectionListId!,index:intent.selectionIndex!}}});
+    return `O item ${intent.selectionIndex!+1} é: ${target.title}. Quer concluir ou cancelar essa tarefa?`;
+  }
   // A linked alert is managed through its event so offsets and event time
   // cannot diverge during concurrent rescheduling (including old buttons).
   if(target.appointmentId && intent.action==="reschedule_reminder")return "Esse aviso pertence a um compromisso. Diga quanto tempo antes quer ser avisado ou peça para reagendar o compromisso.";

@@ -20,8 +20,10 @@ Ordem de implementação e avaliação:
    tarefas e compromissos, com versão e fuso; ver RESCHEDULE-PARTS.md. Seleção
    ordinal usa um snapshot da lista efetivamente enviada: implementado localmente
    para tarefas, com validade de 15 minutos, escopo por contato/conta e revalidação
-   antes de alterar. Notas/compromissos e escolha sem ação em vários turnos ainda
-   não estão contemplados. Ver TASK-SELECTION.md.
+   antes de alterar. Escolha em dois turnos também implementada localmente para
+   concluir/cancelar, com referência de cinco minutos e consumo único.
+   Notas/compromissos e outras ações em vários turnos não estão contemplados.
+   Ver TASK-SELECTION.md.
 3. Vínculo explícito entre tarefas e clientes/projetos: implementado localmente
    para novas tarefas/séries. Visão geral e lista filtrada incluem tarefas do
    cadastro; antigas não foram associadas automaticamente. Correção/remoção do

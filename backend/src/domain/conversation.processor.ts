@@ -34,7 +34,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // not invented by the language model.
       delete validated.expectedVersion;
       delete validated.expectedSubjectId;
-      applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null);
+      applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null,(context as any)?.conversationState?.selectedTask || null);
       if(validated.action==="set_task_subject"){
         const normalized=message.text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
         const removal=/\b(?:tira|tire|retira|retire|remove|remova|remover|desvincula|desvincule|desvincular|sem cliente|sem projeto)\b/i.test(normalized) && !/\b(?:nao|nunca|talvez|se)\b/i.test(normalized);

@@ -4,7 +4,7 @@ import { IncomingConversation } from "./conversation.processor";
 import { findNotes } from "./notes";
 import { parseInterpretation } from "./interpretation.validation";
 import { mentionsName } from "./conversation.references";
-import { shownTaskList } from "./task.selection";
+import { shownTaskList,shownTaskFocus } from "./task.selection";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -48,6 +48,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
   ]);
   let pendingRequest: unknown=null,focusedReminder:unknown=null,focusedAppointment:unknown=null;
   const taskList=await shownTaskList(store,message.phone,message.phoneNumberId,message.receivedAt);
+  const selectedTask=await shownTaskFocus(store,message.phone,message.phoneNumberId,message.receivedAt);
   let focusedSubject:{id:string;name:string;kind:string}|null=null;
   for(const row of draftHistory){
     if(row.receivedAt<since)break;
@@ -96,7 +97,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
     currentMessage: message.text, memories, subjects, appointments, recentAlerts, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,selectedTask,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().map(row => ({
       user: row.text.slice(0, 1000), receivedAt: row.receivedAt.toISOString(),
