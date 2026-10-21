@@ -6,6 +6,7 @@ import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
 import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conversation.timing";
 import { guardFactLookup } from "./conversation.reads";
+import { guardSubjectReference } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
@@ -35,6 +36,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;
       }
       guardFactLookup(validated,message.text,context);
+      guardSubjectReference(validated,message.text,context);
       guardCorrectionTarget(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {
         if(validated.action==="create_appointment" && hasMultipleInitialTimes(message.text)){

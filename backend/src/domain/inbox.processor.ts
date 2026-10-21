@@ -11,6 +11,7 @@ import { localCommand, executeLocalCommand } from "./local.commands";
 import { requestBudget } from "./request.budget";
 import { executeNote } from "./notes";
 import { executeFact } from "./business.memory";
+import { subjectOverview } from "./subject.overview";
 import { executeAppointment } from "./appointments";
 import { executePreferences,contactTimezone } from "./preferences";
 
@@ -128,7 +129,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         refreshReminder = true;
         return reminder;
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
-      intent=>["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
+      intent=>intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx)
         : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });

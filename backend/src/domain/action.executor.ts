@@ -28,7 +28,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
   switch (interpretation.action) {
     case "appointment_history": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_appointment": case "list_appointments": case "reschedule_appointment": case "cancel_appointment": case "set_appointment_alerts":
-    case "save_fact": case "search_facts": case "forget_fact": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
+    case "subject_overview": case "save_fact": case "search_facts": case "forget_fact": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_reminder": {
       if (!interpretation.title?.trim()) return "Do que você quer que eu te lembre?";
       if (!interpretation.datetime) return interpretation.draft?.date ? "Que horas você quer que eu te lembre?"

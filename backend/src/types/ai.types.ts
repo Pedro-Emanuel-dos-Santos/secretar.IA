@@ -1,4 +1,5 @@
 export type AIAction =
+  | "subject_overview"
   | "edit_note" | "delete_note" | "set_preferences" | "show_preferences" | "usage_summary"
   | "mark_waiting"
   | "forget_fact"

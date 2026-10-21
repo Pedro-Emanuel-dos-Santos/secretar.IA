@@ -2,6 +2,10 @@
 
 ## Estado confirmado mais recente
 
+- Direção de produto registrada em PRODUCT-ROADMAP.md. Novo incremento local: subject_overview (dados atuais, compromissos vinculados e notas que mencionam o nome) e referência recente de cliente em consultas. Sem vínculo de tarefa avulsa por cliente nem seleção ordinal persistida ainda.
+- Usuário decidiu aguardar Railway, continuar código local e manter callback atual. Túnel/API/workers iniciados para teste temporário foram desligados; banco e Redis locais permanecem disponíveis.
+- Verificação do incremento por cliente: build/TypeScript, 137 testes unitários e 141 integrações passaram; quatro cenários de cliente repetidos após o ajuste final também passaram. Provedores simulados e banco local isolado; interpretação com IA real ainda pendente. Nenhuma migração adicional necessária para este incremento.
+
 - Incremento local adicional: perfil/fuso por conta, edição/exclusão de notas, consentimento informado de áudio, medição de tokens, limpeza confirmada de conteúdo e resumo diário opcional. Ver `PILOT-V2.md` para limites e roteiro de testes. As novas ações ainda não passaram pela IA real nem WhatsApp.
 - Railway foi acessada novamente: serviços online, porém novos deploys temporariamente pausados por “Limited Access”. PostgreSQL não possui acesso público e o painel mostrou ausência de backups nativos. Não foi aberto acesso público ao banco.
 
