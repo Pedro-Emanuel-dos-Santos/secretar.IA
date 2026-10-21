@@ -23,6 +23,7 @@ async function turn(text,action){
  assert.ok(saved.reply,'Turn failed to produce reply: '+JSON.stringify({text,status:saved.status,lastError:saved.lastError,interpretation:saved.interpretation}));
  await relayReplies(p,async()=>({messages:[{id:'wamid.fictional-'+randomUUID()}]}),business);
  turns++;console.log(JSON.stringify({turn:turns,text,action:saved.interpretation.action,reply:saved.reply.text}));
+ if(/Não encontrei.*compromisso/.test(saved.reply.text))console.log(JSON.stringify({fictionalTargetDiagnostic:saved.interpretation,appointments:await p.appointment.findMany({where:{phoneNumberId:business},select:{id:true,title:true,state:true}})}));
  assert.equal(saved.interpretation.action,action);return saved;
 }
 async function event(){return p.appointment.findFirstOrThrow({where:{phoneNumberId:business},include:{reminders:{where:{state:'active'}}}});}

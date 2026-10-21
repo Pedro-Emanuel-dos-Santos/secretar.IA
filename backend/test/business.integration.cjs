@@ -103,6 +103,12 @@ test('histórico com título ambíguo pede escolha sem revelar registros de outr
  const reply=await call('appointment_history',{search:'Revisão mensal'});
  assert.match(reply,/Qual deles/);assert.match(reply,/Alfa/);assert.match(reply,/Beta/);assert.doesNotMatch(reply,/SEGREDO/);
 });
+test('busca tolera artigos e acentos sem substituir um identificador inválido',async()=>{
+ const row=await incoming();await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Reunião de alinhamento com João Silva',datetime:'2099-08-01T10:00:00-03:00'}),tx,row.id));
+ assert.match(await call('cancel_appointment',{appointmentId:randomUUID(),search:'reuniao de alinhamento com o joao silva'}),/Não encontrei/);
+ assert.match(await call('cancel_appointment',{search:'reuniao de alinhamento com o joao silva'}),/Cancelei/);
+ assert.match(await call('appointment_history',{search:'reuniao de alinhamento com o joao silva'}),/Compromisso cancelado/);
+});
 test('MEU DIA mostra horário do evento sem duplicar seus avisos como tarefas',async()=>{
  const row=await incoming();await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Agenda do dia',datetime:'2099-05-03T10:00:00-03:00',alertMinutes:[30,0]}),tx,row.id));
  const summary=await p.$transaction(tx=>dayOverview(phone,biz,tx,new Date('2099-05-03T12:00:00Z')));

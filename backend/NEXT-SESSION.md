@@ -1,24 +1,30 @@
-# Retomada da publicação
+# Retomada da Secretár.IA — 21/10/2026
 
-Estado confirmado da sessão mais recente: SESSION-20261021.md. Banco pessoal e produção não migrados; apenas o banco local de testes recebeu a migração nova. Não executar build novo no banco pessoal sem backup/migração. Testes locais passaram; os novos turnos com IA real permanecem pendentes.
+## Estado confirmado mais recente
 
-O incremento local seguinte está em FOLLOWUPS.md: acompanhamento de tarefas, correção de título, remoção de dado do cadastro, guards de conversa e migração `20261021030000_task_progress`. Revisar o log atual, pois os commits abaixo são o ponto anterior. Rodar `npm run check:pilot -- --integration` e avaliar os 21 turnos com IA real antes da publicação. Nesta sessão o teste novo com provedor real não foi executado; não confundir testes simulados com validação da interpretação real.
+- A avaliação de 21 turnos com IA real passou na retomada de hoje. Usou dados fictícios, banco local isolado e WhatsApp simulado; nenhum envio real.
+- Foram corrigidos campos nulos omitidos pelo modelo, consulta factual respondida diretamente sem buscar o cadastro e busca textual de compromissos com artigos/acentos. Identificador inválido continua sendo recusado, sem substituição silenciosa por outro registro.
+- A API pública respondeu HTTP 200 e {"status":"ready"}. Isso confirma prontidão da versão já publicada, não a publicação dos incrementos locais.
+- O painel da Railway mostrou: “Dashboard and API unavailable, builds paused. We’ve found the cause and are working on a fix.” Nenhum deploy ou push foi feito durante o incidente.
+- Branch: codex/railway-ready-20261020. Antes das correções da retomada, HEAD=a80f75d e havia cinco commits locais acima do remoto. Consultar git log/status atuais.
+- Migrações novas foram aplicadas apenas ao banco local secretaria_inbox_test. Banco pessoal e produção não foram migrados nesta retomada.
 
-## Estado salvo
+## Próximos passos
 
-- Branch: `codex/railway-ready-20261020`.
-- Pacote principal enviado: `3ea661c` (compromissos/avisos e memória de clientes).
-- Incrementos locais posteriores: `0832e5f`, `6ff5b1d`, `3224651`, além do commit deste roteiro. Consultar `git log` e `git status` antes de enviar.
-- Railway mostrou deploys temporariamente pausados. Não presumir que o pacote principal está ativo só porque o serviço aparece online.
-- A migração nova foi aplicada apenas no banco local de testes. Não confundir esse banco com produção.
+1. Conferir acesso e recuperação do painel/API da Railway. Se persistir o incidente, não presumir liberação de builds.
+2. Conferir backup do PostgreSQL e revisar commits locais. Depois de autorizada a publicação, enviar a branch e acompanhar pre-deploy da API com as migrações aditivas.
+3. Confirmar o commit ativo na API, inbox e worker de lembretes. Workers aguardam os novos campos antes de consumir trabalho.
+4. Conferir /health/ready e executar teste controlado no WhatsApp autorizado: compromisso futuro, avisos, alteração, cancelamento e tarefa aguardando/concluída.
+5. Somente após o teste real anunciar as funções como disponíveis.
 
-## Ordem de retomada
+## Verificação local
 
-1. Conferir alterações locais, branch e situação da Railway.
-2. Validar com IA real a pergunta “O que mudou na reunião com João?”. Os testes de domínio/contrato passaram, mas essa pergunta ainda não foi avaliada no provedor real.
-3. Depois da liberação da Railway, conferir backup do banco, enviar os commits e acompanhar a migração aditiva no pre-deploy da API. Os workers aguardam os novos campos antes de trabalhar.
-4. Confirmar o commit ativo nos três serviços: API, entrada e lembretes. Conferir `/health/ready` e erros de migração/inicialização.
-5. Fazer um teste controlado no WhatsApp autorizado: reunião futura, aviso antecipado, aviso adicional, reagendamento, consulta de histórico e cancelamento. Usar horários que permitam observar os disparos.
-6. Testar orçamento 500 → 650, repetição de 650 e consulta do histórico. Conferir que existe um único valor atual e nenhuma revisão extra pela repetição.
+No backend: npm run check:pilot -- --integration. O comando aceita apenas banco local terminado em _test e remove credenciais dos provedores no ambiente dos testes. A opção --migrate-test exige --integration e aplica migrações somente nesse banco.
 
-Não enviar credenciais ao chat. Templates fora da janela de atendimento, número definitivo e áudio na nuvem continuam com as limitações descritas em BUSINESS.md. Não anunciar as funções como ativas antes de confirmar o deploy e testar.
+Para IA real: build atualizado e scripts/evaluate-business.cjs --allow-provider, com INBOX_TEST_DATABASE_URL local e AI_MODE=openai. Usa tokens do provedor; mensagens WhatsApp são simuladas.
+
+## Referências e limitações
+
+FOLLOWUPS.md explica o incremento; SESSION-20261021.md registra a etapa noturna anterior à validação real. Essa avaliação pendente no documento anterior agora foi concluída na retomada.
+
+Número definitivo, template fora da janela, áudio na nuvem, retenção completa de dados e medição financeira por usuário continuam pendentes. Não enviar segredos ao chat. Antes de usar o build novo com o banco pessoal, fazer backup e aplicar as migrações; ele ainda não recebeu a migração nova nesta sessão.

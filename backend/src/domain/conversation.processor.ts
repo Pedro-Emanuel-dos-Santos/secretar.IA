@@ -5,6 +5,7 @@ import { buttonInterpretation } from "./reminder.buttons";
 import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
 import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conversation.timing";
+import { guardFactLookup } from "./conversation.reads";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -27,6 +28,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      guardFactLookup(validated,message.text,context);
       guardCorrectionTarget(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {
         if(validated.action==="create_appointment" && hasMultipleInitialTimes(message.text)){

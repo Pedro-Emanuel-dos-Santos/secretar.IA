@@ -5,10 +5,17 @@ import { persistReminderInTransaction } from "./reminder.creator";
 import { parseTimestamp, validateReminder } from "./reminder.validation";
 import { reminderLimits } from "./reminder.limits";
 import { reminderScope } from "./reminder.management";
-import { resolveSubject } from "./business.memory";
+import { resolveSubject, normalizeName } from "./business.memory";
 
 const display=(date:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}).format(date);
 const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"];
+async function normalizedMatches(tx:Prisma.TransactionClient,scope:Prisma.AppointmentWhereInput,search:string){
+  const words=normalizeName(search).split(/[^a-z0-9]+/).filter(w=>w && !["a","o","as","os","de","da","do","das","dos","com","para","um","uma"].includes(w));
+  if(!words.length)return [];
+  const candidates=await tx.appointment.findMany({where:scope,orderBy:[{startsAt:"asc"},{id:"asc"}],take:101});
+  if(candidates.length>100)return null; // Never silently choose from a truncated set.
+  return candidates.filter(a=>{const titleWords=normalizeName(a.title).split(/[^a-z0-9]+/);return words.every(w=>titleWords.includes(w));});
+}
 export async function executeAppointment(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId:string) {
   const scope={user:{phone},phoneNumberId};
   if(intent.action==="appointment_history")return appointmentHistory(phone,phoneNumberId,intent,tx);
@@ -23,7 +30,12 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   if(intent.action!=="create_appointment") {
     const search=intent.search?.trim();
     if(!intent.appointmentId && !search)return "Qual compromisso você quer alterar?";
-    const matches=await tx.appointment.findMany({where:{...scope,state:"active",...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});
+    let matches=await tx.appointment.findMany({where:{...scope,state:"active",...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});
+    if(!matches.length && !intent.appointmentId && search){
+      const fallback=await normalizedMatches(tx,{...scope,state:"active"},search);
+      if(fallback===null)return "Há muitos compromissos para localizar por esse trecho. Informe o título completo ou o dia.";
+      matches=fallback.slice(0,2);
+    }
     if(matches.length>1)return "Qual deles?\n"+matches.map(a=>`• ${a.title.slice(0,100)} — ${display(a.startsAt)}`).join("\n");
     appointment=matches[0];
     if(!appointment)return "Não encontrei esse compromisso entre os seus ativos.";
@@ -92,7 +104,12 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
 async function appointmentHistory(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient){
   const search=intent.search?.trim();
   if(!intent.appointmentId && !search)return "De qual compromisso você quer ver o histórico?";
-  const matches=await tx.appointment.findMany({where:{user:{phone},phoneNumberId,...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});
+  let matches=await tx.appointment.findMany({where:{user:{phone},phoneNumberId,...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});
+  if(!matches.length && !intent.appointmentId && search){
+    const fallback=await normalizedMatches(tx,{user:{phone},phoneNumberId},search);
+    if(fallback===null)return "Há muitos compromissos para localizar por esse trecho. Informe o título completo ou o dia.";
+    matches=fallback.slice(0,2);
+  }
   if(!matches.length)return "Não encontrei esse compromisso nos seus registros.";
   if(matches.length>1)return "Qual deles?\n"+matches.map(a=>`• ${a.title.slice(0,100)} — ${display(a.startsAt)}`).join("\n");
   const target=matches[0];

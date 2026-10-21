@@ -5,6 +5,17 @@ const {parseInterpretation}=require('../src/domain/interpretation.validation.ts'
 const {explicitClock}=require('../src/domain/conversation.timing.ts');
 const {notesReply}=require('../src/domain/notes.ts');
 const base={action:'create_reminder',title:'Falar com João',description:null,datetime:'2099-05-02T09:00:00-03:00',amount:null,category:null,reply:'interno'};
+test('consulta factual direta do modelo é encaminhada ao cadastro em vez de repetir conversa antiga',async()=>{
+ const deps={buildContext:async()=>({subjects:[{name:'João Silva',kind:'client'}]}),interpret:async()=>({...base,action:'conversation',reply:'O orçamento era 500.'})};
+ const r=await prepareConversation({text:'Qual é o orçamento atual do João Silva?',receivedAt:new Date()},deps);
+ assert.equal(r.action,'search_facts');assert.equal(r.subject,'João Silva');assert.equal(r.factKey,'orcamento');assert.equal(r.includeHistory,false);
+ const advice=await prepareConversation({text:'Qual estratégia usar no orçamento do João Silva?',receivedAt:new Date()},deps);assert.equal(advice.action,'conversation');
+});
+test('JSON esparso normaliza ausências sem inventar argumentos e ainda rejeita tipos inválidos',()=>{
+ const r=parseInterpretation(JSON.stringify({action:'reschedule_appointment',appointmentId:'existing',datetime:base.datetime,reply:'interno'}));
+ assert.equal(r.title,null);assert.equal(r.amount,null);assert.equal(r.description,null);assert.equal(r.datetime,base.datetime);
+ assert.throws(()=>parseInterpretation(JSON.stringify({action:'reschedule_appointment',title:{},reply:'interno'})));
+});
 
 test('consulta de histórico atravessa validação e execução sem criar lembrete',async()=>{
  const {executeAction}=require('../src/domain/action.executor.ts');

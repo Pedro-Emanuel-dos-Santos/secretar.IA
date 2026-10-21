@@ -10,7 +10,9 @@ actions.add("edit_reminder");
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Interpretação inválida.");
-  const record = value as Record<string, unknown>;
+  // Providers may omit irrelevant nullable fields. Absence is not a guessed
+  // value: executors still require the arguments needed by each action.
+  const record:Record<string,unknown> = {title:null,description:null,datetime:null,category:null,amount:null,...value as Record<string,unknown>};
   if (typeof record.action !== "string" || !actions.has(record.action)) throw new Error("Ação inválida.");
   if (typeof record.reply !== "string" || !record.reply.trim() || record.reply.length > 2000) throw new Error("Resposta inválida.");
   for (const key of ["title", "description", "datetime", "category"] as const) {
