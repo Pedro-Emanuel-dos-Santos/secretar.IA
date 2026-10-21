@@ -5,7 +5,7 @@ import { dayOverview } from "./day.overview";
 export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
-  if (["oi", "ola", "ajuda", "menu", "comecar", "como funciona"].includes(value)) return "help";
+  if (["ajuda", "menu", "comecar", "como funciona"].includes(value)) return "help";
   if (["privacidade", "meus dados"].includes(value)) return "privacy";
   if (["parar", "stop", "pausar lembretes", "nao quero receber lembretes"].includes(value)) return "pause";
   if (/^(?:por favor,?\s+)?(?:(?:quero|gostaria de)\s+)?(?:parar|pare|pausar|pause|pausa|suspender|suspenda)(?:\s+(?:os|meus))?\s+(?:avisos|lembretes)(?:,?\s+por favor)?$/.test(value)) return "pause";
@@ -20,7 +20,7 @@ export async function executeLocalCommand(command: LocalCommand, phone: string, 
   if (command === "today") return dayOverview(phone,phoneNumberId,tx);
   if (command === "help") return "Sou a Secretár.IA. Posso ajudar com suas tarefas e prazos. Exemplos:\n" +
     "• Me lembra amanhã às 9h de enviar o orçamento.\n• Quais são meus lembretes de hoje?\n• Adia o lembrete do orçamento para amanhã às 10h.\n" +
-    "Também preparo séries de 2 a 12 avisos diários, semanais ou mensais. Uso o horário de Brasília.\n" +
+    "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Também guardo anotações: ‘Anota que o orçamento do João é R$ 500’. Depois, pergunte pelo orçamento.\nTambém preparo séries de 2 a 12 avisos diários, semanais ou mensais. Uso o horário de Brasília.\n" +
     "Envie MEU DIA para ver as tarefas de hoje, PARAR para pausar os avisos, RETOMAR para voltar ou PRIVACIDADE para saber sobre seus dados.";
   if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes e estados de entrega para executar seus pedidos. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
     (process.env.AUDIO_TRANSCRIPTION_PROVIDER === "openai" ? "Quando habilitado, o áudio é enviado à OpenAI para transcrição. " : "Quando habilitado, o áudio é transcrito no computador/servidor da Secretár.IA. ") +

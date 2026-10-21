@@ -5,6 +5,9 @@ export type AIAction =
   | "cancel_reminder"
   | "complete_reminder"
   | "reschedule_reminder"
+  | "save_note"
+  | "search_notes"
+  | "discard_draft"
   | "create_expense"
   | "unknown";
 
@@ -23,4 +26,5 @@ export type AIInterpretation = {
   expectedVersion?: number;
   recurrence?: { frequency: "daily" | "weekly" | "monthly"; count: number | null } | null;
   cancelSeries?: boolean;
+  draft?: { date: string | null; time: string | null } | null;
 };

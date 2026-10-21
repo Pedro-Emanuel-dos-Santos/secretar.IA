@@ -22,7 +22,7 @@ async function clear() {
 }
 after(async () => { await clear(); await prisma.$disconnect(); });
 async function incoming(data = {}) {
-  return prisma.incomingMessage.create({ data: { phoneNumberId: numberId, phone, text: "Texto privado", providerMessageId: randomUUID(), nextAttemptAt: new Date(0), ...data } });
+  return prisma.incomingMessage.create({ data: { phoneNumberId: numberId, phone, text: "Texto privado dia 20/07/2099 às 10h", providerMessageId: randomUUID(), nextAttemptAt: new Date(0), ...data } });
 }
 async function prepare() {
   const row = await incoming();

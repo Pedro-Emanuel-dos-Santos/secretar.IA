@@ -18,7 +18,7 @@ const deps = { buildContext: async () => ({}), interpret: async () => interpreta
 const payload = (...ids) => ({
   object: "whatsapp_business_account",
   entry: [{ changes: [{ field: "messages", value: { metadata: { phone_number_id: numberId },
-    messages: ids.map(id => ({ id, from: phone, type: "text", text: { body: "pagar internet" } })),
+    messages: ids.map(id => ({ id, from: phone, type: "text", text: { body: "Pagar internet dia 20/07/2099 às 10h" } })),
   } }] }],
 });
 before(async () => { await prisma.$connect(); });

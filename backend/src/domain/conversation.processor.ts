@@ -4,6 +4,7 @@ import { relativeReminderTime, relativeRescheduleTime } from "./relative-time";
 import { buttonInterpretation } from "./reminder.buttons";
 import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
+import { guardUnstatedTime, guardCorrectionTarget } from "./conversation.timing";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -26,11 +27,13 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      guardCorrectionTarget(validated,message.text,context);
       if (validated.action === "create_reminder") {
         if(hasMultipleInitialTimes(message.text))return {action:"conversation" as const,title:null,description:null,datetime:null,amount:null,category:null,
           reply:"Consigo preparar uma tarefa com um horário inicial por mensagem. Qual tarefa e horário você quer registrar primeiro?"};
         const relative = relativeReminderTime(message.text, message.receivedAt);
         if (relative) validated.datetime = relative;
+        else guardUnstatedTime(validated,message.text,context);
       }
       if (validated.action === "reschedule_reminder") {
         const relative = relativeRescheduleTime(message.text, message.receivedAt);

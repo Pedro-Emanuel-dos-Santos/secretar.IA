@@ -113,7 +113,7 @@ test("retorna o registro durável sem depender da conexão com a fila", async ()
 });
 test("preparação produz interpretação validada sem executar ou enviar", async () => {
   const context = { message: "teste" };
-  const result = await prepareConversation({ phone: input.phone, text: "lembrete", receivedAt: new Date() }, {
+  const result = await prepareConversation({ phone: input.phone, text: "Me lembra dia 20/07/2099 às 10h de pagar internet", receivedAt: new Date() }, {
     buildContext: async () => context, interpret: async received => { assert.equal(received, context); return interpretation; },
   });
   assert.deepEqual(result, interpretation);
@@ -203,3 +203,4 @@ require("./commands.test.cjs");
 require("./ai-provider.test.cjs");
 require("./preflight.test.cjs");
 require("./reminder.http.test.cjs");
+require("./conversation.test.cjs");

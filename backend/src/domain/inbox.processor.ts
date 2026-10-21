@@ -9,6 +9,7 @@ import { manageReminders } from "./reminder.management";
 import { AudioRejectedError, audioFallback } from "./audio";
 import { localCommand, executeLocalCommand } from "./local.commands";
 import { requestBudget } from "./request.budget";
+import { executeNote } from "./notes";
 
 type Store = Pick<PrismaClient, "incomingMessage" | "$transaction">;
 const leaseMs = 120_000;
@@ -114,7 +115,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });
         refreshReminder = true;
         return reminder;
-      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx));
+      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx));
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({
         where: { id: row.id }, data: { status: "reply_pending", leaseToken: null, leaseUntil: null, lastError: ["audio_unreadable","request_quota"].includes(row.lastError || "") ? row.lastError : null },
@@ -139,6 +140,14 @@ export async function processInboxBatch(store: Store, deps: ConversationDependen
   let prepared = 0;
   for (const initial of rows) {
     if (shouldStop()) break;
+    // Preserve a contact's conversation order, including during rolling deploys.
+    // A later reply must not be interpreted before the previous action commits.
+    if (!localCommand(initial.text) && typeof store.incomingMessage.findFirst === "function") {
+      const earlier=await store.incomingMessage.findFirst({where:{phoneNumberId,phone:initial.phone,
+        status:{in:["received","interpreting","interpreted","executing"]},
+        OR:[{receivedAt:{lt:initial.receivedAt}},{receivedAt:initial.receivedAt,id:{lt:initial.id}}]},select:{id:true}});
+      if(earlier)continue;
+    }
     if (initial.status === "received" || initial.status === "interpreting") await prepareIntent(store, initial, deps);
     const row = await store.incomingMessage.findUnique({ where: { id: initial.id } });
     if (row && (row.status === "interpreted" || (row.status === "executing" && row.leaseUntil && row.leaseUntil <= new Date()))) {

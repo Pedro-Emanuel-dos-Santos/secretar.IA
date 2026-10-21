@@ -1,6 +1,6 @@
 import { AIInterpretation } from "../types/ai.types";
 
-const actions = new Set(["conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "create_expense", "unknown"]);
+const actions = new Set(["conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
@@ -13,6 +13,16 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if (record.draft !== undefined) {
+    if(record.draft === null) extra.draft=null;
+    else {
+      const draft=record.draft as Record<string,unknown>;
+      if(typeof draft!=="object" || Array.isArray(draft) || !["create_reminder","reschedule_reminder"].includes(record.action as string)) throw new Error("Rascunho inválido.");
+      if(draft.date!==null && (typeof draft.date!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)))throw new Error("Dia inválido.");
+      if(draft.time!==null && (typeof draft.time!=="string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(draft.time)))throw new Error("Hora inválida.");
+      extra.draft={date:draft.date as string|null,time:draft.time as string|null};
+    }
+  }
   if (record.recurrence !== undefined && record.recurrence !== null) {
     const r = record.recurrence as Record<string,unknown>;
     if (typeof r !== "object" || Array.isArray(r) || !["daily", "weekly", "monthly"].includes(r.frequency as string) ||

@@ -7,3 +7,4 @@ require("./recurrence.integration.cjs");
 require("./audio.integration.cjs");
 require("./preferences.integration.cjs");
 require("./limits.integration.cjs");
+require("./conversation.integration.cjs");

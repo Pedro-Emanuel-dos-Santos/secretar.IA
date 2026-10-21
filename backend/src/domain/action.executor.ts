@@ -24,11 +24,12 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 }
 
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
-  manage?: (intent: AIInterpretation) => Promise<string>): Promise<string> {
+  manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>): Promise<string> {
   switch (interpretation.action) {
     case "create_reminder": {
       if (!interpretation.title?.trim()) return "Do que você quer que eu te lembre?";
-      if (!interpretation.datetime) return "Em qual dia e horário?";
+      if (!interpretation.datetime) return interpretation.draft?.date ? "Que horas você quer que eu te lembre?"
+        : interpretation.draft?.time ? "Em qual dia você quer esse lembrete?" : "Em qual dia e horário?";
       if (interpretation.recurrence && !interpretation.recurrence.count) return "Quantos avisos você quer nessa série? Posso preparar de 2 a 12.";
       const recurrence = interpretation.recurrence ? { frequency: interpretation.recurrence.frequency, count: interpretation.recurrence.count! } : undefined;
       const input = { phone, title: interpretation.title, description: interpretation.description ?? undefined, remindAt: interpretation.datetime, recurrence };
@@ -49,6 +50,9 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
     case "reschedule_reminder":
       return manage ? manage(interpretation) : "Ainda não consigo executar essa operação por aqui.";
     case "create_expense": return "Ainda não consigo registrar gastos.";
+    case "save_note":
+    case "search_notes": return notes ? notes(interpretation) : "As anotações ainda não estão disponíveis aqui.";
+    case "discard_draft": return "Tudo bem, deixei esse pedido em aberto de lado. Os lembretes já salvos continuam como estavam.";
     case "unknown": return "Não entendi o que você precisa. Pode explicar de outro jeito?";
     case "conversation": return interpretation.reply;
     default: return "Ainda não consigo executar essa ação.";
