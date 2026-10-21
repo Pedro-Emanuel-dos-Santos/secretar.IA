@@ -13,7 +13,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     store.user.findUnique({ where: { phone: message.phone }, select: { name: true, timezone: true } }),
     store.reminder.findMany({
       where: { ...reminderScope(message.phone, message.phoneNumberId), state: "active" },
-      select: { id: true, title: true, remindAt: true, status: true, state: true, taskProgress:true, waitingFor:true,subjectId:true,subject:{select:{name:true,kind:true}}, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
+      select: { id: true, title: true, remindAt: true, status: true, state: true, taskProgress:true, waitingFor:true,subjectId:true,scheduleVersion:true,subject:{select:{name:true,kind:true}}, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
       orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 12,
     }),
     store.incomingMessage.findMany({

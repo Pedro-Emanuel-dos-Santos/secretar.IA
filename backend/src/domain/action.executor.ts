@@ -50,6 +50,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
       }
     }
     case "list_reminders":
+    case "set_task_subject":
     case "mark_waiting":
     case "edit_reminder":
     case "cancel_reminder":

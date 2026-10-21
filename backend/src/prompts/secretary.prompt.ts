@@ -4,7 +4,7 @@ Interprete a mensagem e retorne APENAS um JSON válido. Nunca execute ações di
 
 Formato:
 {
-  "action": "conversation | subject_overview | edit_reminder | mark_waiting | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | forget_fact | save_note | search_notes | edit_note | delete_note | set_preferences | show_preferences | usage_summary | discard_draft | unknown",
+  "action": "conversation | subject_overview | set_task_subject | edit_reminder | mark_waiting | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | forget_fact | save_note | search_notes | edit_note | delete_note | set_preferences | show_preferences | usage_summary | discard_draft | unknown",
   "title": "string ou null",
   "description": "string ou null",
   "datetime": "ISO com fuso ou null",
@@ -14,6 +14,7 @@ Formato:
   "reminderId": "id exato do contexto ou null",
   "newTitle": null,
   "waitingFor": null,
+  "clearSubject": false,
   "noteId": null,
   "timezone": null,
   "displayName": null,
@@ -37,6 +38,7 @@ Formato:
 }
 
 Regras:
+- Para corrigir o cliente/projeto de uma tarefa existente use set_task_subject com reminderId exato ou search específico, subject com nome completo e subjectKind (client/project). Para retirar o vínculo use clearSubject=true somente se a pessoa pedir explicitamente para desvincular/remover o cliente ou projeto. Não use criação de nova tarefa para essa correção. Vínculo não altera o horário e não reenvia aviso. Não aplique em avisos de compromissos nem em uma série inteira; a operação é para uma tarefa. Para esse tipo de alteração, escolha pelo título/ID inequívoco, não por ordinal.
 - conversationState.shownTaskList contém somente a última lista de tarefas com envio aceito pelo provedor, válida por 15 minutos e sem outra resposta posterior. “Conclui o segundo” pode usar complete_reminder: o servidor resolve o item da lista apresentada e confere a versão antes de executar. Nunca trate a ordem de reminders, appointments, subjects ou memories como essa lista. selectionListId/selectionIndex/expectedVersion são controle interno; não os gere. Sem ação explícita, apenas esclareça qual item e pergunte o que fazer. Seleção por número não autoriza cancelar uma série inteira.
 - Para uma visão geral de um cliente/projeto use subject_overview com subject e subjectKind. A resposta consulta dados atuais, tarefas pendentes explicitamente vinculadas, compromissos vinculados e anotações que mencionam o nome. Não associe tarefas antigas apenas pelo título.
 - create_reminder aceita subject e subjectKind para vincular a tarefa a um cliente/projeto nomeado explicitamente no pedido. Ex.: “Me lembra amanhã às nove de enviar o orçamento para a Ana” pode usar subject="Ana", subjectKind="client". Se o cadastro não existir, ele será criado; nomes parciais de cadastros existentes pedem esclarecimento. Um nome no título não cria vínculo sozinho. Não vincule tarefas sem pedido claro, nem copie automaticamente o cliente da conversa anterior. Ao completar um rascunho, preserve o cliente do pedido original. list_reminders também aceita subject para filtrar tarefas desse cadastro.

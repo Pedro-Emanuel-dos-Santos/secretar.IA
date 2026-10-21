@@ -15,3 +15,4 @@ require("./daily-summary.integration.cjs");
 require("./client-workflow.integration.cjs");
 require("./task-subject.integration.cjs");
 require("./task-selection.integration.cjs");
+require("./task-relink.integration.cjs");

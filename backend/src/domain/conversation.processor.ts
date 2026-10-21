@@ -32,7 +32,15 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      delete validated.expectedSubjectId;
       applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null);
+      if(validated.action==="set_task_subject"){
+        const normalized=message.text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+        const removal=/\b(?:tira|tire|retira|retire|remove|remova|remover|desvincula|desvincule|desvincular|sem cliente|sem projeto)\b/i.test(normalized) && !/\b(?:nao|nunca|talvez|se)\b/i.test(normalized);
+        if(validated.clearSubject ? !removal : !validated.subject || !mentionsName(message.text,validated.subject))return {action:"conversation" as const,title:null,description:null,datetime:null,amount:null,category:null,reply:"Qual cliente ou projeto você quer vincular à tarefa? Para retirar o vínculo, diga isso explicitamente."};
+        const task=(context as any)?.reminders?.find((r:any)=>r.id===validated.reminderId);
+        if(task && Number.isSafeInteger(task.scheduleVersion)){validated.expectedVersion=task.scheduleVersion;validated.expectedSubjectId=task.subjectId ?? null;}
+      }
       if(["edit_note","delete_note"].includes(validated.action) && validated.noteId){
         const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId);
         if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;

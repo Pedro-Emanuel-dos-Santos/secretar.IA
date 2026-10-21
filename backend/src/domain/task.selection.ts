@@ -1,7 +1,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
 type Store=Pick<PrismaClient,"event"|"incomingMessage">;
-export type TaskList={id:string;items:{id:string;version:number;title:string;remindAt:string;state:string;taskProgress:string}[]};
+export type TaskList={id:string;items:{id:string;version:number;title:string;remindAt:string;state:string;taskProgress:string;subjectId:string|null}[]};
 export async function shownTaskList(store:Store,phone:string,phoneNumberId:string,now:Date):Promise<TaskList|null>{
  const event=await store.event.findFirst({where:{type:"task_list_presented",user:{phone},createdAt:{gte:new Date(now.getTime()-15*60000),lte:now},payload:{path:["phoneNumberId"],equals:phoneNumberId}},orderBy:[{createdAt:"desc"},{id:"desc"}]});
  if(!event)return null;
@@ -9,7 +9,7 @@ export async function shownTaskList(store:Store,phone:string,phoneNumberId:strin
  if(typeof payload.sourceMessageId!=="string" || !Array.isArray(payload.items) || !payload.items.length || payload.items.length>10)return null;
  const latest=await store.incomingMessage.findFirst({where:{phone,phoneNumberId,reply:{status:"provider_accepted",finishedAt:{lte:now}}},orderBy:[{reply:{finishedAt:"desc"}},{id:"desc"}],select:{id:true}});
  if(latest?.id!==payload.sourceMessageId)return null;
- if(!payload.items.every((item:any)=>typeof item.id==="string" && Number.isSafeInteger(item.version) && typeof item.title==="string" && typeof item.remindAt==="string" && typeof item.state==="string" && typeof item.taskProgress==="string"))return null;
+ if(!payload.items.every((item:any)=>typeof item.id==="string" && Number.isSafeInteger(item.version) && typeof item.title==="string" && typeof item.remindAt==="string" && typeof item.state==="string" && typeof item.taskProgress==="string" && (item.subjectId===null || typeof item.subjectId==="string")))return null;
  return {id:event.id,items:payload.items};
 }
 const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -24,11 +24,11 @@ export function ordinalIndex(text:string):number|null{
 }
 export function applyTaskSelection(intent:AIInterpretation,text:string,list:TaskList|null){
  delete intent.selectionListId;delete intent.selectionIndex;
- if(!["conversation","complete_reminder","cancel_reminder","reschedule_reminder","edit_reminder","mark_waiting","reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action))return;
+ if(!["conversation","set_task_subject","complete_reminder","cancel_reminder","reschedule_reminder","edit_reminder","mark_waiting","reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action))return;
  const index=ordinalIndex(text);if(index===null)return;
  const s=normalize(text);
  const fail=(reply:string)=>{intent.action="conversation";intent.reply=reply;intent.reminderId=null;intent.search=null;intent.title=null;intent.datetime=null;};
- if(["reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action)){fail("Para esse tipo de registro, preciso do título ou texto. A seleção por número está disponível para a lista de tarefas.");return;}
+ if(["set_task_subject","reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action)){fail("Para essa alteração, preciso do título ou texto do registro. Não escolhi o alvo pelo número.");return;}
  if(/\b(?:compromisso|reuniao|cliente|anotacao|nota|projeto)\b/.test(s)){fail("A seleção por número está disponível para a lista de tarefas. Qual é o título do registro que você quer alterar?");return;}
  if(!list || index<0 || !list.items[index]){fail("Preciso de uma lista recente para identificar esse item. Peça para listar suas tarefas novamente.");return;}
  const item=list.items[index];
@@ -50,5 +50,5 @@ export async function validateTaskSelection(tx:Prisma.TransactionClient,phone:st
  if(!item || list?.id!==intent.selectionListId || item.id!==intent.reminderId)return false;
  await tx.$queryRaw`SELECT id FROM "Reminder" WHERE id=${item.id} FOR UPDATE`;
  const current=await tx.reminder.findFirst({where:{id:item.id,user:{phone},OR:[{sourceMessage:{phoneNumberId}},{scheduleOutbox:{phoneNumberId}}]}});
- return !!current && current.scheduleVersion===item.version && current.state===item.state && current.taskProgress===item.taskProgress && current.title===item.title && current.remindAt.toISOString()===item.remindAt;
+ return !!current && current.scheduleVersion===item.version && current.state===item.state && current.taskProgress===item.taskProgress && current.title===item.title && current.subjectId===item.subjectId && current.remindAt.toISOString()===item.remindAt;
 }

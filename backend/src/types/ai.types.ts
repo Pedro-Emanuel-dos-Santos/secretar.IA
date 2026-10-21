@@ -1,4 +1,5 @@
 export type AIAction =
+  | "set_task_subject"
   | "subject_overview"
   | "edit_note" | "delete_note" | "set_preferences" | "show_preferences" | "usage_summary"
   | "mark_waiting"
@@ -49,6 +50,8 @@ export type AIInterpretation = {
   rangeStart?: string | null;
   rangeEnd?: string | null;
   expectedVersion?: number;
+  expectedSubjectId?:string|null;
+  clearSubject?:boolean;
   selectionListId?:string;
   selectionIndex?:number;
   recurrence?: { frequency: "daily" | "weekly" | "monthly"; count: number | null } | null;

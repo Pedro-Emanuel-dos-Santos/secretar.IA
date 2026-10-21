@@ -22,8 +22,9 @@ Ordem de implementação e avaliação:
    não estão contemplados. Ver TASK-SELECTION.md.
 3. Vínculo explícito entre tarefas e clientes/projetos: implementado localmente
    para novas tarefas/séries. Visão geral e lista filtrada incluem tarefas do
-   cadastro; antigas não foram associadas automaticamente. Alterar o vínculo de
-   uma tarefa existente ainda está pendente. Não inferir vínculo apenas pelo título.
+   cadastro; antigas não foram associadas automaticamente. Correção/remoção do
+   vínculo de uma tarefa existente também está implementada localmente, por
+   alvo inequívoco, sem reagendar aviso. Não inferir vínculo apenas pelo título.
 4. Diálogos completos de visita, orçamento e retorno como cenários de regressão.
    Usar simulações para execução e avaliações separadas com IA real para medir
    interpretação. Não apresentar testes simulados como prova da qualidade do modelo.

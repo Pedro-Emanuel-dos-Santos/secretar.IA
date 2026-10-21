@@ -11,6 +11,6 @@ export async function taskSubject(tx:Prisma.TransactionClient,userId:string,phon
  const existing=await tx.businessSubject.findUnique({where:{userId_phoneNumberId_kind_normalizedName:{...scope,normalizedName}}});
  if(existing)return existing;
  const partial=await tx.businessSubject.findFirst({where:{...scope,normalizedName:{contains:normalizedName}},select:{id:true}});
- if(partial)throw new TaskSubjectError("Encontrei um cadastro com nome parecido. Qual é o nome completo do cliente ou projeto? Não criei a tarefa.");
+ if(partial)throw new TaskSubjectError("Encontrei um cadastro com nome parecido. Qual é o nome completo do cliente ou projeto? Não alterei os registros.");
  return tx.businessSubject.upsert({where:{userId_phoneNumberId_kind_normalizedName:{...scope,normalizedName}},create:{...scope,name:name.trim(),normalizedName},update:{}});
 }
