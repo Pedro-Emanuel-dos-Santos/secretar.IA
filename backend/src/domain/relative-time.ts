@@ -6,7 +6,12 @@ function normalizeDuration(text:string) {
 }
 export function relativeReminderTime(text: string, receivedAt: Date): string | null {
   const normalized = normalizeDuration(text);
-  const match = normalized.match(/^(?:(?:me (?:lembra|lembre)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\s+)?(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)(?=\s+(?:de|para)\b|[.!?]?\s*$)/);
+  // Task-first requests are common in chat: "quero beber água em um minuto".
+  // Only resolve one plain duration; mixed dates/durations need clarification.
+  if (/\b(?:nao|amanha|ontem|hoje|depois de amanha)\b|\bas\s+\d|\b\d{1,2}:\d{2}\b/.test(normalized)) return null;
+  if ((normalized.match(/\b(?:segundos?|minutos?|horas?)\b/g)?.length || 0) !== 1) return null;
+  const match = normalized.match(/^(?:(?:me (?:lembra|lembre)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\s+)?(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)(?=\s+(?:de|para)\b|[.!?]?\s*$)/)
+    || normalized.match(/^(?:me (?:lembra|lembre)|(?:eu )?(?:quero|queria|preciso|gostaria de)|(?:crie|criar|agende|agendar) (?:um )?lembrete)\b.+?\b(?:daqui a|em)\s+(\d+)\s+(segundos?|minutos?|horas?)[.!?]?\s*$/);
   if (!match) return null;
   const amount = Number(match[1]);
   const factor = match[2].startsWith("segundo") ? 1000 : match[2].startsWith("minuto") ? 60000 : 3600000;

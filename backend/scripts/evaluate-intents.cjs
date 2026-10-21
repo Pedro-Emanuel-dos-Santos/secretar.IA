@@ -8,6 +8,7 @@ const reminderId='00000000-0000-4000-8000-000000000001';
 const scenarios=[
  ['create_exact','Me lembra amanhã às 9h de enviar o orçamento.',['create_reminder'],r=>r.datetime==='2099-06-02T09:00:00-03:00'||new Date(r.datetime).toISOString()==='2099-06-02T12:00:00.000Z'],
  ['relative_spoken','Me lembra daqui a dois minutos de ligar para o fornecedor.',['create_reminder'],r=>r.datetime==='2099-06-01T15:02:00.000Z'],
+ ['create_task_first','Quero beber água em um minuto.',['create_reminder'],r=>r.datetime==='2099-06-01T15:01:00.000Z'],
  ['missing_time','Me lembra de ligar para o cliente.',['create_reminder','conversation'],r=>r.datetime===null],
  ['daily_series','Me lembra todo dia às 9h de revisar orçamentos, por 3 vezes, começando amanhã.',['create_reminder'],r=>r.recurrence?.frequency==='daily'&&r.recurrence?.count===3],
  ['series_missing_count','Toda segunda às 9h, me lembra de revisar orçamentos.',['create_reminder','conversation'],r=>r.action==='conversation'||r.recurrence?.count===null],

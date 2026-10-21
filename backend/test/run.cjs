@@ -149,6 +149,20 @@ test("duração atravessa meia-noite e aceita horas e segundos", () => {
   assert.equal(relativeReminderTime("daqui a 1 hora", at), "2026-10-20T03:59:30.000Z");
   assert.equal(relativeReminderTime("em 30 segundos", at), "2026-10-20T03:00:00.000Z");
 });
+
+test("pedido com tarefa antes da duração não vira meia-noite", async () => {
+  const receivedAt = new Date("2026-10-20T21:30:00Z");
+  for (const text of ["quero beber água em um minuto", "queria beber água em um minuto", "Me lembra de beber água daqui a 1 minuto", "Preciso ligar para o cliente em dois minutos."]) {
+    const minutes = text.includes("dois") ? 2 : 1;
+    const result = await prepareConversation({ phone: input.phone, phoneNumberId: "test", text, receivedAt }, {
+      buildContext: async () => ({}), interpret: async () => ({ ...interpretation, datetime: "2026-10-21T00:00:00-03:00" }),
+    });
+    assert.equal(result.datetime, new Date(receivedAt.getTime() + minutes * 60000).toISOString(), text);
+  }
+  for (const text of ["quero beber água em 1 hora e 30 minutos", "não quero beber água em um minuto", "ele disse que queria beber água em um minuto", "quero beber água amanhã em um minuto"]) {
+    assert.equal(relativeReminderTime(text, receivedAt), null, text);
+  }
+});
 test("não adivinha durações compostas, negativas ou referências históricas", () => {
   for (const text of ["em 1 hora e 30 minutos", "não me lembra daqui a 3 minutos", "ele disse daqui a 3 minutos", "amanhã às 3", "em 0 minutos", "em -3 minutos"]) {
     assert.equal(relativeReminderTime(text, new Date()), null, text);
