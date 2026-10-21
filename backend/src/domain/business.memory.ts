@@ -24,6 +24,19 @@ export async function executeFact(phone:string,phoneNumberId:string,intent:AIInt
   if(intent.factKey && (!key || key.length>80))return "Qual informação você quer guardar ou consultar?";
   const resolved=await resolveSubject(tx,phone,phoneNumberId,name,kind);
   if(resolved.ambiguous)return "Preciso do nome completo do cliente ou projeto para não confundir os registros.";
+  if(intent.action==="forget_fact"){
+    if(!key)return "Qual dado desse cliente ou projeto você quer remover da memória?";
+    if(!resolved.subject)return "Não encontrei esse cliente ou projeto no cadastro para remover esse dado.";
+    // Serialize with writers; erase all revisions of this one field rather
+    // than revealing a supposedly forgotten value through history.
+    const user=await tx.user.upsert({where:{phone},create:{phone},update:{updatedAt:new Date()}});
+    const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId}});
+    if(!source)throw Error("Origem incompatível.");
+    const removed=await tx.knowledgeFact.deleteMany({where:{subjectId:resolved.subject.id,key,subject:{userId:user.id,phoneNumberId}}});
+    if(!removed.count)return "Esse dado não está no cadastro de "+resolved.subject.name+".";
+    await tx.event.create({data:{userId:user.id,type:"memory_fact_removed",source:"secretaria",payload:{phoneNumberId,subjectId:resolved.subject.id,key,revisionsRemoved:removed.count,sourceMessageId}}});
+    return `Removi ${label(key)} de ${resolved.subject.name}, incluindo as versões anteriores desse dado no cadastro. As mensagens originais e anotações gerais continuam no histórico.`;
+  }
   if(intent.action==="search_facts") {
     if(!resolved.subject){
       const notes=await findNotes(tx,phone,phoneNumberId,name);

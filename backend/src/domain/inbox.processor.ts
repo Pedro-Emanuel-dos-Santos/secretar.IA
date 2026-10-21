@@ -118,7 +118,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         refreshReminder = true;
         return reminder;
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
-      intent=>["save_fact","search_facts"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
+      intent=>["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id));
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({

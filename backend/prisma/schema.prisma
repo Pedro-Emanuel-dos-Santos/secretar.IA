@@ -90,6 +90,9 @@ model Reminder {
   remindAt    DateTime
   status      String   @default("pending")
   state       String   @default("active")
+  taskProgress String @default("pending")
+  waitingFor String?
+  progressUpdatedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   sourceMessageId   String? @unique
@@ -111,6 +114,7 @@ model Reminder {
   sourceMessage IncomingMessage? @relation(fields: [sourceMessageId], references: [id], onDelete: Restrict)
   scheduleOutbox ScheduleOutbox?
   @@index([userId, state, remindAt])
+  @@index([userId, taskProgress, state])
   @@index([userId, createdAt])
   @@index([appointmentId])
   @@unique([seriesId, occurrenceIndex])

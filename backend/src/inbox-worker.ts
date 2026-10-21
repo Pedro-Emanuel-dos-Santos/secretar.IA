@@ -23,7 +23,7 @@ async function main() {
   // rolling deployment; wait without spending inbox attempts or AI tokens.
   let schemaReady=false;
   while(!stopping && !schemaReady){
-    try{await prisma.appointment.findFirst({select:{id:true}});await prisma.knowledgeFact.findFirst({select:{id:true}});schemaReady=true;}
+    try{await prisma.appointment.findFirst({select:{id:true}});await prisma.knowledgeFact.findFirst({select:{id:true}});await prisma.reminder.findFirst({select:{taskProgress:true,waitingFor:true,progressUpdatedAt:true}});schemaReady=true;}
     catch{console.error("Aguardando migração de compromissos e memória; mensagens preservadas.");await new Promise(resolve=>setTimeout(resolve,10000));}
   }
   console.log("Worker de entrada iniciado.");

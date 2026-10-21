@@ -4,7 +4,7 @@ type Store = Pick<PrismaClient, "incomingMessage" | "replyOutbox" | "scheduleOut
 export async function operationalOverview(store: Store, phoneNumberId: string) {
   const now = new Date();
   const stalled = new Date(now.getTime() - 120000);
-  const [inbox, replies, schedules, reminders, expiredPreparation, uncertainReplies, legacyProcessing, uncertainReminders, reminderStates, deliveryStates, replyDeliveryStates, unreadableAudio, failedRequests, limitedRequests] = await Promise.all([
+  const [inbox, replies, schedules, reminders, expiredPreparation, uncertainReplies, legacyProcessing, uncertainReminders, reminderStates, deliveryStates, replyDeliveryStates, unreadableAudio, failedRequests, limitedRequests, taskProgress] = await Promise.all([
     store.incomingMessage.groupBy({ by: ["status"], where: { phoneNumberId }, _count: { _all: true } }),
     store.replyOutbox.groupBy({ by: ["status"], where: { message: { phoneNumberId } }, _count: { _all: true } }),
     store.scheduleOutbox.groupBy({ by: ["status"], where: { phoneNumberId }, _count: { _all: true } }),
@@ -25,11 +25,13 @@ export async function operationalOverview(store: Store, phoneNumberId: string) {
     store.incomingMessage.count({where:{phoneNumberId,lastError:"audio_unreadable"}}),
     store.incomingMessage.count({where:{phoneNumberId,lastError:{in:["interpreting_attempt_limit","executing_attempt_limit"]}}}),
     store.incomingMessage.count({where:{phoneNumberId,lastError:"request_quota"}}),
+    store.reminder.groupBy({by:["taskProgress"],where:{OR:[{sourceMessage:{phoneNumberId}},{scheduleOutbox:{phoneNumberId}}]},_count:{_all:true}}),
   ]);
   const counts = (rows: { status: string; _count: { _all: number } }[]) =>
     Object.fromEntries(rows.map(row => [row.status, row._count._all]));
   return {
     inbox: counts(inbox), replies: counts(replies), schedules: counts(schedules), reminders: counts(reminders),
+    taskProgress: Object.fromEntries(taskProgress.map(row=>[row.taskProgress,row._count._all])),
     reminderStates: Object.fromEntries(reminderStates.map(row => [row.state, row._count._all])),
     delivery: {
       reminders: Object.fromEntries(deliveryStates.map(row => [row.deliveryStatus ?? "not_confirmed", row._count._all])),

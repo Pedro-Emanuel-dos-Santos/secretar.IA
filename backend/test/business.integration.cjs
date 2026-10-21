@@ -60,6 +60,18 @@ test('aviso no passado e limite não cancelam avisos existentes',async()=>{
  assert.match(await call('create_appointment',{title:'Passado',datetime:new Date(Date.now()+60000).toISOString(),alertMinutes:[30]}),/passado/);
  assert.equal(await p.appointment.count({where:{phoneNumberId:biz,title:'Passado'}}),0);
 });
+test('adicionar aviso futuro preserva antecipado já aceito sem reenviá-lo',async()=>{
+ const startsAt=new Date(Date.now()+10*60000),row=await incoming();
+ await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Aviso antecipado aceito',datetime:startsAt.toISOString(),alertMinutes:[0]}),tx,row.id));
+ const a=await p.appointment.findUniqueOrThrow({where:{sourceMessageId:row.id},include:{reminders:true}}),old=a.reminders[0];
+ await p.reminder.update({where:{id:old.id},data:{remindAt:new Date(startsAt.getTime()-30*60000),appointmentOffsetMinutes:30,status:'provider_accepted',providerMessageId:'wamid.fictional-preserved'}});
+ await p.scheduleOutbox.update({where:{reminderId:old.id},data:{status:'published'}});
+ const reply=await call('set_appointment_alerts',{appointmentId:a.id,alertMinutes:[30,0]});assert.match(reply,/sem reenviar/);
+ const alerts=await p.reminder.findMany({where:{appointmentId:a.id,state:'active'},include:{scheduleOutbox:true}});assert.equal(alerts.length,2);
+ const preserved=alerts.find(r=>r.id===old.id);assert.equal(preserved.status,'provider_accepted');assert.equal(preserved.scheduleVersion,0);assert.equal(preserved.providerMessageId,'wamid.fictional-preserved');assert.equal(preserved.scheduleOutbox.status,'published');
+ const added=alerts.find(r=>r.id!==old.id);assert.equal(added.remindAt.getTime(),startsAt.getTime());assert.equal(added.scheduleOutbox.status,'pending');
+ await call('cancel_appointment',{appointmentId:a.id});
+});
 test('pausa, conta alheia e envio incerto impedem alteração de compromisso',async()=>{
  assert.match(await call('cancel_appointment',{appointmentId:id},other),/Não encontrei/);
  assert.match(await call('cancel_appointment',{appointmentId:id},phone,biz+'-other'),/Não encontrei/);
@@ -139,6 +151,19 @@ test('repetições simultâneas de um novo dado criam somente uma revisão',asyn
  await Promise.all([fact('save_fact',fields),fact('save_fact',fields)]);
  const rows=await p.knowledgeFact.findMany({where:{subject:{name:fields.subject,phoneNumberId:biz,user:{phone}}}});
  assert.equal(rows.length,1);assert.equal(rows[0].revision,1);
+});
+test('remover dado apaga todas as revisões do campo sem remover outros dados ou mensagens',async()=>{
+ const subject='Cliente Remoção';await fact('save_fact',{subject,factKey:'orcamento',factValue:'R$ 300'});await fact('save_fact',{subject,factKey:'orcamento',factValue:'R$ 400'});await fact('save_fact',{subject,factKey:'status',factValue:'Em andamento'});
+ assert.match(await fact('forget_fact',{subject,factKey:'orcamento'},other),/Não encontrei/);
+ assert.match(await fact('forget_fact',{subject,factKey:'orcamento'},phone,biz+'-other'),/Não encontrei/);
+ assert.match(await fact('forget_fact',{subject}),/Qual dado/);
+ const before=await p.incomingMessage.count({where:{phoneNumberId:biz,phone}});
+ const reply=await fact('forget_fact',{subject,factKey:'orcamento'});assert.match(reply,/incluindo as versões anteriores/);assert.match(reply,/mensagens originais/);
+ assert.equal(await p.knowledgeFact.count({where:{subject:{name:subject,user:{phone},phoneNumberId:biz},key:'orcamento'}}),0);
+ assert.match(await fact('search_facts',{subject,factKey:'status'}),/Em andamento/);
+ assert.doesNotMatch(await fact('search_facts',{subject,factKey:'orcamento',includeHistory:true}),/300|400/);
+ assert.ok(await p.incomingMessage.count({where:{phoneNumberId:biz,phone}})>before);
+ const audit=await p.event.findFirstOrThrow({where:{type:'memory_fact_removed',user:{phone}}});assert.equal(audit.payload.revisionsRemoved,2);assert.equal(JSON.stringify(audit.payload).includes('R$'),false);
 });
 test('fluxo inbox persiste compromisso e resposta juntos sem envio real',async()=>{
  const row=await p.incomingMessage.create({data:{phone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Reunião às dez dia dois de maio de 2099',nextAttemptAt:new Date(0)}});

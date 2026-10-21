@@ -11,16 +11,26 @@ export function explicitClock(text:string){
 export function guardUnstatedTime(intent:AIInterpretation,text:string,context:any){
  if(!["create_reminder","create_appointment"].includes(intent.action) || !intent.datetime)return;
  const pending=context?.conversationState?.pendingRequest;
- if(explicitClock(text) || pending?.draft?.time)return;
  const normalized=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- const statedDay=/\b(?:amanha|hoje|segunda|terca|quarta|quinta|sexta|sabado|domingo)\b|\b\d{1,2}\/\d{1,2}\b/.test(normalized);
+ const spokenDay=/\bdia\s+(?:primeiro|um|dois|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|vinte|trinta)(?:\s+e\s+(?:um|dois|tres|quatro|cinco|seis|sete|oito|nove))?\b/.test(normalized);
+ const statedDay=spokenDay || /\b(?:amanha|hoje|segunda|terca|quarta|quinta|sexta|sabado|domingo)\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\b|\bdia\s+\d{1,2}\b|\b\d{1,2}\s+de\s+(?:janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\b|\b(?:daqui a|em)\s+(?:\d+|um|uma|dois|duas|tres|quatro|cinco|seis|sete)\s+dias?\b/.test(normalized);
+ const statedClock=explicitClock(text) || !!pending?.draft?.time;
  let date=pending?.draft?.date || null;
- if(statedDay && Number.isFinite(new Date(intent.datetime).getTime())){
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(intent.datetime));
+ let time=pending?.draft?.time || null;
+ const focused=context?.conversationState?.focusedAppointment;
+ if(!date && /\b(?:no mesmo dia|nesse dia|no dia da reuniao)\b/.test(normalized) && focused?.startsAt && Number.isFinite(new Date(focused.startsAt).getTime())){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(focused.startsAt));
   const part=(type:string)=>parts.find(p=>p.type===type)?.value;
   date=`${part('year')}-${part('month')}-${part('day')}`;
  }
- intent.datetime=null;intent.draft={date,time:null};
+ if(Number.isFinite(new Date(intent.datetime).getTime())){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(intent.datetime));
+  const part=(type:string)=>parts.find(p=>p.type===type)?.value;
+  if(statedDay)date=`${part('year')}-${part('month')}-${part('day')}`;
+  if(explicitClock(text))time=`${part('hour')}:${part('minute')}`;
+ }
+ if(date && statedClock)return;
+ intent.datetime=null;intent.draft={date,time:statedClock?time:null};
 }
 
 export function guardCorrectionTarget(intent:AIInterpretation,text:string,context:any){

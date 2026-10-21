@@ -3,6 +3,9 @@ import { AIInterpretation } from "../types/ai.types";
 const actions = new Set(["create_appointment", "list_appointments", "reschedule_appointment", "cancel_appointment", "set_appointment_alerts", "save_fact", "search_facts","conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
 actions.add("appointment_history");
+actions.add("mark_waiting");
+actions.add("forget_fact");
+actions.add("edit_reminder");
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
@@ -15,6 +18,14 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.taskFilter!==undefined && record.taskFilter!==null){
+    if(!["pending","waiting","completed","cancelled","overdue"].includes(record.taskFilter as string))throw Error("Filtro de tarefas inválido.");
+    extra.taskFilter=record.taskFilter as AIInterpretation["taskFilter"];
+  }
+  if(record.waitingFor!==undefined && record.waitingFor!==null){
+    if(typeof record.waitingFor!=="string" || !record.waitingFor.trim() || record.waitingFor.length>120)throw Error("Responsável inválido.");
+    extra.waitingFor=record.waitingFor.trim();
+  }
   if(record.alertMinutes!==undefined){
     if(!Array.isArray(record.alertMinutes)||record.alertMinutes.length<1||record.alertMinutes.length>3||record.alertMinutes.some(n=>!Number.isSafeInteger(n)||n<0||n>10080)||new Set(record.alertMinutes).size!==record.alertMinutes.length)throw Error("Avisos inválidos.");
     extra.alertMinutes=record.alertMinutes;
@@ -45,7 +56,7 @@ export function parseInterpretation(content: string): AIInterpretation {
     if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
     extra.expectedVersion = record.expectedVersion as number;
   }
-  for (const key of ["reminderId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue"] as const) {
+  for (const key of ["reminderId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");
     extra[key] = record[key] as string | null;

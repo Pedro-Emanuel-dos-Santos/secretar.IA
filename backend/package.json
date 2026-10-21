@@ -28,7 +28,8 @@
     "worker:inbox": "node --import tsx --env-file-if-exists=../.env --env-file-if-exists=.env src/inbox-worker.ts",
     "test:integration": "node test/integration.cjs",
     "ops": "node --env-file-if-exists=../.env --env-file-if-exists=.env scripts/operations.cjs",
-    "start:compiled": "node --env-file-if-exists=../.env --env-file-if-exists=.env dist/server.js"
+    "start:compiled": "node --env-file-if-exists=../.env --env-file-if-exists=.env dist/server.js",
+    "check:pilot": "node --env-file-if-exists=../.env --env-file-if-exists=.env scripts/check-pilot.cjs"
   },
   "engines": {
     "node": "24.x"

@@ -1,4 +1,7 @@
 export type AIAction =
+  | "mark_waiting"
+  | "forget_fact"
+  | "edit_reminder"
   | "appointment_history"
   | "create_appointment" | "list_appointments" | "reschedule_appointment" | "cancel_appointment" | "set_appointment_alerts"
   | "save_fact" | "search_facts"
@@ -30,6 +33,9 @@ export type AIInterpretation = {
   factValue?: string | null;
   includeHistory?: boolean;
   reminderId?: string | null;
+  waitingFor?: string | null;
+  newTitle?: string | null;
+  taskFilter?: "pending" | "waiting" | "completed" | "cancelled" | "overdue";
   search?: string | null;
   rangeStart?: string | null;
   rangeEnd?: string | null;

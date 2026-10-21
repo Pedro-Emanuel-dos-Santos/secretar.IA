@@ -12,6 +12,11 @@ test('consulta de histórico atravessa validação e execução sem criar lembre
  const reply=await executeAction('5511999990000',intent,()=>assert.fail(),undefined,undefined,async received=>{assert.equal(received.appointmentId,'existing');return 'Histórico consultado';});
  assert.equal(reply,'Histórico consultado');
 });
+test('filtros de tarefa e responsável são validados antes da execução',()=>{
+ for(const fields of [{taskFilter:'all_private'},{waitingFor:''},{waitingFor:'x'.repeat(121)},{waitingFor:42}])assert.throws(()=>parseInterpretation(JSON.stringify({...base,action:'mark_waiting',...fields})));
+ assert.equal(parseInterpretation(JSON.stringify({...base,action:'mark_waiting',waitingFor:' João ',taskFilter:'waiting'})).waitingFor,'João');
+ assert.equal(parseInterpretation(JSON.stringify({...base,action:'forget_fact',subject:'João',factKey:'orcamento'})).action,'forget_fact');
+});
 test('dia sem hora vira rascunho em vez de aceitar horário inventado pela IA',async()=>{
  const r=await prepareConversation({text:'Amanhã preciso falar com João, me lembra disso',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base})});
  assert.equal(r.datetime,null);assert.deepEqual(r.draft,{date:'2099-05-02',time:null});
@@ -51,6 +56,10 @@ test('compromisso sem hora não vira meia-noite e correção usa evento em foco'
  assert.equal(corrected.action,'reschedule_appointment');assert.equal(corrected.appointmentId,'event');
 });
 test('duração de um aviso não sobrescreve horário explícito do compromisso',async()=>{
- const r=await prepareConversation({text:'Reunião às dez, me avisa daqui a um minuto',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base,action:'create_appointment'})});
+ const r=await prepareConversation({text:'Reunião amanhã às dez, me avisa daqui a um minuto',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base,action:'create_appointment'})});
  assert.equal(r.datetime,base.datetime);
+});
+test('aviso que repete o nome do evento não é tratado como segundo compromisso',async()=>{
+ const r=await prepareConversation({text:'Reunião amanhã às 10h e me avisa dessa reunião às 9h30',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base,action:'create_appointment',alertMinutes:[30]})});
+ assert.equal(r.action,'create_appointment');assert.deepEqual(r.alertMinutes,[30]);
 });

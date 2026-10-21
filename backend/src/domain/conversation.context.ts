@@ -11,7 +11,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     store.user.findUnique({ where: { phone: message.phone }, select: { name: true, timezone: true } }),
     store.reminder.findMany({
       where: { ...reminderScope(message.phone, message.phoneNumberId), state: "active" },
-      select: { id: true, title: true, remindAt: true, status: true, state: true, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
+      select: { id: true, title: true, remindAt: true, status: true, state: true, taskProgress:true, waitingFor:true, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
       orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 12,
     }),
     store.incomingMessage.findMany({
@@ -34,9 +34,10 @@ export async function conversationContext(store: Store, message: IncomingConvers
       select:{text:true,receivedAt:true,interpretation:true,reminder:{select:{id:true,title:true,remindAt:true,status:true,state:true}}}}),
     findNotes(store,message.phone,message.phoneNumberId),
   ]);
-  const [appointments,subjects]=await Promise.all([
+  const [appointments,subjects,recentAlerts]=await Promise.all([
     store.appointment.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,state:"active"},include:{reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}},orderBy:{startsAt:"asc"},take:12}),
     store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{name:true,kind:true,facts:{where:{supersededAt:null},select:{key:true,value:true,revision:true},take:5,orderBy:{createdAt:"desc"}}},orderBy:{updatedAt:"desc"},take:8}),
+    store.reminder.findMany({where:{...reminderScope(message.phone,message.phoneNumberId),state:"active",status:"provider_accepted",deliveryStartedAt:{gte:new Date(message.receivedAt.getTime()-7*86400000),lte:message.receivedAt}},select:{id:true,title:true,remindAt:true,deliveryStartedAt:true,deliveryStatus:true,taskProgress:true,waitingFor:true},orderBy:[{deliveryStartedAt:"desc"},{id:"desc"}],take:3}),
   ]);
   let pendingRequest: unknown=null,focusedReminder:unknown=null,focusedAppointment:unknown=null;
   // Resolve the latest appointment reference through persisted, scoped records.
@@ -64,8 +65,8 @@ export async function conversationContext(store: Store, message: IncomingConvers
   }
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user,
-    currentMessage: message.text, memories: notes, subjects, appointments, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    currentMessage: message.text, memories: notes, subjects, appointments, recentAlerts, habits: [],
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().map(row => ({
       user: row.text.slice(0, 1000), receivedAt: row.receivedAt.toISOString(),

@@ -11,7 +11,7 @@ const displayDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", {
 const displayTitle = (title: string) => title.length > 100 ? title.slice(0, 97) + "..." : title;
 
 export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient) {
-  if (!["list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
+  if (!["list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "mark_waiting", "edit_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
   const scope = reminderScope(phone, phoneNumberId);
   let range: Prisma.DateTimeFilter | undefined;
   if (intent.rangeStart || intent.rangeEnd) {
@@ -22,13 +22,22 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     } catch { return "Qual dia ou período você quer consultar?"; }
   }
   if (intent.action === "list_reminders") {
+    const filter=intent.taskFilter;
+    const progress:Prisma.ReminderWhereInput=filter==="completed" || filter==="cancelled" ? {state:filter}
+      : filter==="waiting" ? {state:"active",taskProgress:"waiting"}
+      : filter==="overdue" ? {state:"active",taskProgress:"pending",AND:[{remindAt:{lt:new Date()}}]}
+      : filter==="pending" ? {state:"active",taskProgress:"pending"} : {state:"active"};
+    const dateScope:Prisma.ReminderWhereInput=range ? filter==="completed" || filter==="cancelled"
+      ? {OR:[{progressUpdatedAt:range},{progressUpdatedAt:null,updatedAt:range}]} : {remindAt:range} : {};
     const reminders = await tx.reminder.findMany({
-      where: { ...scope, state: "active", remindAt: range },
+      where: { AND:[scope,progress,dateScope] },
       orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 11,
     });
-    if (!reminders.length) return "Você não tem lembretes pendentes nesse período.";
-    return "Seus lembretes pendentes:\n" + reminders.slice(0, 10).map((r, index) =>
+    const heading=filter==="waiting" ? "Tarefas aguardando resposta" : filter==="completed" ? "Tarefas concluídas" : filter==="cancelled" ? "Tarefas canceladas" : filter==="overdue" ? "Tarefas atrasadas" : "Seus lembretes pendentes";
+    if (!reminders.length) return filter ? "Nenhuma tarefa encontrada com esse filtro nesse período." : "Você não tem lembretes pendentes nesse período.";
+    return heading+":\n" + reminders.slice(0, 10).map((r, index) =>
       `${index + 1}. ${displayTitle(r.title)} — ${displayDate(r.remindAt)}` +
+      (r.taskProgress==="waiting" ? ` (aguardando${r.waitingFor?" "+r.waitingFor:" resposta"}${["awaiting_followup","provider_accepted"].includes(r.status)?"; sem novo aviso agendado":""})` : "")+
       (r.status === "blocked_paused" ? " (não enviado durante a pausa)" : r.status === "missed" ? " (vencido, não enviado)"
         : r.status === "provider_rejected" ? " (recusado pelo WhatsApp)" : "")).join("\n") +
       (reminders.length > 10 ? "\nMostrei os dez primeiros. Qual período você quer ver?" : "");
@@ -55,7 +64,45 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   // A linked alert is managed through its event so offsets and event time
   // cannot diverge during concurrent rescheduling (including old buttons).
   if(target.appointmentId && intent.action==="reschedule_reminder")return "Esse aviso pertence a um compromisso. Diga quanto tempo antes quer ser avisado ou peça para reagendar o compromisso.";
-  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected"];
+  if(intent.action==="edit_reminder"){
+    if(target.appointmentId)return "Esse aviso pertence a um compromisso. A correção do título está disponível para tarefas avulsas.";
+    const newTitle=intent.newTitle?.trim();
+    if(!newTitle)return "Qual deve ser o novo título da tarefa?";
+    if(newTitle.length>500)return "Pode resumir o título em até 500 caracteres?";
+    if(["sending","delivery_unknown"].includes(target.status))return "O envio desse aviso ainda não foi confirmado. Aguarde antes de corrigir o título.";
+    if(newTitle===target.title)return "Essa tarefa já está com esse título.";
+    const schedule=["pending","scheduled","scheduling_pending"].includes(target.status);
+    const changed=await tx.reminder.updateMany({where:{...scope,id:target.id,state:"active",scheduleVersion:target.scheduleVersion,status:target.status},data:{title:newTitle,scheduleVersion:{increment:1},...(schedule?{status:"scheduling_pending"}:{})}});
+    if(!changed.count)return "Essa tarefa mudou enquanto eu processava. Pode confirmar o que deseja?";
+    if(schedule)await tx.scheduleOutbox.upsert({where:{reminderId:target.id},create:{reminderId:target.id,phoneNumberId},update:{status:"pending",attempts:0,nextAttemptAt:new Date(),leaseToken:null,leaseUntil:null,lastError:null}});
+    await tx.event.create({data:{userId:target.userId,type:"reminder_title_changed",source:"secretaria",payload:{phoneNumberId,reminderId:target.id,previousTitle:target.title,title:newTitle,previousVersion:target.scheduleVersion}}});
+    return `Corrigi a tarefa para: ${newTitle}. O horário continua ${displayDate(target.remindAt)}.`+
+      (schedule ? " A atualização do aviso está sendo confirmada." : target.status==="provider_accepted" ? " O aviso anterior já foi aceito pelo provedor; não agendei outro envio." : " O estado do aviso foi mantido; não agendei outro envio.");
+  }
+  if(intent.action==="mark_waiting"){
+    if(target.appointmentId)return "Esse aviso pertence a um compromisso. O acompanhamento de resposta é para tarefas avulsas.";
+    let followup:Date|undefined;
+    if(intent.datetime){
+      try{followup=validateReminder({phone,title:target.title,remindAt:intent.datetime}).reminderDate;}catch{return "Para o acompanhamento, preciso de um dia e horário válidos no futuro.";}
+      const preference=await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}});
+      if(preference?.remindersPaused)return "Seus avisos estão pausados. Envie RETOMAR antes de agendar o acompanhamento.";
+    }
+    const allowed=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected","provider_accepted","awaiting_followup"];
+    if(!allowed.includes(target.status))return "O envio desse aviso ainda está em andamento ou sem confirmação. Aguarde antes de alterar o acompanhamento.";
+    const waitingFor=intent.waitingFor?.trim() || target.waitingFor || null;
+    if(waitingFor && waitingFor.length>120)return "Pode resumir quem ou o que você está aguardando?";
+    if(target.taskProgress==="waiting" && target.waitingFor===waitingFor){
+      if(!followup && ["awaiting_followup","provider_accepted"].includes(target.status))return `Essa tarefa já está aguardando${waitingFor?" "+waitingFor:" resposta"}. Não há novo aviso agendado.`;
+      if(followup?.getTime()===target.remindAt.getTime() && ["pending","scheduled","scheduling_pending"].includes(target.status))return `Essa tarefa já está aguardando${waitingFor?" "+waitingFor:" resposta"}, com aviso em ${displayDate(followup)}. Mantive o agendamento existente.`;
+    }
+    const changed=await tx.reminder.updateMany({where:{...scope,id:target.id,state:"active",scheduleVersion:target.scheduleVersion,status:{in:allowed}},data:{taskProgress:"waiting",waitingFor,progressUpdatedAt:new Date(),scheduleVersion:{increment:1},...(followup ? {remindAt:followup,status:"scheduling_pending",providerMessageId:null,deliveryStartedAt:null,deliveryStatus:null,deliveryUpdatedAt:null,deliveryErrorCodes:Prisma.DbNull} : target.status==="provider_accepted"?{}:{status:"awaiting_followup"})}});
+    if(!changed.count)return "Essa tarefa mudou enquanto eu processava. Pode confirmar o que deseja?";
+    if(followup)await tx.scheduleOutbox.upsert({where:{reminderId:target.id},create:{reminderId:target.id,phoneNumberId},update:{status:"pending",attempts:0,nextAttemptAt:new Date(),leaseToken:null,leaseUntil:null,lastError:null}});
+    else await tx.scheduleOutbox.updateMany({where:{reminderId:target.id},data:{status:"cancelled",leaseToken:null,leaseUntil:null}});
+    await tx.event.create({data:{userId:target.userId,type:"task_waiting",source:"secretaria",payload:{reminderId:target.id,phoneNumberId,previousProgress:target.taskProgress,previousWaitingFor:target.waitingFor,waitingFor,previousVersion:target.scheduleVersion,previousRemindAt:target.remindAt.toISOString(),followupAt:followup?.toISOString() || null}}});
+    return `Anotei: ${target.title} — aguardando${waitingFor?" "+waitingFor:" resposta"}. `+(followup ? `Novo aviso em ${displayDate(followup)}; o agendamento está sendo confirmado.` : "Os avisos pendentes dessa tarefa foram suspensos. Não agendei um novo aviso.");
+  }
+  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected", "awaiting_followup"];
   if (intent.cancelSeries) {
     if (intent.action !== "cancel_reminder") return "Posso cancelar os próximos avisos da série. Para adiar ou concluir, escolha um aviso.";
     if (!target.seriesId) return "Esse lembrete não pertence a uma série.";
@@ -77,7 +124,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     if (!reschedulable.includes(target.status)) return "Esse aviso já entrou em envio. Ainda não consigo confirmar o resultado para reagendar com segurança.";
     const changed = await tx.reminder.updateMany({
       where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, status: { in: reschedulable } },
-      data: { remindAt: reminderDate, scheduleVersion: { increment: 1 }, status: "scheduling_pending",
+      data: { remindAt: reminderDate, taskProgress: "pending", waitingFor:null, progressUpdatedAt:new Date(), scheduleVersion: { increment: 1 }, status: "scheduling_pending",
         providerMessageId: null, deliveryStartedAt: null, deliveryStatus: null, deliveryUpdatedAt: null,
         deliveryErrorCodes: Prisma.DbNull },
     });
@@ -99,7 +146,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   const state = intent.action === "cancel_reminder" ? "cancelled" : "completed";
   const changed = await tx.reminder.updateMany({
     where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, ...(state === "cancelled" ? { status: { in: cancellable } } : {}) },
-    data: { state },
+    data: { state, taskProgress:state, progressUpdatedAt:new Date() },
   });
   if (!changed.count) return "Esse lembrete mudou enquanto eu processava. Pode confirmar o que deseja?";
   await tx.scheduleOutbox.updateMany({

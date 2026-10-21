@@ -1,5 +1,9 @@
 # Retomada da publicação
 
+Estado confirmado da sessão mais recente: SESSION-20261021.md. Banco pessoal e produção não migrados; apenas o banco local de testes recebeu a migração nova. Não executar build novo no banco pessoal sem backup/migração. Testes locais passaram; os novos turnos com IA real permanecem pendentes.
+
+O incremento local seguinte está em FOLLOWUPS.md: acompanhamento de tarefas, correção de título, remoção de dado do cadastro, guards de conversa e migração `20261021030000_task_progress`. Revisar o log atual, pois os commits abaixo são o ponto anterior. Rodar `npm run check:pilot -- --integration` e avaliar os 21 turnos com IA real antes da publicação. Nesta sessão o teste novo com provedor real não foi executado; não confundir testes simulados com validação da interpretação real.
+
 ## Estado salvo
 
 - Branch: `codex/railway-ready-20261020`.

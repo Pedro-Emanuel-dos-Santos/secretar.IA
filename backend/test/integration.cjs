@@ -9,3 +9,4 @@ require("./preferences.integration.cjs");
 require("./limits.integration.cjs");
 require("./conversation.integration.cjs");
 require("./business.integration.cjs");
+require("./task-progress.integration.cjs");
