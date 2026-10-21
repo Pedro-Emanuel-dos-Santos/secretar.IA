@@ -39,6 +39,7 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     await tx.appointment.update({where:{id:appointment!.id},data:{state:"cancelled",version:{increment:1}}});
     await tx.reminder.updateMany({where:{appointmentId:appointment!.id,state:"active",status:{in:editable}},data:{state:"cancelled",scheduleVersion:{increment:1}}});
     await tx.scheduleOutbox.updateMany({where:{reminder:{appointmentId:appointment!.id,state:"cancelled"}},data:{status:"cancelled",leaseToken:null,leaseUntil:null}});
+    await tx.event.create({data:{userId:user.id,type:"appointment_cancelled",source:"secretaria",payload:{appointmentId:appointment!.id,phoneNumberId,sourceMessageId,previousVersion:appointment!.version,previousStartsAt:appointment!.startsAt.toISOString(),previousAlertMinutes:oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0)}}});
     return `Cancelei o compromisso: ${appointment!.title}. Avisos já enviados não são desfeitos.`;
   }
   const paused=await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}});
@@ -56,6 +57,10 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   if(offsets.some(n=>!Number.isFinite(n)||n<0||n>10080)||new Set(offsets).size!==offsets.length)return "Escolha até três horários diferentes de aviso, no máximo sete dias antes.";
   const dates=offsets.map(n=>new Date(startsAt.getTime()-n*60000));
   if(dates.some(d=>d.getTime()<=Date.now()))return "Um desses avisos já ficaria no passado. Quanto tempo antes você quer ser avisado?";
+  const previous=appointment ? {version:appointment.version,startsAt:appointment.startsAt.toISOString(),alertMinutes:oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0)} : null;
+  if(previous && oldAlerts.every(r=>["pending","scheduled","scheduling_pending"].includes(r.status)) && previous.startsAt===startsAt.toISOString() && JSON.stringify([...previous.alertMinutes].sort((a,b)=>a-b))===JSON.stringify([...offsets].sort((a,b)=>a-b))){
+    return `Esse compromisso já está em ${display(startsAt)}. Avisos: ${dates.map(display).join(", ")}. Mantive o agendamento existente.`;
+  }
   // Preflight the entire replacement while holding the contact lock. No old
   // alert is cancelled until every new alert passes limits and validation.
   const limits=reminderLimits(), rscope=reminderScope(phone,phoneNumberId);
@@ -73,5 +78,6 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     appointment=await tx.appointment.update({where:{id:appointment.id},data:{startsAt,version:{increment:1}}});
   }
   for(let i=0;i<dates.length;i++)await persistReminderInTransaction({phone,title:appointment.title,description:`Compromisso em ${display(startsAt)}.`,remindAt:dates[i].toISOString()},tx,{phoneNumberId,appointmentId:appointment.id,appointmentOffsetMinutes:offsets[i]});
+  await tx.event.create({data:{userId:user.id,type:previous ? "appointment_changed" : "appointment_created",source:"secretaria",payload:{appointmentId:appointment.id,phoneNumberId,sourceMessageId,action:intent.action,previous,version:appointment.version,startsAt:startsAt.toISOString(),alertMinutes:offsets}}});
   return `Compromisso: ${appointment.title}, em ${display(startsAt)}. Avisos: ${dates.map(display).join(", ")}. O agendamento dos avisos está sendo confirmado.`;
 }

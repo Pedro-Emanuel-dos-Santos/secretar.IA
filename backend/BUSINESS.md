@@ -7,6 +7,7 @@
 - Compromissos avulsos, com até três avisos diferentes, na hora ou até sete dias antes. Sem antecedência solicitada, o padrão é um aviso na hora do evento. Todos os avisos precisam estar no futuro; a aplicação pergunta se algum já passou.
 - Alterar avisos substitui a lista completa. Para acrescentar um aviso, o interpretador preserva os anteriores e inclui o novo. Reagendar preserva os intervalos quando não houver outro pedido explícito.
 - Avisos antigos ficam cancelados com versão incrementada; jobs antigos não podem enviá-los. Evento, avisos, outboxes e resposta são gravados na mesma transação. Limites e pausa são conferidos antes de substituir avisos.
+- Repetir os mesmos horários enquanto os avisos ainda aguardam envio preserva os registros existentes. Criação, alteração e cancelamento geram eventos de auditoria na mesma transação, com versão, origem, horário e intervalos anteriores/novos. Esse histórico é interno; ainda não há consulta dele pela conversa.
 - Envio em andamento ou com resultado desconhecido bloqueia alterações do evento. Cancelar não desfaz mensagens já aceitas pelo provedor.
 - MEU DIA apresenta o horário real dos eventos e os lembretes avulsos, sem contar cada aviso como outra tarefa. Avisos de compromisso informam também a hora do evento. Não oferecem os botões de adiar dos lembretes avulsos; alterações são feitas pela conversa.
 - Lembretes avulsos e séries existentes continuam funcionando. Não são convertidos automaticamente em compromissos.

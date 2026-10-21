@@ -35,6 +35,18 @@ test('trocar apenas aviso preserva evento e reagendar evento preserva intervalos
  const old=await p.reminder.findMany({where:{appointmentId:id,state:'cancelled'},include:{scheduleOutbox:true}});assert.equal(old.length,4);assert.ok(old.every(r=>r.scheduleOutbox.status==='cancelled'&&r.scheduleVersion===1));
  const reply=await p.$transaction(tx=>manageReminders(phone,biz,intent('reschedule_reminder',{reminderId:alerts[0].id,datetime:'2099-05-02T12:00:00-03:00'}),tx));assert.match(reply,/pertence a um compromisso/);
 });
+test('repetir os mesmos horários não recria avisos nem consome outra revisão',async()=>{
+ const before=await p.appointment.findUniqueOrThrow({where:{id}}),count=await p.reminder.count({where:{appointmentId:id}});
+ const reply=await call('set_appointment_alerts',{appointmentId:id,alertMinutes:[0,10]});assert.match(reply,/Mantive o agendamento/);
+ assert.equal(await p.reminder.count({where:{appointmentId:id}}),count);assert.equal((await p.appointment.findUniqueOrThrow({where:{id}})).version,before.version);
+});
+test('alterações simultâneas mantêm um conjunto coerente de avisos e histórico',async()=>{
+ await Promise.all([call('set_appointment_alerts',{appointmentId:id,alertMinutes:[20,0]}),call('set_appointment_alerts',{appointmentId:id,alertMinutes:[10,0]})]);
+ const a=await p.appointment.findUniqueOrThrow({where:{id},include:{reminders:{where:{state:'active'},include:{scheduleOutbox:true}}}});
+ assert.equal(a.reminders.length,2);assert.ok(a.reminders.every(r=>r.remindAt.getTime()===a.startsAt.getTime()-r.appointmentOffsetMinutes*60000&&r.scheduleOutbox.status==='pending'));
+ const changes=await p.event.findMany({where:{user:{phone},type:'appointment_changed',payload:{path:['appointmentId'],equals:id}},orderBy:{createdAt:'desc'}});
+ assert.ok(changes.length>=3);const latest=changes[0].payload;assert.equal(latest.version,a.version);assert.equal(latest.previous.version,a.version-1);assert.equal(latest.phoneNumberId,biz);
+});
 test('falha na criação de um dos avisos reverte evento e demais avisos',async()=>{
  const before=await p.appointment.count({where:{phoneNumberId:biz}}),row=await incoming();
  await assert.rejects(p.$transaction(tx=>{let created=0;const proxy=new Proxy(tx,{get(target,key){if(key==='reminder')return new Proxy(target.reminder,{get(model,method){if(method==='create')return args=>{if(++created===2)throw Error('falha simulada');return model.create(args);};return model[method];}});return target[key];}});return executeAppointment(phone,biz,intent('create_appointment',{title:'Reverter',datetime:'2099-06-01T10:00:00-03:00',alertMinutes:[30,0]}),proxy,row.id);}),/falha simulada/);
