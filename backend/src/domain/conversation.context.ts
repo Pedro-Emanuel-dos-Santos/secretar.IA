@@ -57,18 +57,19 @@ export async function conversationContext(store: Store, message: IncomingConvers
       // Recover by exact scoped name, including subjects outside the eight-row
       // context preview. A model-supplied pronoun is never a new identity.
       if(!mentionsName(row.text,intent.subject)){
-        if(["search_facts","subject_overview","list_reminders"].includes(intent.action) && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/i.test(row.text))continue;
+        if(["search_facts","subject_overview","agenda_overview","list_reminders"].includes(intent.action) && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/i.test(row.text))continue;
         break;
       }
       const matches=await store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,kind:intent.subjectKind || "client",normalizedName:intent.subject.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim()},select:{id:true,name:true,kind:true},take:2});
-      const candidates=await store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{name:true},take:101});
+      const kindSpecified=(intent.subjectKind || "client")==="project"?/\bprojeto\b/i.test(row.text):/\bcliente\b/i.test(row.text);
+      const candidates=await store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,...(kindSpecified?{kind:intent.subjectKind || "client"}:{})},select:{name:true},take:101});
       const named=candidates.filter(s=>mentionsName(row.text,s.name));
       if(matches.length===1 && candidates.length<=100 && named.length===1)focusedSubject=matches[0];
       break;
     }
     // A new unrelated operation ends the implicit client reference. Casual
     // conversation alone does not choose or replace a client.
-    if(!["conversation","search_facts","subject_overview"].includes(intent.action))break;
+    if(!["conversation","search_facts","subject_overview","agenda_overview"].includes(intent.action))break;
   }
   // Resolve the latest appointment reference through persisted, scoped records.
   for(const row of draftHistory){

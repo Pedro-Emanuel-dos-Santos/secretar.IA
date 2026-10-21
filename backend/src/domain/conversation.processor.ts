@@ -10,6 +10,7 @@ import { guardSubjectReference, mentionsName } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
 import { applyTaskSelection } from "./task.selection";
 import { preserveRescheduleParts } from "./reschedule.parts";
+import { guardSubjectPeriod } from "./agenda.period";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -48,6 +49,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       }
       guardFactLookup(validated,message.text,context);
       guardSubjectReference(validated,message.text,context);
+      guardSubjectPeriod(validated,message.text);
       if(validated.action==="create_reminder" && validated.subject){
         const pending=(context as any)?.conversationState?.pendingRequest;
         const carried=pending?.action==="create_reminder" && pending.subject===validated.subject && typeof pending.originalMessage==="string" && mentionsName(pending.originalMessage,validated.subject);

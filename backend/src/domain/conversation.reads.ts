@@ -1,5 +1,5 @@
 import type { AIInterpretation } from "../types/ai.types";
-import { mentionsName } from "./conversation.references";
+import { matchingSubjects } from "./conversation.references";
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 
 // Ground common factual questions in persisted records even if the model
@@ -8,7 +8,7 @@ export function guardFactLookup(intent:AIInterpretation,text:string,context:any)
   if(intent.action!=="conversation")return;
   const s=normalized(text);
   if(!/\b(?:qual (?:e |era |foi )?(?:o |a )?(?:valor|orcamento|prazo|status|telefone|endereco)|quanto (?:e|era|foi|ficou)|historico (?:do|da)|me (?:mostra|diga) (?:o |a )?(?:valor|orcamento|prazo|status))\b/.test(s))return;
-  let subjects=(Array.isArray(context?.subjects)?context.subjects:[]).filter((subject:any)=>typeof subject.name==="string" && mentionsName(text,subject.name));
+  let subjects=matchingSubjects(text,Array.isArray(context?.subjects)?context.subjects:[]);
   if(!subjects.length && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto)\b/.test(s) && context?.conversationState?.focusedSubject)subjects=[context.conversationState.focusedSubject];
   if(subjects.length!==1)return;
   const key=/\b(?:valor|orcamento)\b/.test(s)?"orcamento":/\bprazo\b/.test(s)?"prazo":/\bstatus\b/.test(s)?"status":/\btelefone\b/.test(s)?"telefone":/\bendereco\b/.test(s)?"endereco":null;

@@ -19,3 +19,4 @@ require("./task-relink.integration.cjs");
 require("./reschedule-parts.integration.cjs");
 require("./task-focus.integration.cjs");
 require("./agenda.integration.cjs");
+require("./client-period.integration.cjs");

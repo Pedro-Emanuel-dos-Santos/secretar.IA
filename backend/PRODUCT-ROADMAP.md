@@ -47,6 +47,10 @@ Visão semanal básica implementada localmente: compromissos, avisos de tarefas 
 retornos em espera, com fusos e contagens reais. Consultas locais dispensam IA;
 pedidos livres ainda exigem avaliação conversacional. Ver AGENDA.md.
 
+Essa visão também aceita cliente/projeto e intervalos personalizados de até
+31 dias, com limite explícito e isolamento do cadastro. Consultas por pronome
+recente preservam cliente e período. Não associar agenda por texto parecido.
+
 ## Horizonte de um ano
 
 Calendário integrado, retornos aguardando terceiros, áudio em nuvem validado,

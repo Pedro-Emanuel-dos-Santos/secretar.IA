@@ -5,10 +5,14 @@ import { contactTimezone } from "./preferences";
 import { findNotes } from "./notes";
 import { mentionsName } from "./conversation.references";
 import { reminderScope } from "./reminder.management";
+import { agendaOverview } from "./agenda.overview";
 
-export async function subjectOverview(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient){
+export async function subjectOverview(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,now=new Date()){
  const name=intent.subject?.trim();
  if(!name)return "Qual cliente ou projeto você quer consultar?";
+ if(intent.taskFilter)return "Você quer a agenda do cliente ou uma lista de tarefas filtrada por estado?";
+ if(intent.agendaPeriod && (intent.rangeStart || intent.rangeEnd))return "Você quer usar o período pronto ou as datas de início e fim? Escolha um dos dois para eu consultar.";
+ if(intent.agendaPeriod || intent.rangeStart || intent.rangeEnd)return agendaOverview(phone,phoneNumberId,tx,intent.agendaPeriod || "week",now,{subject:name,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd});
  const result=await resolveSubject(tx,phone,phoneNumberId,name,intent.subjectKind || "client");
  if(result.ambiguous)return "Qual é o nome completo do cliente ou projeto? Encontrei nomes parecidos.";
  if(!result.subject)return "Não encontrei esse cliente ou projeto no cadastro.";

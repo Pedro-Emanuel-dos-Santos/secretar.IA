@@ -2,6 +2,9 @@
 
 ## Estado confirmado mais recente
 
+- Mais recente: agenda por cliente/projeto e período, incluindo intervalos personalizados ISO com fuso até 31 dias. subject_overview com agendaPeriod/rangeStart/rangeEnd usa agenda filtrada; sem período conserva visão geral. Consulta por pronome recente preserva cadastro e período. Desambiguação explícita cliente/projeto homônimos e rejeição de intervalos incompletos/conflitantes. Sem migração, deploy ou callback alterado. Ver AGENDA.md; avaliação com IA real pendente.
+- Verificação desse incremento: build/TypeScript, 166 unitários e 184 integrações passaram; seis cenários específicos repetidos após o último ajuste passaram. Banco local isolado e provedores simulados.
+
 - Mais recente: agenda por período (hoje/amanhã/semana/próxima semana/próximos sete dias), unindo compromissos, avisos de tarefas e retornos em espera sem duplicar alertas. MINHA SEMANA e outros comandos locais consultam sem IA. Limites locais de calendário, leitura isolada por contato/conta e contagens reais. Sem migração nova, publicação ou callback alterado. Ver AGENDA.md; IA real pendente.
 - Validação da agenda: build/TypeScript, 161 unitários e 178 integrações passaram, incluindo cinco integrações específicas. Nenhuma chamada real a IA/WhatsApp nessa verificação.
 
