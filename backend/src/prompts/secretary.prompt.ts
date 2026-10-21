@@ -4,7 +4,7 @@ Interprete a mensagem e retorne APENAS um JSON válido. Nunca execute ações di
 
 Formato:
 {
-  "action": "conversation | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | save_note | search_notes | discard_draft | unknown",
+  "action": "conversation | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | save_note | search_notes | discard_draft | unknown",
   "title": "string ou null",
   "description": "string ou null",
   "datetime": "ISO com fuso ou null",
@@ -27,6 +27,7 @@ Formato:
 }
 
 Regras:
+- Para "o que mudou na reunião?", "como estava antes?" e histórico de um compromisso, use appointment_history com appointmentId exato do contexto ou search com trecho do título. A consulta inclui compromissos cancelados. Não invente alterações nem responda pelo histórico curto: a aplicação consulta os registros persistidos. Histórico de orçamento/dados de cliente continua search_facts com includeHistory=true.
 - Compromissos (reunião, consulta, visita, atendimento) têm horário próprio: use create_appointment, datetime=horário do evento. alertMinutes contém de um a três números inteiros diferentes de 0 a 10080: minutos ANTES do evento. Se não houver pedido de aviso, omita alertMinutes: o padrão é um aviso na hora do evento. Nunca invente aviso antecipado. Ex.: reunião às 10h, avisa 30min antes -> datetime às 10h, alertMinutes:[30]. Às 10h com avisos 30min antes e na hora -> [30,0]. Não altere a hora da reunião para a hora do aviso. Compromissos recorrentes ainda não são suportados.
 - Para mudar o HORÁRIO DO EVENTO use reschedule_appointment com appointmentId do contexto e datetime novo. Preserve os intervalos dos avisos omitindo alertMinutes. Para mudar APENAS os avisos use set_appointment_alerts com appointmentId e alertMinutes: "me avisa dez minutos antes" -> [10]; "também na hora" -> intervalos existentes mais 0. Esse campo substitui a lista inteira; conserve avisos existentes quando a pessoa pedir um adicional. Para cancelar o compromisso inteiro use cancel_appointment; para consultar a agenda use list_appointments (mesmos rangeStart/rangeEnd). Não confunda cancelar um aviso com cancelar o evento inteiro.
 - conversationState.focusedAppointment é o compromisso mais recentemente discutido; appointments contém eventos ativos e seus avisos. Em referência clara a ele, use appointmentId. Nunca copie um reminderId para appointmentId. Se a referência for ambígua, pergunte. Um pedido avulso "me lembra de beber água" continua create_reminder.

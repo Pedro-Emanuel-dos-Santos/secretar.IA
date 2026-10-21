@@ -76,6 +76,14 @@ test('cancelamento do compromisso cancela todos os avisos pendentes',async()=>{
  assert.equal(await p.reminder.count({where:{appointmentId:id,state:'active'}}),0);
  assert.equal(await p.scheduleOutbox.count({where:{reminder:{appointmentId:id},status:'pending'}}),0);
 });
+test('histórico de compromisso cancelado mostra mudanças e respeita pessoa e conta',async()=>{
+ const count=await p.event.count({where:{user:{phone}}});
+ const reply=await call('appointment_history',{appointmentId:id});assert.match(reply,/Histórico de Reunião João/);assert.match(reply,/Compromisso cancelado/);assert.match(reply,/30 min antes/);assert.match(reply,/10:00/);assert.match(reply,/11:00/);assert.ok(reply.length<4096);
+ assert.equal(await p.event.count({where:{user:{phone}}}),count);
+ assert.match(await call('appointment_history',{appointmentId:id},other),/Não encontrei/);
+ assert.match(await call('appointment_history',{appointmentId:id},phone,biz+'-other'),/Não encontrei/);
+ assert.match(await call('appointment_history'),/qual compromisso/);
+});
 test('MEU DIA mostra horário do evento sem duplicar seus avisos como tarefas',async()=>{
  const row=await incoming();await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Agenda do dia',datetime:'2099-05-03T10:00:00-03:00',alertMinutes:[30,0]}),tx,row.id));
  const summary=await p.$transaction(tx=>dayOverview(phone,biz,tx,new Date('2099-05-03T12:00:00Z')));

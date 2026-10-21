@@ -26,6 +26,7 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
   manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>): Promise<string> {
   switch (interpretation.action) {
+    case "appointment_history": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_appointment": case "list_appointments": case "reschedule_appointment": case "cancel_appointment": case "set_appointment_alerts":
     case "save_fact": case "search_facts": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_reminder": {

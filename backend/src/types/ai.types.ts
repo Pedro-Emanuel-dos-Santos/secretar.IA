@@ -1,4 +1,5 @@
 export type AIAction =
+  | "appointment_history"
   | "create_appointment" | "list_appointments" | "reschedule_appointment" | "cancel_appointment" | "set_appointment_alerts"
   | "save_fact" | "search_facts"
   | "conversation"

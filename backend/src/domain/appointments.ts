@@ -10,6 +10,7 @@ const display=(date:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sa
 const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"];
 export async function executeAppointment(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId:string) {
   const scope={user:{phone},phoneNumberId};
+  if(intent.action==="appointment_history")return appointmentHistory(phone,phoneNumberId,intent,tx);
   if(intent.action==="list_appointments") {
     let range:Prisma.DateTimeFilter|undefined;
     if(intent.rangeStart || intent.rangeEnd){try{const start=parseTimestamp(intent.rangeStart),end=parseTimestamp(intent.rangeEnd);if(start>=end)throw Error();range={gte:start,lt:end};}catch{return "Qual dia ou período você quer consultar?";}}
@@ -80,4 +81,28 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   for(let i=0;i<dates.length;i++)await persistReminderInTransaction({phone,title:appointment.title,description:`Compromisso em ${display(startsAt)}.`,remindAt:dates[i].toISOString()},tx,{phoneNumberId,appointmentId:appointment.id,appointmentOffsetMinutes:offsets[i]});
   await tx.event.create({data:{userId:user.id,type:previous ? "appointment_changed" : "appointment_created",source:"secretaria",payload:{appointmentId:appointment.id,phoneNumberId,sourceMessageId,action:intent.action,previous,version:appointment.version,startsAt:startsAt.toISOString(),alertMinutes:offsets}}});
   return `Compromisso: ${appointment.title}, em ${display(startsAt)}. Avisos: ${dates.map(display).join(", ")}. O agendamento dos avisos está sendo confirmado.`;
+}
+
+async function appointmentHistory(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient){
+  const search=intent.search?.trim();
+  if(!intent.appointmentId && !search)return "De qual compromisso você quer ver o histórico?";
+  const matches=await tx.appointment.findMany({where:{user:{phone},phoneNumberId,...(intent.appointmentId?{id:intent.appointmentId}:{title:{contains:search,mode:"insensitive" as const}})},take:2});
+  if(!matches.length)return "Não encontrei esse compromisso nos seus registros.";
+  if(matches.length>1)return "Qual deles?\n"+matches.map(a=>`• ${a.title.slice(0,100)} — ${display(a.startsAt)}`).join("\n");
+  const target=matches[0];
+  const events=await tx.event.findMany({where:{userId:target.userId,type:{in:["appointment_created","appointment_changed","appointment_cancelled"]},AND:[{payload:{path:["phoneNumberId"],equals:phoneNumberId}},{payload:{path:["appointmentId"],equals:target.id}}]},orderBy:[{createdAt:"desc"},{id:"desc"}],take:11});
+  if(!events.length)return "Ainda não há histórico de alterações registrado para esse compromisso.";
+  const offsets=(value:unknown)=>Array.isArray(value) ? value.filter(n=>typeof n==="number"&&Number.isFinite(n)).map(n=>n===0?"na hora":`${n} min antes`).join(", ")||"nenhum" : "não registrado";
+  const date=(value:unknown)=>typeof value==="string"&&Number.isFinite(new Date(value).getTime())?display(new Date(value)):"não registrado";
+  let reply=`Histórico de ${target.title.slice(0,160)} (mais recente primeiro):\n`,shown=0;
+  for(const event of events.slice(0,10)){
+    const payload=event.payload as Record<string,unknown>;
+    const previous=payload.previous && typeof payload.previous==="object" && !Array.isArray(payload.previous)?payload.previous as Record<string,unknown>:null;
+    const detail=event.type==="appointment_cancelled" ? "Compromisso cancelado."
+      : event.type==="appointment_created" ? `Criado para ${date(payload.startsAt)}. Avisos: ${offsets(payload.alertMinutes)}.`
+      : `Horário: ${date(previous?.startsAt)} → ${date(payload.startsAt)}. Avisos: ${offsets(previous?.alertMinutes)} → ${offsets(payload.alertMinutes)}.`;
+    const line=`• ${display(event.createdAt)} — ${detail}\n`;
+    if(reply.length+line.length>3500)break;reply+=line;shown++;
+  }
+  return reply.trim()+(shown<events.length?"\nHá mais alterações anteriores; mostrei as mais recentes.":"");
 }

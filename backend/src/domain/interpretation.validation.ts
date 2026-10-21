@@ -2,6 +2,8 @@ import { AIInterpretation } from "../types/ai.types";
 
 const actions = new Set(["create_appointment", "list_appointments", "reschedule_appointment", "cancel_appointment", "set_appointment_alerts", "save_fact", "search_facts","conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
+actions.add("appointment_history");
+
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Interpretação inválida.");

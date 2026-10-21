@@ -5,6 +5,13 @@ const {parseInterpretation}=require('../src/domain/interpretation.validation.ts'
 const {explicitClock}=require('../src/domain/conversation.timing.ts');
 const {notesReply}=require('../src/domain/notes.ts');
 const base={action:'create_reminder',title:'Falar com João',description:null,datetime:'2099-05-02T09:00:00-03:00',amount:null,category:null,reply:'interno'};
+
+test('consulta de histórico atravessa validação e execução sem criar lembrete',async()=>{
+ const {executeAction}=require('../src/domain/action.executor.ts');
+ const intent=parseInterpretation(JSON.stringify({...base,action:'appointment_history',appointmentId:'existing'}));
+ const reply=await executeAction('5511999990000',intent,()=>assert.fail(),undefined,undefined,async received=>{assert.equal(received.appointmentId,'existing');return 'Histórico consultado';});
+ assert.equal(reply,'Histórico consultado');
+});
 test('dia sem hora vira rascunho em vez de aceitar horário inventado pela IA',async()=>{
  const r=await prepareConversation({text:'Amanhã preciso falar com João, me lembra disso',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base})});
  assert.equal(r.datetime,null);assert.deepEqual(r.draft,{date:'2099-05-02',time:null});
