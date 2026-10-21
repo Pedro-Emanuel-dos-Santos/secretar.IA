@@ -20,9 +20,9 @@ export async function executeLocalCommand(command: LocalCommand, phone: string, 
   if (command === "today") return dayOverview(phone,phoneNumberId,tx);
   if (command === "help") return "Sou a Secretár.IA. Posso ajudar com suas tarefas e prazos. Exemplos:\n" +
     "• Me lembra amanhã às 9h de enviar o orçamento.\n• Quais são meus lembretes de hoje?\n• Adia o lembrete do orçamento para amanhã às 10h.\n" +
-    "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Também guardo anotações: ‘Anota que o orçamento do João é R$ 500’. Depois, pergunte pelo orçamento.\nTambém preparo séries de 2 a 12 avisos diários, semanais ou mensais. Uso o horário de Brasília.\n" +
+    "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Marco compromissos com até três avisos: ‘Reunião amanhã às 10h, me avisa meia hora antes e na hora’. Guardo dados de clientes e projetos: ‘Orçamento do cliente João Silva é R$ 500’. Depois, você pode atualizar o valor ou consultar o histórico. Também guardo anotações gerais.\nPreparo séries de 2 a 12 lembretes diários, semanais ou mensais. Uso o horário de Brasília.\n" +
     "Envie MEU DIA para ver as tarefas de hoje, PARAR para pausar os avisos, RETOMAR para voltar ou PRIVACIDADE para saber sobre seus dados.";
-  if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes e estados de entrega para executar seus pedidos. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
+  if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes, compromissos, anotações, dados de clientes/projetos com histórico de alterações e estados de entrega para executar seus pedidos. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
     (process.env.AUDIO_TRANSCRIPTION_PROVIDER === "openai" ? "Quando habilitado, o áudio é enviado à OpenAI para transcrição. " : "Quando habilitado, o áudio é transcrito no computador/servidor da Secretár.IA. ") +
     "A aplicação não salva o arquivo de voz no disco. O piloto ainda não tem exclusão automática nem prazo de descarte configurado; fale com o responsável para solicitar acesso ou exclusão dos seus dados. Envie PARAR para pausar os avisos.";
   const now = new Date();

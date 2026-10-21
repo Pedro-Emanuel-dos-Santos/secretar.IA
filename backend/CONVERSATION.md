@@ -1,5 +1,7 @@
 # Conversa e anotações — primeiro incremento
 
+Este documento registra o primeiro incremento. O pacote seguinte está em [BUSINESS.md](BUSINESS.md): inclui compromissos separados de avisos, até três avisos por evento e memória versionada por cliente/projeto. As limitações históricas abaixo sobre ausência de calendário e tabelas novas foram superadas por esse pacote; sua ativação depende do deploy.
+
 A Secretár.IA acompanha pedidos incompletos, correções e anotações sem exigir um comando exato. A execução continua transacional: a resposta de confirmação é gerada após gravar a ação no banco.
 
 ## Conversa validada

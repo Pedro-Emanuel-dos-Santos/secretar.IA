@@ -18,12 +18,15 @@ export function brasiliaDay(now:Date) {
   return {start:dayBoundary(day),end:dayBoundary(day+24*3600000)};
 }
 export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.TransactionClient,now=new Date()) {
-  const {start,end}=brasiliaDay(now),scope={...reminderScope(phone,phoneNumberId),state:"active"};
-  const [overdue,today,rows,preference]=await Promise.all([
+  const {start,end}=brasiliaDay(now),scope={...reminderScope(phone,phoneNumberId),state:"active",appointmentId:null};
+  const eventScope={user:{phone},phoneNumberId,state:"active",startsAt:{gte:start,lt:end}};
+  const [overdue,today,rows,preference,appointments,eventCount]=await Promise.all([
     tx.reminder.count({where:{...scope,remindAt:{lt:start}}}),
     tx.reminder.count({where:{...scope,remindAt:{gte:start,lt:end}}}),
     tx.reminder.findMany({where:{...scope,remindAt:{gte:start,lt:end}},orderBy:[{remindAt:"asc"},{id:"asc"}],take:5}),
     tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}}),
+    tx.appointment.findMany({where:eventScope,orderBy:[{startsAt:"asc"},{id:"asc"}],take:5}),
+    tx.appointment.count({where:eventScope}),
   ]);
   const time=(value:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"2-digit",minute:"2-digit"}).format(value);
   const date=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short"}).format(now);
@@ -32,6 +35,7 @@ export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.Tr
   return `Seu dia, ${date}, no horário de Brasília:\n`+
     (today ? `${today} tarefa(s) pendente(s) para hoje.\n${items}` : "Nenhuma tarefa pendente para hoje.")+
     (today>5 ? "\nMostrei as cinco primeiras; peça um período para consultar as demais." : "")+
+    (eventCount ? `\n${eventCount} compromisso(s) hoje:\n`+appointments.map(a=>`• ${time(a.startsAt)} — ${a.title.slice(0,120)}`).join("\n")+(eventCount>5?"\nMostrei os cinco primeiros; peça para consultar a agenda completa.":"") : "")+
     (overdue ? `\nVocê também tem ${overdue} pendência(s) de dias anteriores. Peça para listar as pendências anteriores.` : "")+
     (preference?.remindersPaused ? "\nSeus avisos estão pausados. Envie RETOMAR para voltar." : "");
 }

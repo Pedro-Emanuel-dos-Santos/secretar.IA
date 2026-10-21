@@ -19,6 +19,13 @@ process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 
 async function main() {
+  // API pre-deploy owns migrations. A new worker can start first during a
+  // rolling deployment; wait without spending inbox attempts or AI tokens.
+  let schemaReady=false;
+  while(!stopping && !schemaReady){
+    try{await prisma.appointment.findFirst({select:{id:true}});await prisma.knowledgeFact.findFirst({select:{id:true}});schemaReady=true;}
+    catch{console.error("Aguardando migração de compromissos e memória; mensagens preservadas.");await new Promise(resolve=>setTimeout(resolve,10000));}
+  }
   console.log("Worker de entrada iniciado.");
   if (!process.env.WHATSAPP_ACCESS_TOKEN) console.error("Sem token de envio: respostas permanecerão pendentes.");
   while (!stopping) {

@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { ReminderLimits, ReminderQuotaError, RemindersPausedError, reminderLimits } from "./reminder.limits";
 
 type Store = Pick<PrismaClient, "$transaction" | "reminder">;
-type Source = { phoneNumberId: string; sourceMessageId?: string; limits?:ReminderLimits };
+type Source = { phoneNumberId: string; sourceMessageId?: string; limits?:ReminderLimits; appointmentId?:string; appointmentOffsetMinutes?:number };
 
 export async function persistReminderInTransaction(input: ReminderInput, tx: Prisma.TransactionClient, source: Source) {
   if (!source.phoneNumberId) throw new Error("Configure o número comercial.");
@@ -35,12 +35,16 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
   ]);
   if (active + dates.length > limits.active) throw new ReminderQuotaError(`Você atingiu o limite de ${limits.active} lembretes pendentes. Conclua ou cancele alguns antes de criar novos.`);
   if (recent + dates.length > limits.perDay) throw new ReminderQuotaError(`O limite de criação é de ${limits.perDay} avisos em 24 horas. Tente novamente quando os avisos mais antigos saírem desse período.`);
+  if(source.appointmentId){
+    const parent=await tx.appointment.findFirst({where:{id:source.appointmentId,userId:user.id,phoneNumberId:source.phoneNumberId,state:"active"}});
+    if(!parent || !Number.isFinite(source.appointmentOffsetMinutes) || Math.abs(parent.startsAt.getTime()-reminderDate.getTime()-source.appointmentOffsetMinutes!*60000)>1)throw Error("Aviso incompatível com o compromisso.");
+  }
   const seriesId = input.recurrence ? randomUUID() : null;
   const recurrence = input.recurrence ? { seriesId, occurrenceIndex: 0,
     recurrenceFrequency: input.recurrence.frequency, recurrenceCount: input.recurrence.count } : {};
   const first = await tx.reminder.create({
     data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",
-      ...recurrence,
+      ...recurrence, appointmentId:source.appointmentId, appointmentOffsetMinutes:source.appointmentOffsetMinutes,
       sourceMessageId: source.sourceMessageId, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
   });
   for (let index = 1; index < dates.length; index++) await tx.reminder.create({

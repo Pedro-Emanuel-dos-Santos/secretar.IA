@@ -1,6 +1,6 @@
 import { AIInterpretation } from "../types/ai.types";
 
-const actions = new Set(["conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
+const actions = new Set(["create_appointment", "list_appointments", "reschedule_appointment", "cancel_appointment", "set_appointment_alerts", "save_fact", "search_facts","conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
@@ -13,11 +13,17 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.alertMinutes!==undefined){
+    if(!Array.isArray(record.alertMinutes)||record.alertMinutes.length<1||record.alertMinutes.length>3||record.alertMinutes.some(n=>!Number.isSafeInteger(n)||n<0||n>10080)||new Set(record.alertMinutes).size!==record.alertMinutes.length)throw Error("Avisos inválidos.");
+    extra.alertMinutes=record.alertMinutes;
+  }
+  if(record.subjectKind!==undefined && record.subjectKind!==null){if(!["client","project"].includes(record.subjectKind as string))throw Error("Tipo inválido.");extra.subjectKind=record.subjectKind as "client"|"project";}
+  if(record.includeHistory!==undefined){if(typeof record.includeHistory!=="boolean")throw Error("Histórico inválido.");extra.includeHistory=record.includeHistory;}
   if (record.draft !== undefined) {
     if(record.draft === null) extra.draft=null;
     else {
       const draft=record.draft as Record<string,unknown>;
-      if(typeof draft!=="object" || Array.isArray(draft) || !["create_reminder","reschedule_reminder"].includes(record.action as string)) throw new Error("Rascunho inválido.");
+      if(typeof draft!=="object" || Array.isArray(draft) || !["create_reminder","reschedule_reminder","create_appointment","reschedule_appointment"].includes(record.action as string)) throw new Error("Rascunho inválido.");
       if(draft.date!==null && (typeof draft.date!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)))throw new Error("Dia inválido.");
       if(draft.time!==null && (typeof draft.time!=="string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(draft.time)))throw new Error("Hora inválida.");
       extra.draft={date:draft.date as string|null,time:draft.time as string|null};
@@ -37,7 +43,7 @@ export function parseInterpretation(content: string): AIInterpretation {
     if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
     extra.expectedVersion = record.expectedVersion as number;
   }
-  for (const key of ["reminderId", "search", "rangeStart", "rangeEnd"] as const) {
+  for (const key of ["reminderId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");
     extra[key] = record[key] as string | null;

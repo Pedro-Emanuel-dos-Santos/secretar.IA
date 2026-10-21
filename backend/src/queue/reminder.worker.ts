@@ -23,7 +23,7 @@ const worker = new Worker("reminders", async (job, token) => {
   if (decision.kind !== "ready") return;
   await deliverReminder(job.data.reminderId, phoneNumberId, prisma, sendWhatsAppReminder, version,
     id => reconcileStoredDelivery(prisma, phoneNumberId, id));
-}, { connection: redisConnection });
+}, { connection: redisConnection, autorun:false });
 
 worker.on("error", () => console.error("Worker de lembretes: falha de conexão."));
 
@@ -37,4 +37,15 @@ async function stop() {
 process.on("SIGTERM",()=>void stop());
 process.on("SIGINT",()=>void stop());
 
-console.log("Worker de lembretes iniciado.");
+async function main(){
+  // The API deployment runs additive migrations. Do not claim jobs before it
+  // has added the fields needed by this generated Prisma client.
+  while(!stopping){
+    try{await prisma.reminder.findFirst({select:{id:true,appointmentId:true,appointmentOffsetMinutes:true}});break;}
+    catch{console.error("Aguardando migração dos avisos; fila preservada.");await new Promise(resolve=>setTimeout(resolve,10000));}
+  }
+  if(stopping)return;
+  console.log("Worker de lembretes iniciado.");
+  await worker.run();
+}
+main().catch(()=>{console.error("Worker de lembretes encerrado com erro.");process.exit(1);});

@@ -29,3 +29,21 @@ test('correção clara do horário não cria segundo lembrete mesmo se IA errar 
   buildContext:async()=>({conversationState:{focusedReminder:{id:'existing',state:'active'}}}),interpret:async()=>({...base})});
  assert.equal(r.action,'reschedule_reminder');assert.equal(r.reminderId,'existing');assert.equal(r.search,null);
 });
+
+test('contrato de compromissos rejeita avisos duplicados, negativos e excessivos',()=>{
+ for(const alertMinutes of [[],[0,0],[-1],[1.5],[10081],[1,2,3,4],null])assert.throws(()=>parseInterpretation(JSON.stringify({...base,action:'create_appointment',alertMinutes})));
+ assert.deepEqual(parseInterpretation(JSON.stringify({...base,action:'create_appointment',alertMinutes:[30,0]})).alertMinutes,[30,0]);
+ assert.equal(parseInterpretation(JSON.stringify({...base,action:'set_appointment_alerts',subjectKind:null,alertMinutes:[30]})).subjectKind,undefined);
+ for(const fields of [{subjectKind:'admin'},{includeHistory:'yes'},{subject:{}},{factValue:10}])assert.throws(()=>parseInterpretation(JSON.stringify({...base,action:'save_fact',...fields})));
+});
+test('compromisso sem hora não vira meia-noite e correção usa evento em foco',async()=>{
+ const message={text:'Marca reunião amanhã',receivedAt:new Date('2099-05-01T15:00:00Z')};
+ const r=await prepareConversation(message,{buildContext:async()=>({}),interpret:async()=>({...base,action:'create_appointment'})});
+ assert.equal(r.datetime,null);assert.deepEqual(r.draft,{date:'2099-05-02',time:null});
+ const corrected=await prepareConversation({...message,text:'Melhor nove e meia da manhã.'},{buildContext:async()=>({conversationState:{focusedAppointment:{id:'event',state:'active'}}}),interpret:async()=>({...base})});
+ assert.equal(corrected.action,'reschedule_appointment');assert.equal(corrected.appointmentId,'event');
+});
+test('duração de um aviso não sobrescreve horário explícito do compromisso',async()=>{
+ const r=await prepareConversation({text:'Reunião às dez, me avisa daqui a um minuto',receivedAt:new Date('2099-05-01T15:00:00Z')},{buildContext:async()=>({}),interpret:async()=>({...base,action:'create_appointment'})});
+ assert.equal(r.datetime,base.datetime);
+});

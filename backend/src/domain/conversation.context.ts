@@ -3,7 +3,7 @@ import { reminderScope } from "./reminder.management";
 import { IncomingConversation } from "./conversation.processor";
 import { findNotes } from "./notes";
 import { parseInterpretation } from "./interpretation.validation";
-type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event">;
+type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
   const since = new Date(message.receivedAt.getTime() - 30 * 60_000);
@@ -34,7 +34,20 @@ export async function conversationContext(store: Store, message: IncomingConvers
       select:{text:true,receivedAt:true,interpretation:true,reminder:{select:{id:true,title:true,remindAt:true,status:true,state:true}}}}),
     findNotes(store,message.phone,message.phoneNumberId),
   ]);
-  let pendingRequest: unknown=null,focusedReminder:unknown=null;
+  const [appointments,subjects]=await Promise.all([
+    store.appointment.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,state:"active"},include:{reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}},orderBy:{startsAt:"asc"},take:12}),
+    store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{name:true,kind:true,facts:{where:{supersededAt:null},select:{key:true,value:true,revision:true},take:5,orderBy:{createdAt:"desc"}}},orderBy:{updatedAt:"desc"},take:8}),
+  ]);
+  let pendingRequest: unknown=null,focusedReminder:unknown=null,focusedAppointment:unknown=null;
+  // Resolve the latest appointment reference through persisted, scoped records.
+  for(const row of draftHistory){
+    let intent;try{intent=row.interpretation ? parseInterpretation(JSON.stringify(row.interpretation)):null;}catch{continue;}
+    if(!intent)continue;
+    const focused=intent.appointmentId ? await store.appointment.findFirst({where:{id:intent.appointmentId,user:{phone:message.phone},phoneNumberId:message.phoneNumberId}})
+      : intent.action==="create_appointment" ? await store.appointment.findFirst({where:{sourceMessage:{phone:message.phone,phoneNumberId:message.phoneNumberId,text:row.text,receivedAt:row.receivedAt}}}) : null;
+    if(focused){focusedAppointment=focused;break;}
+    if(["create_reminder","reschedule_reminder","cancel_reminder","complete_reminder"].includes(intent.action))break;
+  }
   for(const row of draftHistory){
     let intent;
     try{intent=row.interpretation ? parseInterpretation(JSON.stringify(row.interpretation)) : null;}catch{continue;}
@@ -42,17 +55,17 @@ export async function conversationContext(store: Store, message: IncomingConvers
       const focused=row.reminder || reminders.find(r=>r.id===intent?.reminderId);
       if(focused)focusedReminder=focused;
     }
-    if(row.reminder || intent?.action==="discard_draft" || intent?.action==="reschedule_reminder" && intent.datetime)break;
-    if(intent?.draft && ["create_reminder","reschedule_reminder"].includes(intent.action)){
+    if(row.reminder || intent?.action==="discard_draft" || ["reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent?.action || "") && intent?.datetime)break;
+    if(intent?.draft && ["create_reminder","reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent.action)){
       pendingRequest={action:intent.action,title:intent.title,description:intent.description,draft:intent.draft,
-        recurrence:intent.recurrence || null,reminderId:intent.reminderId || null,search:intent.search || null,
+        recurrence:intent.recurrence || null,reminderId:intent.reminderId || null,appointmentId:intent.appointmentId || null,alertMinutes:intent.alertMinutes,subject:intent.subject,subjectKind:intent.subjectKind,search:intent.search || null,
         originalMessage:row.text.slice(0,1000),receivedAt:row.receivedAt.toISOString()};break;
     }
   }
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user,
-    currentMessage: message.text, memories: notes, habits: [],
-    conversationState:{pendingRequest,focusedReminder,draftWindowDays:7,notesSearchAvailable:true},
+    currentMessage: message.text, memories: notes, subjects, appointments, habits: [],
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().map(row => ({
       user: row.text.slice(0, 1000), receivedAt: row.receivedAt.toISOString(),

@@ -10,6 +10,8 @@ import { AudioRejectedError, audioFallback } from "./audio";
 import { localCommand, executeLocalCommand } from "./local.commands";
 import { requestBudget } from "./request.budget";
 import { executeNote } from "./notes";
+import { executeFact } from "./business.memory";
+import { executeAppointment } from "./appointments";
 
 type Store = Pick<PrismaClient, "incomingMessage" | "$transaction">;
 const leaseMs = 120_000;
@@ -115,7 +117,9 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });
         refreshReminder = true;
         return reminder;
-      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx));
+      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
+      intent=>["save_fact","search_facts"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
+        : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id));
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({
         where: { id: row.id }, data: { status: "reply_pending", leaseToken: null, leaseUntil: null, lastError: ["audio_unreadable","request_quota"].includes(row.lastError || "") ? row.lastError : null },

@@ -8,3 +8,4 @@ require("./audio.integration.cjs");
 require("./preferences.integration.cjs");
 require("./limits.integration.cjs");
 require("./conversation.integration.cjs");
+require("./business.integration.cjs");

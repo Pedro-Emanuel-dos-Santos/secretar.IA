@@ -52,6 +52,9 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
   }
   if (target.state === "cancelled") return "Esse lembrete já está cancelado.";
   if (target.state === "completed") return "Esse lembrete já está concluído.";
+  // A linked alert is managed through its event so offsets and event time
+  // cannot diverge during concurrent rescheduling (including old buttons).
+  if(target.appointmentId && intent.action==="reschedule_reminder")return "Esse aviso pertence a um compromisso. Diga quanto tempo antes quer ser avisado ou peça para reagendar o compromisso.";
   const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected"];
   if (intent.cancelSeries) {
     if (intent.action !== "cancel_reminder") return "Posso cancelar os próximos avisos da série. Para adiar ou concluir, escolha um aviso.";

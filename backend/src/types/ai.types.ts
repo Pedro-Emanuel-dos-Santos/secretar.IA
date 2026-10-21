@@ -1,4 +1,6 @@
 export type AIAction =
+  | "create_appointment" | "list_appointments" | "reschedule_appointment" | "cancel_appointment" | "set_appointment_alerts"
+  | "save_fact" | "search_facts"
   | "conversation"
   | "create_reminder"
   | "list_reminders"
@@ -19,6 +21,13 @@ export type AIInterpretation = {
   amount: number | null;
   category: string | null;
   reply: string;
+  appointmentId?: string | null;
+  alertMinutes?: number[];
+  subject?: string | null;
+  subjectKind?: "client" | "project";
+  factKey?: string | null;
+  factValue?: string | null;
+  includeHistory?: boolean;
   reminderId?: string | null;
   search?: string | null;
   rangeStart?: string | null;

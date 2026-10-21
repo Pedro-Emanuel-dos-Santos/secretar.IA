@@ -40,6 +40,12 @@ test("jobs concorrentes não enviam o mesmo lembrete duas vezes", async () => {
   assert.equal(sends, 1);
   assert.equal(store.row.status, "provider_accepted");
 });
+test("aviso de compromisso informa horário do evento e não oferece botão de adiar avulso",async()=>{
+  const store=deliveryStore();store.row.appointmentId="event";store.row.description="Compromisso em 20/07/2099, 10:00.";
+  await deliverReminder("reminder","number",store,async(phone,text,controls)=>{
+    assert.match(text,/Compromisso em 20\/07\/2099, 10:00/);assert.equal(controls,undefined);return {messages:[{id:"wamid.fictional"}]};
+  });
+});
 test("aceitação com conexão perdida fica incerta sem novo envio", async () => {
   const store = deliveryStore();
   let sends = 0;

@@ -9,7 +9,7 @@ export function explicitClock(text:string){
   || new RegExp('^(?:(?:melhor|na verdade|para|pode ser|isso,?)\\s+)?'+hour+'(?:\\s+horas?)?(?:\\s+e\\s+'+minute+')?(?:\\s+(?:da|de|a)\\s+(?:manha|tarde|noite|madrugada))?[.!?]?\\s*$').test(s);
 }
 export function guardUnstatedTime(intent:AIInterpretation,text:string,context:any){
- if(intent.action!=="create_reminder" || !intent.datetime)return;
+ if(!["create_reminder","create_appointment"].includes(intent.action) || !intent.datetime)return;
  const pending=context?.conversationState?.pendingRequest;
  if(explicitClock(text) || pending?.draft?.time)return;
  const normalized=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -25,6 +25,8 @@ export function guardUnstatedTime(intent:AIInterpretation,text:string,context:an
 
 export function guardCorrectionTarget(intent:AIInterpretation,text:string,context:any){
  const s=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const appointment=context?.conversationState?.focusedAppointment;
+ if(appointment?.state==="active" && ["create_reminder","create_appointment"].includes(intent.action) && /^(?:melhor|na verdade)[, ]/.test(s) && explicitClock(text)){intent.action="reschedule_appointment";intent.appointmentId=appointment.id;intent.search=null;intent.title=null;return;}
  const focused=context?.conversationState?.focusedReminder;
  if(intent.action!=="create_reminder" || !focused?.id || focused.state!=="active")return;
  if(!/^(?:melhor|na verdade)[, ]+(?:(?:as|para|umas)\s+)?(?:\d|uma\b|duas\b|tres\b|quatro\b|cinco\b|seis\b|sete\b|oito\b|nove\b|dez\b|onze\b|doze\b|treze\b|quinze\b|vinte\b)/.test(s) || !explicitClock(text))return;
