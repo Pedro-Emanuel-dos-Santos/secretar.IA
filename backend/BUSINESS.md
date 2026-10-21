@@ -17,6 +17,7 @@
 “Orçamento do cliente João Silva é R$ 500” guarda um dado. “Atualiza o orçamento do João Silva para R$ 650” cria uma revisão. Consultas normais retornam o valor atual; pedidos de histórico mostram também os anteriores. Nome e tipo (cliente/projeto) são isolados por pessoa e número comercial. Nomes parciais potencialmente ambíguos pedem o nome completo.
 
 - Um pedido cadastra um dado estruturado, com valor de até 180 caracteres. Mensagens com vários dados distintos são guardadas como anotação completa, sem prometer atualizar vários campos do cadastro.
+- Repetir exatamente o valor atual (desconsiderando espaços nas pontas) confirma o registro existente sem criar revisão artificial. Atualizações simultâneas são serializadas: valores diferentes ficam no histórico, com apenas uma revisão atual.
 - Anotações gerais continuam disponíveis. Se uma consulta não encontrar cadastro estruturado, procura o nome nas anotações anteriores. Notas antigas não são convertidas automaticamente em cadastro nem substituem um dado atual já cadastrado.
 - O contexto mostra até oito cadastros recentes e cinco dados atuais por cadastro. A busca consulta os registros persistidos; o contexto não é a memória inteira. Histórico limitado a quinze registros e ao tamanho de uma mensagem.
 - Não há edição/exclusão individual de notas pela conversa nem descarte automático neste incremento.

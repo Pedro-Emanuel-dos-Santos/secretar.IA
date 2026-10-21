@@ -104,6 +104,27 @@ test('busca de cadastro ausente consulta notas antigas sem atravessar contas',as
  const reply=await fact('search_facts',{subject:'Maria Oliveira',factKey:'orcamento'});assert.match(reply,/700/);assert.match(reply,/anotações/);
  assert.match(await fact('search_facts',{subject:'Maria Oliveira'},phone,biz+'-other'),/Não encontrei/);
 });
+test('repetir o mesmo dado em outra mensagem preserva a revisão atual',async()=>{
+ const subject='Cliente Repetição';
+ await fact('save_fact',{subject,factKey:'orcamento',factValue:'R$ 450'});
+ const reply=await fact('save_fact',{subject,factKey:'orçamento',factValue:' R$ 450 '});assert.match(reply,/Já está anotado/);
+ const rows=await p.knowledgeFact.findMany({where:{subject:{name:subject,phoneNumberId:biz,user:{phone}}}});
+ assert.equal(rows.length,1);assert.equal(rows[0].revision,1);assert.equal(rows[0].supersededAt,null);
+});
+test('atualizações simultâneas de cliente preservam ambas as mudanças e um único valor atual',async()=>{
+ const subject='Cliente Concorrência';await fact('save_fact',{subject,factKey:'status',factValue:'Inicial'});
+ await Promise.all([fact('save_fact',{subject,factKey:'status',factValue:'Em produção'}),fact('save_fact',{subject,factKey:'status',factValue:'Aguardando aprovação'})]);
+ const rows=await p.knowledgeFact.findMany({where:{subject:{name:subject,phoneNumberId:biz,user:{phone}},key:'status'},orderBy:{revision:'asc'}});
+ assert.deepEqual(rows.map(r=>r.revision),[1,2,3]);assert.deepEqual(rows.map(r=>r.value).sort(),['Inicial','Em produção','Aguardando aprovação'].sort());
+ assert.equal(rows.filter(r=>r.supersededAt===null).length,1);assert.equal(rows[2].supersededAt,null);
+ const reply=await fact('search_facts',{subject,factKey:'status'});assert.ok(reply.includes(rows[2].value));assert.ok(!reply.includes(rows[1].value));
+});
+test('repetições simultâneas de um novo dado criam somente uma revisão',async()=>{
+ const fields={subject:'Cliente Único',factKey:'prazo',factValue:'sexta-feira'};
+ await Promise.all([fact('save_fact',fields),fact('save_fact',fields)]);
+ const rows=await p.knowledgeFact.findMany({where:{subject:{name:fields.subject,phoneNumberId:biz,user:{phone}}}});
+ assert.equal(rows.length,1);assert.equal(rows[0].revision,1);
+});
 test('fluxo inbox persiste compromisso e resposta juntos sem envio real',async()=>{
  const row=await p.incomingMessage.create({data:{phone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Reunião às dez dia dois de maio de 2099',nextAttemptAt:new Date(0)}});
  await processInboxBatch(p,{buildContext:async()=>({}),interpret:async()=>intent('create_appointment',{title:'Fluxo completo',datetime:'2099-05-02T10:00:00-03:00',alertMinutes:[30]})},biz);

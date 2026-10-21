@@ -48,6 +48,9 @@ export async function executeFact(phone:string,phoneNumberId:string,intent:AIInt
   if(replay)return "Essa informação já foi registrada.";
   const subject=await tx.businessSubject.upsert({where:{userId_phoneNumberId_kind_normalizedName:{userId:user.id,phoneNumberId,kind,normalizedName:normalizeName(name)}},create:{userId:user.id,phoneNumberId,kind,name,normalizedName:normalizeName(name)},update:{updatedAt:new Date()}});
   const previous=await tx.knowledgeFact.findFirst({where:{subjectId:subject.id,key},orderBy:{revision:"desc"}});
+  // The contact/subject locks above serialize comparisons with concurrent
+  // updates. Repeating a value is confirmation, not a new historical change.
+  if(previous && previous.supersededAt===null && previous.value===value)return `Já está anotado: ${subject.name} — ${label(key)}: ${value}.`;
   await tx.knowledgeFact.updateMany({where:{subjectId:subject.id,key,supersededAt:null},data:{supersededAt:new Date()}});
   await tx.knowledgeFact.create({data:{subjectId:subject.id,key,value,revision:(previous?.revision || 0)+1,sourceMessageId}});
   return `${previous?"Atualizei":"Anotei"}: ${subject.name} — ${label(key)}: ${value}.`;
