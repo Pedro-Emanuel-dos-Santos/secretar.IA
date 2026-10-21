@@ -8,6 +8,7 @@ import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conve
 import { guardFactLookup } from "./conversation.reads";
 import { guardSubjectReference, mentionsName } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
+import { applyTaskSelection } from "./task.selection";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -31,6 +32,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null);
       if(["edit_note","delete_note"].includes(validated.action) && validated.noteId){
         const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId);
         if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;

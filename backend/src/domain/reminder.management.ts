@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { AIInterpretation } from "../types/ai.types";
 import { parseTimestamp, validateReminder } from "./reminder.validation";
 import { resolveSubject } from "./business.memory";
+import { validateTaskSelection } from "./task.selection";
 
 export const reminderScope = (phone: string, phoneNumberId: string,includeSystem=false): Prisma.ReminderWhereInput => ({
   ...(includeSystem?{}:{kind:"task"}),
@@ -13,8 +14,9 @@ const formatDate = (date: Date,timeZone:string) => new Intl.DateTimeFormat("pt-B
 }).format(date);
 const displayTitle = (title: string) => title.length > 100 ? title.slice(0, 97) + "..." : title;
 
-export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient) {
+export async function manageReminders(phone: string, phoneNumberId: string, intent: AIInterpretation, tx: Prisma.TransactionClient,sourceMessageId?:string) {
   if (!["list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "mark_waiting", "edit_reminder"].includes(intent.action)) return "Ainda não consigo executar essa operação.";
+  if(!await validateTaskSelection(tx,phone,phoneNumberId,intent))return "Essa lista ou tarefa mudou desde a consulta. Peça uma nova lista antes de escolher pelo número.";
   const scope = reminderScope(phone, phoneNumberId);
   const timezone=await contactTimezone(tx,phone,phoneNumberId);
   const displayDate=(date:Date)=>formatDate(date,timezone);
@@ -48,6 +50,11 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     });
     const heading=filter==="waiting" ? "Tarefas aguardando resposta" : filter==="completed" ? "Tarefas concluídas" : filter==="cancelled" ? "Tarefas canceladas" : filter==="overdue" ? "Tarefas atrasadas" : "Seus lembretes pendentes";
     if (!reminders.length) return filter ? "Nenhuma tarefa encontrada com esse filtro nesse período." : "Você não tem lembretes pendentes nesse período.";
+    if(sourceMessageId){
+      const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId},select:{id:true}});
+      if(!source)throw Error("Origem da lista incompatível.");
+      await tx.event.create({data:{userId:reminders[0].userId,type:"task_list_presented",source:"secretaria",payload:{phoneNumberId,sourceMessageId,items:reminders.slice(0,10).map(r=>({id:r.id,version:r.scheduleVersion,title:r.title,remindAt:r.remindAt.toISOString(),state:r.state,taskProgress:r.taskProgress}))}}});
+    }
     return heading+":\n" + reminders.slice(0, 10).map((r, index) =>
       `${index + 1}. ${displayTitle(r.title)}${r.subject?" ("+r.subject.name+")":""} — ${displayDate(r.remindAt)}` +
       (r.taskProgress==="waiting" ? ` (aguardando${r.waitingFor?" "+r.waitingFor:" resposta"}${["awaiting_followup","provider_accepted"].includes(r.status)?"; sem novo aviso agendado":""})` : "")+

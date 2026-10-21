@@ -16,8 +16,10 @@ Ordem de implementação e avaliação:
    `subject_overview` e referência explícita com validade de 30 minutos.
 2. Correções conversacionais de data/horário e seleção de itens: avaliar com
    diálogos e listas persistidas, sem escolher o primeiro resultado. Seleção
-   ordinal precisa de um snapshot da lista efetivamente apresentada antes de
-   autorizar uma alteração; isso permanece pendente.
+   ordinal usa um snapshot da lista efetivamente enviada: implementado localmente
+   para tarefas, com validade de 15 minutos, escopo por contato/conta e revalidação
+   antes de alterar. Notas/compromissos e escolha sem ação em vários turnos ainda
+   não estão contemplados. Ver TASK-SELECTION.md.
 3. Vínculo explícito entre tarefas e clientes/projetos: implementado localmente
    para novas tarefas/séries. Visão geral e lista filtrada incluem tarefas do
    cadastro; antigas não foram associadas automaticamente. Alterar o vínculo de

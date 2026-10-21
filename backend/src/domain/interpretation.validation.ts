@@ -68,6 +68,10 @@ export function parseInterpretation(content: string): AIInterpretation {
     if (!Number.isSafeInteger(record.expectedVersion) || (record.expectedVersion as number) < 0) throw new Error("Versão inválida.");
     extra.expectedVersion = record.expectedVersion as number;
   }
+  if(record.selectionListId!==undefined){
+    if(typeof record.selectionListId!=="string" || record.selectionListId.length>100 || !Number.isSafeInteger(record.selectionIndex) || (record.selectionIndex as number)<0 || (record.selectionIndex as number)>9)throw Error("Seleção inválida.");
+    extra.selectionListId=record.selectionListId;extra.selectionIndex=record.selectionIndex as number;
+  }
   for (const key of ["reminderId", "noteId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");

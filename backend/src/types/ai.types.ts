@@ -49,6 +49,8 @@ export type AIInterpretation = {
   rangeStart?: string | null;
   rangeEnd?: string | null;
   expectedVersion?: number;
+  selectionListId?:string;
+  selectionIndex?:number;
   recurrence?: { frequency: "daily" | "weekly" | "monthly"; count: number | null } | null;
   cancelSeries?: boolean;
   draft?: { date: string | null; time: string | null } | null;

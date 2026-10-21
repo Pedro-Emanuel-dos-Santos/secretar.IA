@@ -128,7 +128,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });
         refreshReminder = true;
         return reminder;
-      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
+      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
       intent=>intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx)
         : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
