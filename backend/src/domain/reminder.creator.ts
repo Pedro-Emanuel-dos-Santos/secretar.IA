@@ -2,6 +2,7 @@ import type { PrismaClient, Prisma } from "@prisma/client";
 import { ReminderInput, validateReminder } from "./reminder.validation";
 import { recurrenceDates } from "./recurrence";
 import { randomUUID } from "node:crypto";
+import { taskSubject } from "./task.subject";
 import { ReminderLimits, ReminderQuotaError, RemindersPausedError, reminderLimits } from "./reminder.limits";
 
 type Store = Pick<PrismaClient, "$transaction" | "reminder">;
@@ -41,15 +42,17 @@ export async function persistReminderInTransaction(input: ReminderInput, tx: Pri
     if(!parent || !Number.isFinite(source.appointmentOffsetMinutes) || Math.abs(parent.startsAt.getTime()-reminderDate.getTime()-source.appointmentOffsetMinutes!*60000)>1)throw Error("Aviso incompatível com o compromisso.");
   }
   const seriesId = input.recurrence ? randomUUID() : null;
+  const subject=source.appointmentId?null:await taskSubject(tx,user.id,source.phoneNumberId,input.subject,input.subjectKind);
   const recurrence = input.recurrence ? { seriesId, occurrenceIndex: 0,
     recurrenceFrequency: input.recurrence.frequency, recurrenceCount: input.recurrence.count } : {};
   const first = await tx.reminder.create({
-    data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",scheduleTimezone,
+    data: { userId: user.id, title, description, remindAt: reminderDate, status: "scheduling_pending",scheduleTimezone,subjectId:subject?.id,
       ...recurrence, appointmentId:source.appointmentId, appointmentOffsetMinutes:source.appointmentOffsetMinutes,
       sourceMessageId: source.sourceMessageId, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
+    include:{subject:{select:{name:true}}},
   });
   for (let index = 1; index < dates.length; index++) await tx.reminder.create({
-    data: { userId: user.id, title, description, remindAt: dates[index], status: "scheduling_pending",scheduleTimezone,
+    data: { userId: user.id, title, description, remindAt: dates[index], status: "scheduling_pending",scheduleTimezone,subjectId:subject?.id,
       ...recurrence, occurrenceIndex: index, scheduleOutbox: { create: { phoneNumberId: source.phoneNumberId } } },
   });
   return first;

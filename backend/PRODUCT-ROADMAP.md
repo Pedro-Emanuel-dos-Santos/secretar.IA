@@ -18,8 +18,10 @@ Ordem de implementação e avaliação:
    diálogos e listas persistidas, sem escolher o primeiro resultado. Seleção
    ordinal precisa de um snapshot da lista efetivamente apresentada antes de
    autorizar uma alteração; isso permanece pendente.
-3. Vínculo explícito entre tarefas e clientes/projetos. Hoje compromissos possuem
-   vínculo; tarefas avulsas ainda não. Não inferir vínculo apenas pelo título.
+3. Vínculo explícito entre tarefas e clientes/projetos: implementado localmente
+   para novas tarefas/séries. Visão geral e lista filtrada incluem tarefas do
+   cadastro; antigas não foram associadas automaticamente. Alterar o vínculo de
+   uma tarefa existente ainda está pendente. Não inferir vínculo apenas pelo título.
 4. Diálogos completos de visita, orçamento e retorno como cenários de regressão.
    Usar simulações para execução e avaliações separadas com IA real para medir
    interpretação. Não apresentar testes simulados como prova da qualidade do modelo.

@@ -2,6 +2,7 @@ import { contactTimezone } from "./preferences";
 import { Prisma } from "@prisma/client";
 import { AIInterpretation } from "../types/ai.types";
 import { parseTimestamp, validateReminder } from "./reminder.validation";
+import { resolveSubject } from "./business.memory";
 
 export const reminderScope = (phone: string, phoneNumberId: string,includeSystem=false): Prisma.ReminderWhereInput => ({
   ...(includeSystem?{}:{kind:"task"}),
@@ -26,6 +27,13 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     } catch { return "Qual dia ou período você quer consultar?"; }
   }
   if (intent.action === "list_reminders") {
+    let subjectId:string|undefined;
+    if(intent.subject){
+      const resolved=await resolveSubject(tx,phone,phoneNumberId,intent.subject,intent.subjectKind || "client");
+      if(resolved.ambiguous)return "Qual é o nome completo do cliente ou projeto?";
+      if(!resolved.subject)return "Não encontrei esse cliente ou projeto no cadastro.";
+      subjectId=resolved.subject.id;
+    }
     const filter=intent.taskFilter;
     const progress:Prisma.ReminderWhereInput=filter==="completed" || filter==="cancelled" ? {state:filter}
       : filter==="waiting" ? {state:"active",taskProgress:"waiting"}
@@ -34,13 +42,14 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     const dateScope:Prisma.ReminderWhereInput=range ? filter==="completed" || filter==="cancelled"
       ? {OR:[{progressUpdatedAt:range},{progressUpdatedAt:null,updatedAt:range}]} : {remindAt:range} : {};
     const reminders = await tx.reminder.findMany({
-      where: { AND:[scope,progress,dateScope] },
+      where: { AND:[scope,progress,dateScope,...(subjectId?[{subjectId,appointmentId:null}]:[])] },
+      include:{subject:{select:{name:true}}},
       orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 11,
     });
     const heading=filter==="waiting" ? "Tarefas aguardando resposta" : filter==="completed" ? "Tarefas concluídas" : filter==="cancelled" ? "Tarefas canceladas" : filter==="overdue" ? "Tarefas atrasadas" : "Seus lembretes pendentes";
     if (!reminders.length) return filter ? "Nenhuma tarefa encontrada com esse filtro nesse período." : "Você não tem lembretes pendentes nesse período.";
     return heading+":\n" + reminders.slice(0, 10).map((r, index) =>
-      `${index + 1}. ${displayTitle(r.title)} — ${displayDate(r.remindAt)}` +
+      `${index + 1}. ${displayTitle(r.title)}${r.subject?" ("+r.subject.name+")":""} — ${displayDate(r.remindAt)}` +
       (r.taskProgress==="waiting" ? ` (aguardando${r.waitingFor?" "+r.waitingFor:" resposta"}${["awaiting_followup","provider_accepted"].includes(r.status)?"; sem novo aviso agendado":""})` : "")+
       (r.status === "blocked_paused" ? " (não enviado durante a pausa)" : r.status === "missed" ? " (vencido, não enviado)"
         : r.status === "provider_rejected" ? " (recusado pelo WhatsApp)" : "")).join("\n") +

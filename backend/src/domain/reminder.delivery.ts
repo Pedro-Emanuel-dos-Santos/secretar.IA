@@ -9,7 +9,7 @@ type Sender = (phone: string, text: string, controls?: ReminderControls) => Prom
 export async function deliverReminder(reminderId: string, phoneNumberId: string, store: Store, send: Sender, expectedVersion = 0,
   reconcile?: (providerMessageId: string) => Promise<void>) {
   const reminder = await store.reminder.findUnique({
-    where: { id: reminderId }, include: { user: true, scheduleOutbox: true },
+    where: { id: reminderId }, include: { user: true, scheduleOutbox: true,subject:{select:{name:true}} },
   });
   if (!reminder) return "missing";
   if (reminder.scheduleOutbox && reminder.scheduleOutbox.phoneNumberId !== phoneNumberId) throw new Error("Número comercial incompatível.");
@@ -21,7 +21,7 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
   if (!claimed.count) return "skipped";
   try {
     const late = Date.now() - reminder.remindAt.getTime() > 60_000;
-    const text=`⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}`+
+    const text=`⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}${reminder.subject?` (${reminder.subject.name})`:""}`+
       (reminder.appointmentId && reminder.description ? `\n${reminder.description.slice(0,300)}` : "");
     const result = await send(reminder.user.phone, text,
       reminder.appointmentId || reminder.kind==="daily_summary" ? undefined : { id: reminder.id, version: expectedVersion });

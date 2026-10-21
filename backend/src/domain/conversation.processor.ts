@@ -6,7 +6,7 @@ import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
 import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conversation.timing";
 import { guardFactLookup } from "./conversation.reads";
-import { guardSubjectReference } from "./conversation.references";
+import { guardSubjectReference, mentionsName } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
@@ -37,6 +37,11 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       }
       guardFactLookup(validated,message.text,context);
       guardSubjectReference(validated,message.text,context);
+      if(validated.action==="create_reminder" && validated.subject){
+        const pending=(context as any)?.conversationState?.pendingRequest;
+        const carried=pending?.action==="create_reminder" && pending.subject===validated.subject && typeof pending.originalMessage==="string" && mentionsName(pending.originalMessage,validated.subject);
+        if(!mentionsName(message.text,validated.subject) && !carried)return {action:"conversation" as const,title:null,description:null,datetime:null,amount:null,category:null,reply:"Qual é o nome do cliente ou projeto que devo vincular a essa tarefa?"};
+      }
       guardCorrectionTarget(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {
         if(validated.action==="create_appointment" && hasMultipleInitialTimes(message.text)){

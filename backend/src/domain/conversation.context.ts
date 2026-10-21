@@ -12,7 +12,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     store.user.findUnique({ where: { phone: message.phone }, select: { name: true, timezone: true } }),
     store.reminder.findMany({
       where: { ...reminderScope(message.phone, message.phoneNumberId), state: "active" },
-      select: { id: true, title: true, remindAt: true, status: true, state: true, taskProgress:true, waitingFor:true, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
+      select: { id: true, title: true, remindAt: true, status: true, state: true, taskProgress:true, waitingFor:true,subjectId:true,subject:{select:{name:true,kind:true}}, seriesId: true, occurrenceIndex: true, recurrenceCount: true, recurrenceFrequency: true },
       orderBy: [{ remindAt: "asc" }, { id: "asc" }], take: 12,
     }),
     store.incomingMessage.findMany({
@@ -54,7 +54,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
       // Recover by exact scoped name, including subjects outside the eight-row
       // context preview. A model-supplied pronoun is never a new identity.
       if(!mentionsName(row.text,intent.subject)){
-        if(["search_facts","subject_overview"].includes(intent.action) && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/i.test(row.text))continue;
+        if(["search_facts","subject_overview","list_reminders"].includes(intent.action) && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/i.test(row.text))continue;
         break;
       }
       const matches=await store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,kind:intent.subjectKind || "client",normalizedName:intent.subject.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim()},select:{id:true,name:true,kind:true},take:2});

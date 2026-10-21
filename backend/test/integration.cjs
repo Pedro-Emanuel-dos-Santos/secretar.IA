@@ -13,3 +13,4 @@ require("./task-progress.integration.cjs");
 require("./pilot-v2.integration.cjs");
 require("./daily-summary.integration.cjs");
 require("./client-workflow.integration.cjs");
+require("./task-subject.integration.cjs");

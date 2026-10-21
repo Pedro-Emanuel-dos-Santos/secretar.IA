@@ -19,7 +19,7 @@ export function guardSubjectReference(intent:AIInterpretation,text:string,contex
   intent.action="subject_overview";intent.subject=target.name;intent.subjectKind=target.kind==="project"?"project":"client";
   intent.title=null;intent.description=null;intent.datetime=null;return;
  }
- if(!["search_facts","subject_overview"].includes(intent.action) || !pronoun)return;
+ if(!["search_facts","subject_overview","list_reminders"].includes(intent.action) || !pronoun)return;
  if(explicit.length>1 || !target){
   intent.action="conversation";intent.subject=null;intent.factKey=null;
   intent.reply="De qual cliente ou projeto você está falando?";return;

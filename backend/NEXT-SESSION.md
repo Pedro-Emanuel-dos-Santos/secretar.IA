@@ -2,9 +2,11 @@
 
 ## Estado confirmado mais recente
 
-- Direção de produto registrada em PRODUCT-ROADMAP.md. Novo incremento local: subject_overview (dados atuais, compromissos vinculados e notas que mencionam o nome) e referência recente de cliente em consultas. Sem vínculo de tarefa avulsa por cliente nem seleção ordinal persistida ainda.
+- Direção de produto registrada em PRODUCT-ROADMAP.md. subject_overview reúne dados atuais, compromissos, tarefas explicitamente vinculadas e notas que mencionam o nome. Vínculo de novas tarefas/séries por cliente/projeto implementado; alteração do vínculo de tarefa existente e seleção ordinal persistida continuam pendentes.
 - Usuário decidiu aguardar Railway, continuar código local e manter callback atual. Túnel/API/workers iniciados para teste temporário foram desligados; banco e Redis locais permanecem disponíveis.
 - Verificação do incremento por cliente: build/TypeScript, 137 testes unitários e 141 integrações passaram; quatro cenários de cliente repetidos após o ajuste final também passaram. Provedores simulados e banco local isolado; interpretação com IA real ainda pendente. Nenhuma migração adicional necessária para este incremento.
+- Incremento seguinte adiciona migração aditiva 20261021150000_tasks_by_subject, aplicada somente ao banco local isolado de testes. Novas tarefas podem criar ou reutilizar cliente/projeto pelo nome completo explicitamente informado; nome parcial de cadastro existente é recusado sem criar tarefa. Não há associação automática das tarefas antigas. Workers aguardam subjectId antes de consumir trabalho. Após publicar, testar criação com cliente, resumo, espera, conclusão e recorrência; IA real ainda precisa de avaliação dessas novas ações.
+- Validação mais recente do vínculo de tarefas: build/TypeScript, 138 testes unitários e 149 integrações passaram, incluindo oito cenários novos. Ver TASKS-BY-CLIENT.md. A confirmação, a lista e o aviso mostram o nome do cadastro.
 
 - Incremento local adicional: perfil/fuso por conta, edição/exclusão de notas, consentimento informado de áudio, medição de tokens, limpeza confirmada de conteúdo e resumo diário opcional. Ver `PILOT-V2.md` para limites e roteiro de testes. As novas ações ainda não passaram pela IA real nem WhatsApp.
 - Railway foi acessada novamente: serviços online, porém novos deploys temporariamente pausados por “Limited Access”. PostgreSQL não possui acesso público e o painel mostrou ausência de backups nativos. Não foi aberto acesso público ao banco.

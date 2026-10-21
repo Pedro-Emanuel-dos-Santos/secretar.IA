@@ -1,5 +1,5 @@
 import type { Recurrence } from "./recurrence";
-export type ReminderInput = { phone: string; title: string; description?: string; remindAt: string; recurrence?: Recurrence };
+export type ReminderInput = { phone: string; title: string; description?: string; remindAt: string; recurrence?: Recurrence; subject?:string; subjectKind?:"client"|"project" };
 
 // A timezone is mandatory: server settings must never decide the user's appointment.
 const timestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;

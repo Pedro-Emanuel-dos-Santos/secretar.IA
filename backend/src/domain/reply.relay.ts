@@ -21,7 +21,7 @@ export async function relayReplies(store: Store, send: Sender, phoneNumberId: st
       });
       if (!claim.count) return null;
       const current = await tx.replyOutbox.findUniqueOrThrow({
-        where: { id: row.id }, include: { message: { include: { reminder: true } } },
+        where: { id: row.id }, include: { message: { include: { reminder: {include:{subject:{select:{name:true}}}} } } },
       });
       // Recheck scope after obtaining ownership. Persist the exact text before sending.
       if (current.message.phoneNumberId !== phoneNumberId || current.message.status !== "reply_pending") throw new Error("Resposta fora do contexto esperado.");

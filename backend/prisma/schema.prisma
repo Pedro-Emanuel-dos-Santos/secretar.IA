@@ -98,6 +98,8 @@ model Reminder {
   title       String
   kind String @default("task")
   digestKey String? @unique
+  subjectId String?
+  subject BusinessSubject? @relation(fields:[subjectId],references:[id],onDelete:SetNull)
   description String?
   remindAt    DateTime
   scheduleTimezone String @default("America/Sao_Paulo")
@@ -130,6 +132,7 @@ model Reminder {
   @@index([userId, taskProgress, state])
   @@index([userId, createdAt])
   @@index([appointmentId])
+  @@index([subjectId, state, taskProgress])
   @@unique([seriesId, occurrenceIndex])
 }
 
@@ -183,6 +186,7 @@ model BusinessSubject {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   facts KnowledgeFact[]
   appointments Appointment[]
+  reminders Reminder[]
   @@unique([userId, phoneNumberId, kind, normalizedName])
 }
 
