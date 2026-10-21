@@ -35,3 +35,12 @@ test('resumo usa dia de Brasília na virada UTC e respeita dia de 23 horas',()=>
  const transition=brasiliaDay(new Date('2018-11-04T15:00:00Z'));
  assert.equal(transition.end-transition.start,23*3600000);
 });
+test('duas tarefas com horários diferentes nunca viram uma criação parcial',async()=>{
+ const intent={action:'create_reminder',title:'ligar para João',datetime:'2099-01-01T09:00:00-03:00',description:null,amount:null,category:null,reply:'ok'};
+ const result=await prepareConversation({text:'Me lembra amanhã às 9h de ligar para João e às 16h de comprar material.',receivedAt:new Date()},
+  {buildContext:async()=>({}),interpret:async()=>intent});
+ assert.equal(result.action,'conversation');assert.match(result.reply,/registrar primeiro/);
+ const {hasMultipleInitialTimes}=require('../src/domain/multiple-times.ts');
+ assert.equal(hasMultipleInitialTimes('Todo dia às 9h, por 3 vezes'),false);
+ assert.equal(hasMultipleInitialTimes('às nove e às dez'),true);
+});
