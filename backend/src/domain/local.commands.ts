@@ -3,8 +3,9 @@ import type { AIInterpretation } from "../types/ai.types";
 import { dayOverview } from "./day.overview";
 import { presentAudioDisclosure,setAudioConsent,executePreferences } from "./preferences";
 import { requestContentDeletion,confirmContentDeletion } from "./privacy";
+import { agendaOverview } from "./agenda.overview";
 
-export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
+export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
   if(value==="audio" || value==="como funciona o audio")return "audio_info";
@@ -20,23 +21,28 @@ export function localCommand(text: string): LocalCommand | null {
   if (/^(?:por favor,?\s+)?(?:(?:quero|gostaria de)\s+)?(?:parar|pare|pausar|pause|pausa|suspender|suspenda)(?:\s+(?:os|meus))?\s+(?:avisos|lembretes)(?:,?\s+por favor)?$/.test(value)) return "pause";
   if (["retomar", "ativar lembretes", "retomar lembretes"].includes(value)) return "resume";
   if (["meu dia", "resumo de hoje"].includes(value)) return "today";
+  if(["minha semana","resumo da semana","agenda da semana","como esta minha semana","como esta a minha semana","o que tenho esta semana","o que tenho nessa semana"].includes(value))return "week";
+  if(["proxima semana","minha proxima semana","resumo da proxima semana","agenda da proxima semana","como esta minha proxima semana","o que tenho na proxima semana"].includes(value))return "next_week";
+  if(["meu dia amanha","minha agenda de amanha","resumo de amanha","o que tenho amanha"].includes(value))return "tomorrow";
+  if(["proximos sete dias","proximos 7 dias","minha agenda dos proximos sete dias","minha agenda dos proximos 7 dias"].includes(value))return "next_7_days";
   return null;
 }
 export function localCommandIntent(text: string): AIInterpretation | null {
   return localCommand(text) ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:"Vou conferir seu pedido."} : null;
 }
-export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string}) {
+export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string;receivedAt?:Date}) {
+  if(command==="week" || command==="next_week" || command==="tomorrow" || command==="next_7_days")return agendaOverview(phone,phoneNumberId,tx,command,current?.receivedAt || new Date());
   if(command==="erase_request")return requestContentDeletion(phone,phoneNumberId,tx);
   if(command==="erase_confirm")return current?confirmContentDeletion(phone,phoneNumberId,tx,current):"Envie APAGAR MEUS DADOS para receber as instruções de confirmação.";
   if(command==="audio_info")return presentAudioDisclosure(phone,phoneNumberId,tx);
   if(command==="audio_accept" || command==="audio_revoke")return setAudioConsent(phone,phoneNumberId,command==="audio_accept",tx);
   if(command==="profile" || command==="usage")return executePreferences(phone,phoneNumberId,{action:command==="profile"?"show_preferences":"usage_summary",title:null,description:null,datetime:null,category:null,amount:null,reply:"interno"},tx);
-  if (command === "today") return dayOverview(phone,phoneNumberId,tx);
+  if (command === "today") return dayOverview(phone,phoneNumberId,tx,current?.receivedAt || new Date());
   if (command === "help") return "Sou a Secretár.IA. Posso ajudar com suas tarefas e prazos. Exemplos:\n" +
     "• Me lembra amanhã às 9h de enviar o orçamento.\n• Quais são meus lembretes de hoje?\n• Adia o lembrete do orçamento para amanhã às 10h.\n" +
-    "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Marco compromissos com até três avisos: ‘Reunião amanhã às 10h, me avisa meia hora antes e na hora’. Guardo dados de clientes e projetos: ‘Orçamento do cliente João Silva é R$ 500’. Depois, você pode atualizar o valor ou consultar o histórico. Também guardo anotações gerais.\nPreparo séries de 2 a 12 lembretes diários, semanais ou mensais. Uso o horário de Brasília.\n" +
+    "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Marco compromissos com até três avisos: ‘Reunião amanhã às 10h, me avisa meia hora antes e na hora’. Guardo dados de clientes e projetos: ‘Orçamento do cliente João Silva é R$ 500’. Depois, você pode atualizar o valor ou consultar o histórico. Também guardo anotações gerais.\nPreparo séries de 2 a 12 lembretes diários, semanais ou mensais. Uso o fuso do seu perfil, Brasília por padrão.\n" +
     "Depois de um aviso, pode dizer ‘já fiz’ ou ‘estou aguardando João’. Para acompanhar sem novo aviso, pergunte ‘o que está aguardando?’. Também pode consultar tarefas concluídas ou atrasadas. Para remover um dado específico do cadastro, diga ‘apaga o orçamento do cliente João Silva’; isso não apaga mensagens e notas gerais.\n"+
-    "Envie MEU DIA para ver as tarefas de hoje, PARAR para pausar os avisos, RETOMAR para voltar ou PRIVACIDADE para saber sobre seus dados.";
+    "Envie MEU DIA para hoje, MINHA SEMANA para a agenda semanal, PRÓXIMA SEMANA ou RESUMO DE AMANHÃ para outros períodos. PARAR pausa os avisos, RETOMAR volta e PRIVACIDADE explica seus dados.";
   if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes, compromissos, anotações, dados de clientes/projetos com histórico de alterações e estados de entrega para executar seus pedidos. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
     (process.env.AUDIO_TRANSCRIPTION_PROVIDER === "openai" ? "Quando habilitado, o áudio é enviado à OpenAI para transcrição. " : "Quando habilitado, o áudio é transcrito no computador/servidor da Secretár.IA. ") +
     "A aplicação não salva o arquivo de voz no disco. O piloto ainda não tem exclusão automática nem prazo de descarte configurado; fale com o responsável para solicitar acesso ou exclusão dos seus dados. Envie PARAR para pausar os avisos.";

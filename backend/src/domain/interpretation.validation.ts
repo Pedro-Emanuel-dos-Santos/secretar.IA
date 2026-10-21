@@ -9,6 +9,7 @@ actions.add("forget_fact");
 actions.add("edit_reminder");
 actions.add("set_task_subject");
 actions.add("select_task");
+actions.add("agenda_overview");
 for(const action of ["edit_note","delete_note","set_preferences","show_preferences","usage_summary"])actions.add(action);
 
 export function parseInterpretation(content: string): AIInterpretation {
@@ -24,6 +25,7 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.agendaPeriod!==undefined && record.agendaPeriod!==null){if(!["today","tomorrow","week","next_week","next_7_days"].includes(record.agendaPeriod as string))throw Error("Período da agenda inválido.");extra.agendaPeriod=record.agendaPeriod as AIInterpretation["agendaPeriod"];}
   if(record.selectionFocusId!==undefined){if(typeof record.selectionFocusId!=="string" || record.selectionFocusId.length>100)throw Error("Referência inválida.");extra.selectionFocusId=record.selectionFocusId;}
   if(record.clearSubject!==undefined && record.clearSubject!==null){if(typeof record.clearSubject!=="boolean")throw Error("Vínculo inválido.");extra.clearSubject=record.clearSubject;}
   if(record.expectedSubjectId!==undefined){if(record.expectedSubjectId!==null && (typeof record.expectedSubjectId!=="string" || record.expectedSubjectId.length>100))throw Error("Vínculo esperado inválido.");extra.expectedSubjectId=record.expectedSubjectId as string|null;}

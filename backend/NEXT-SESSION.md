@@ -2,6 +2,9 @@
 
 ## Estado confirmado mais recente
 
+- Mais recente: agenda por período (hoje/amanhã/semana/próxima semana/próximos sete dias), unindo compromissos, avisos de tarefas e retornos em espera sem duplicar alertas. MINHA SEMANA e outros comandos locais consultam sem IA. Limites locais de calendário, leitura isolada por contato/conta e contagens reais. Sem migração nova, publicação ou callback alterado. Ver AGENDA.md; IA real pendente.
+- Validação da agenda: build/TypeScript, 161 unitários e 178 integrações passaram, incluindo cinco integrações específicas. Nenhuma chamada real a IA/WhatsApp nessa verificação.
+
 - Mais recente: escolha de tarefa em dois turnos (“o segundo” → “pode concluir/cancelar”), persistida como Event task_selection_focus. Só fica ativa após envio aceito da identificação; TTL cinco minutos e lista original até quinze. Consumo e alteração são transacionais. Outra resposta enviada/lista nova ou tarefa alterada invalida uso. Sem migração. Build, 155 unitários e suíte de 173 integrações passaram; IA real pendente. Ver TASK-SELECTION.md.
 
 - Mais recente: reagendamento parcial preserva dia/hora não alterado em tarefas e compromissos. Resolução de hoje/amanhã/depois de amanhã/dia da semana simples usa recebimento/fuso; períodos vagos pedem detalhe. Versão do registro protege contra correção antiga. Build e 153 unitários passaram; suíte de 167 integrações passou. Ver RESCHEDULE-PARTS.md. Sem migração nova, publicação ou teste de IA real.

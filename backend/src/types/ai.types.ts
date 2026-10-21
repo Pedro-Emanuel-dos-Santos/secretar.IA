@@ -1,4 +1,5 @@
 export type AIAction =
+  | "agenda_overview"
   | "select_task"
   | "set_task_subject"
   | "subject_overview"
@@ -53,6 +54,7 @@ export type AIInterpretation = {
   expectedVersion?: number;
   expectedSubjectId?:string|null;
   clearSubject?:boolean;
+  agendaPeriod?:"today"|"tomorrow"|"week"|"next_week"|"next_7_days";
   selectionListId?:string;
   selectionIndex?:number;
   selectionFocusId?:string;

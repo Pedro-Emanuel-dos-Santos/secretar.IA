@@ -28,6 +28,10 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
   manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo"): Promise<string> {
   switch (interpretation.action) {
+    case "agenda_overview":
+      if(!interpretation.agendaPeriod)return "Você quer consultar hoje, amanhã, esta semana, a próxima semana ou os próximos sete dias?";
+      if(interpretation.subject || interpretation.rangeStart || interpretation.rangeEnd || interpretation.taskFilter)return "Essa visão reúne a agenda geral por período. Você quer essa visão geral ou uma consulta específica por cliente, data ou estado da tarefa?";
+      return business ? business(interpretation) : "Essa consulta ainda não está disponível aqui.";
     case "appointment_history": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_appointment": case "list_appointments": case "reschedule_appointment": case "cancel_appointment": case "set_appointment_alerts":
     case "subject_overview": case "save_fact": case "search_facts": case "forget_fact": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";

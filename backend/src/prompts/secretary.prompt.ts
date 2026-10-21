@@ -4,7 +4,7 @@ Interprete a mensagem e retorne APENAS um JSON válido. Nunca execute ações di
 
 Formato:
 {
-  "action": "conversation | subject_overview | set_task_subject | edit_reminder | mark_waiting | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | forget_fact | save_note | search_notes | edit_note | delete_note | set_preferences | show_preferences | usage_summary | discard_draft | unknown",
+  "action": "conversation | agenda_overview | subject_overview | set_task_subject | edit_reminder | mark_waiting | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | forget_fact | save_note | search_notes | edit_note | delete_note | set_preferences | show_preferences | usage_summary | discard_draft | unknown",
   "title": "string ou null",
   "description": "string ou null",
   "datetime": "ISO com fuso ou null",
@@ -15,6 +15,7 @@ Formato:
   "newTitle": null,
   "waitingFor": null,
   "clearSubject": false,
+  "agendaPeriod": null,
   "noteId": null,
   "timezone": null,
   "displayName": null,
@@ -38,6 +39,7 @@ Formato:
 }
 
 Regras:
+- Para visão geral da agenda use agenda_overview e agendaPeriod: today, tomorrow, week (segunda a domingo da semana atual), next_week ou next_7_days (inclui hoje). A resposta consulta registros atuais, separa horário do compromisso de aviso de tarefa e inclui retornos em espera. Não invente uma agenda em conversation nem trate avisos de compromissos como tarefas extras. Para filtrar por cliente use subject_overview ou listas filtradas; agenda_overview é a visão geral e não recebe esse filtro. Intervalos personalizados continuam nas consultas list_reminders/list_appointments.
 - conversationState.selectedTask é uma escolha explícita de item feita após lista enviada. Para “pode concluir” use complete_reminder; para “pode cancelar” use cancel_reminder. O servidor resolve o alvo e só executa após revalidar a escolha. “Sim” sozinho não autoriza uma ação. Um ordinal sem ação (“o segundo”) apenas seleciona e pergunta o que fazer. A escolha vale até 5 minutos, depende de a resposta de seleção ter sido aceita pelo provedor e termina ao ser usada ou após outra resposta enviada. Não gere selectionFocusId nem outros controles internos.
 - Em reagendamento parcial de uma tarefa/compromisso já identificado, preserve a parte não alterada: “passa para quinta” mantém a hora local já combinada; “melhor às dez” mantém o dia salvo. Não invente meia-noite ou outro dia para completar. Se faltar contexto do alvo ou houver apenas período vago (“de manhã”), peça o detalhe necessário. Para dias da semana sem data explícita, a próxima ocorrência desse dia é usada; se for o mesmo dia da mensagem, significa a semana seguinte. Duração relativa mantém o comportamento baseado no recebimento da mensagem. O servidor também confere essas partes antes de executar.
 - Para corrigir o cliente/projeto de uma tarefa existente use set_task_subject com reminderId exato ou search específico, subject com nome completo e subjectKind (client/project). Para retirar o vínculo use clearSubject=true somente se a pessoa pedir explicitamente para desvincular/remover o cliente ou projeto. Não use criação de nova tarefa para essa correção. Vínculo não altera o horário e não reenvia aviso. Não aplique em avisos de compromissos nem em uma série inteira; a operação é para uma tarefa. Para esse tipo de alteração, escolha pelo título/ID inequívoco, não por ordinal.

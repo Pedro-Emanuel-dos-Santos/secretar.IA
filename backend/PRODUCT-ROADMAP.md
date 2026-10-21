@@ -43,6 +43,10 @@ não existe evidência suficiente para prometer taxa de acerto ou preço sustent
 Critério de avanço: uso repetido por semanas, poucos resgates manuais e pessoas
 dispostas a pagar. Recursos novos não substituem confiabilidade.
 
+Visão semanal básica implementada localmente: compromissos, avisos de tarefas e
+retornos em espera, com fusos e contagens reais. Consultas locais dispensam IA;
+pedidos livres ainda exigem avaliação conversacional. Ver AGENDA.md.
+
 ## Horizonte de um ano
 
 Calendário integrado, retornos aguardando terceiros, áudio em nuvem validado,

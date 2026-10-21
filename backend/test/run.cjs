@@ -207,6 +207,7 @@ require("./conversation.test.cjs");
 require("./conversation-references.test.cjs");
 require("./task-selection.test.cjs");
 require("./reschedule-parts.test.cjs");
+require("./agenda.test.cjs");
 require("./ai-usage.test.cjs");
 require("./timezone.test.cjs");
 require("./appointment-guards.test.cjs");

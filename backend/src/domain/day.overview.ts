@@ -2,12 +2,12 @@ import { contactTimezone } from "./preferences";
 import type { Prisma } from "@prisma/client";
 import { reminderScope } from "./reminder.management";
 
-function calendarDay(time:number,timeZone="America/Sao_Paulo") {
+export function calendarDay(time:number,timeZone="America/Sao_Paulo") {
   const dayFormatter=new Intl.DateTimeFormat("en-CA",{timeZone,year:"numeric",month:"2-digit",day:"2-digit"});
   const p=Object.fromEntries(dayFormatter.formatToParts(new Date(time)).map(p=>[p.type,p.value]));
   return Date.UTC(+p.year,+p.month-1,+p.day);
 }
-function dayBoundary(target:number,timeZone:string) {
+export function dayBoundary(target:number,timeZone:string) {
   // Find the first instant belonging to the calendar day. This also handles
   // days that start at 01:00 or last 23/25 hours after an offset transition.
   let low=target-18*3600000,high=target+18*3600000;
