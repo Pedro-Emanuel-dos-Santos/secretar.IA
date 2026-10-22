@@ -86,7 +86,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     if(row.reminder || intent?.action==="discard_draft" || ["reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent?.action || "") && intent?.datetime)break;
     if(intent?.draft && ["create_reminder","reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent.action)){
       pendingRequest={action:intent.action,title:intent.title,description:intent.description,draft:intent.draft,
-        recurrence:intent.recurrence || null,reminderId:intent.reminderId || null,appointmentId:intent.appointmentId || null,alertMinutes:intent.alertMinutes,subject:intent.subject,subjectKind:intent.subjectKind,search:intent.search || null,
+        recurrence:intent.recurrence || null,reminderId:intent.reminderId || null,appointmentId:intent.appointmentId || null,alertMinutes:intent.alertMinutes,durationMinutes:intent.durationMinutes,subject:intent.subject,subjectKind:intent.subjectKind,search:intent.search || null,
         originalMessage:row.text.slice(0,1000),receivedAt:row.receivedAt.toISOString()};break;
     }
   }

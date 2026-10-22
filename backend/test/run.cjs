@@ -217,4 +217,5 @@ require("./reply-language.test.cjs");
 require("./ai-usage.test.cjs");
 require("./timezone.test.cjs");
 require("./appointment-guards.test.cjs");
+require("./appointment-duration.test.cjs");
 require("./worker-startup.test.cjs");

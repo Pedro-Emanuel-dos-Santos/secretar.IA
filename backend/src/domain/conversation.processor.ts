@@ -13,6 +13,7 @@ import { preserveRescheduleParts } from "./reschedule.parts";
 import { guardSubjectPeriod } from "./agenda.period";
 import { socialAcknowledgement } from "./conversation.social";
 import { guardCurrentTarget } from "./conversation.target";
+import {guardAppointmentDuration} from "./appointment.duration";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -65,6 +66,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if(!mentionsName(message.text,validated.subject) && !carried)return {action:"conversation" as const,title:null,description:null,datetime:null,amount:null,category:null,reply:"Qual é o nome do cliente ou projeto que devo vincular a essa tarefa?"};
       }
       guardCorrectionTarget(validated,message.text,context);
+      guardAppointmentDuration(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {
         if(validated.action==="create_appointment" && hasMultipleInitialTimes(message.text)){
           const normalized=message.text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();

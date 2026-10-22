@@ -26,6 +26,7 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.durationMinutes!==undefined && record.durationMinutes!==null){if(!Number.isSafeInteger(record.durationMinutes) || (record.durationMinutes as number)<1 || (record.durationMinutes as number)>1440 || !["create_appointment","reschedule_appointment"].includes(record.action as string))throw Error("Duração inválida.");extra.durationMinutes=record.durationMinutes as number;}
   if(record.memoryKind!==undefined && record.memoryKind!==null){if(!["routine","preference","person","goal"].includes(record.memoryKind as string))throw Error("Tipo de memória inválido.");extra.memoryKind=record.memoryKind as AIInterpretation["memoryKind"];}
   if(record.agendaPeriod!==undefined && record.agendaPeriod!==null){if(!["today","tomorrow","day_after_tomorrow","week","next_week","next_7_days"].includes(record.agendaPeriod as string))throw Error("Período da agenda inválido.");extra.agendaPeriod=record.agendaPeriod as AIInterpretation["agendaPeriod"];}
   if(record.selectionFocusId!==undefined){if(typeof record.selectionFocusId!=="string" || record.selectionFocusId.length>100)throw Error("Referência inválida.");extra.selectionFocusId=record.selectionFocusId;}

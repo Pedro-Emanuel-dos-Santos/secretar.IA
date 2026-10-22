@@ -35,6 +35,7 @@ export type AIInterpretation = {
   reply: string;
   appointmentId?: string | null;
   alertMinutes?: number[];
+  durationMinutes?:number;
   subject?: string | null;
   subjectKind?: "client" | "project";
   factKey?: string | null;

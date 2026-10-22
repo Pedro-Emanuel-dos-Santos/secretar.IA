@@ -27,7 +27,7 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     let range:Prisma.DateTimeFilter|undefined;
     if(intent.rangeStart || intent.rangeEnd){try{const start=parseTimestamp(intent.rangeStart),end=parseTimestamp(intent.rangeEnd);if(start>=end)throw Error();range={gte:start,lt:end};}catch{return "Qual dia ou período você quer consultar?";}}
     const rows=await tx.appointment.findMany({where:{...scope,state:"active",startsAt:range},include:{reminders:{where:{state:"active"},select:{remindAt:true}}},orderBy:[{startsAt:"asc"},{id:"asc"}],take:11});
-    return rows.length ? "Seus compromissos:\n"+rows.slice(0,10).map(a=>`• ${a.title.slice(0,160)} — ${display(a.startsAt)}; avisos: ${a.reminders.map(r=>display(r.remindAt)).join(", ")||"nenhum"}`).join("\n")+(rows.length>10?"\nMostrei os dez primeiros. Consulte um período menor.":"") : "Você não tem compromissos nesse período.";
+    return rows.length ? "Seus compromissos:\n"+rows.slice(0,10).map(a=>`• ${a.title.slice(0,160)} — ${display(a.startsAt)}${a.endsAt?" até "+display(a.endsAt):""}; avisos: ${a.reminders.map(r=>display(r.remindAt)).join(", ")||"nenhum"}`).join("\n")+(rows.length>10?"\nMostrei os dez primeiros. Consulte um período menor.":"") : "Você não tem compromissos nesse período.";
   }
   const user=await tx.user.upsert({where:{phone},create:{phone},update:{updatedAt:new Date()}});
   let appointment:Appointment|undefined;
@@ -71,6 +71,15 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     try{startsAt=validateReminder({phone,title:intent.title || appointment!.title,remindAt:intent.datetime}).reminderDate;}catch{return "Preciso de um dia e horário válidos no futuro para o compromisso.";}
   }
   if(intent.action==="set_appointment_alerts" && !intent.alertMinutes)return "Quanto tempo antes do compromisso você quer ser avisado?";
+  const duration=intent.action==="set_appointment_alerts"?undefined:intent.durationMinutes;
+  if(duration!==undefined && (!Number.isSafeInteger(duration) || duration<1 || duration>1440))return "Qual é a duração do compromisso, entre 1 minuto e 24 horas?";
+  const oldDuration=appointment?.endsAt?appointment.endsAt.getTime()-appointment.startsAt.getTime():null;
+  const endsAt=duration!==undefined?new Date(startsAt.getTime()+duration*60000):oldDuration!==null?new Date(startsAt.getTime()+oldDuration):null;
+  if(endsAt && endsAt<=startsAt)return "A duração desse compromisso não está válida. Qual é a duração correta?";
+  if(intent.action!=="set_appointment_alerts"){
+    const conflicts=await tx.appointment.findMany({where:{...scope,state:"active",...(appointment?{id:{not:appointment.id}}:{}),startsAt:{lt:endsAt || new Date(startsAt.getTime()+1)},...(endsAt?{OR:[{endsAt:{gt:startsAt}},{endsAt:null,startsAt:{gte:startsAt}}]}:{endsAt:{gt:startsAt}})},select:{title:true,startsAt:true,endsAt:true},orderBy:{startsAt:"asc"},take:3});
+    if(conflicts.length)return "Esse horário se sobrepõe a compromissos na sua agenda cadastrada:\n"+conflicts.map(c=>`• ${c.title.slice(0,100)} — ${display(c.startsAt)}${c.endsAt?" até "+display(c.endsAt):" (fim não informado)"}`).join("\n")+"\nNão alterei o agendamento. Qual outro horário você prefere?";
+  }
   const offsets=intent.alertMinutes || (appointment ? oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0) : [0]);
   if(!offsets.length || offsets.length>3)return "Quais avisos você quer? Posso preparar até três por compromisso.";
   if(offsets.some(n=>!Number.isFinite(n)||n<0||n>10080)||new Set(offsets).size!==offsets.length)return "Escolha até três horários diferentes de aviso, no máximo sete dias antes.";
@@ -79,8 +88,8 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   const preserved=oldAlerts.filter(r=>r.status==="provider_accepted" && r.remindAt.getTime()<=now && appointment?.startsAt.getTime()===startsAt.getTime() && offsets.includes(r.appointmentOffsetMinutes ?? 0));
   if(dates.some((d,i)=>d.getTime()<=now && !preserved.some(r=>r.appointmentOffsetMinutes===offsets[i])))return "Um desses avisos já ficaria no passado. Quanto tempo antes você quer ser avisado?";
   const future=dates.map((date,index)=>({date,offset:offsets[index]})).filter(r=>r.date.getTime()>now);
-  const previous=appointment ? {version:appointment.version,startsAt:appointment.startsAt.toISOString(),alertMinutes:oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0)} : null;
-  if(previous && oldAlerts.every(r=>["pending","scheduled","scheduling_pending"].includes(r.status)) && previous.startsAt===startsAt.toISOString() && JSON.stringify([...previous.alertMinutes].sort((a,b)=>a-b))===JSON.stringify([...offsets].sort((a,b)=>a-b))){
+  const previous=appointment ? {version:appointment.version,startsAt:appointment.startsAt.toISOString(),endsAt:appointment.endsAt?.toISOString() || null,alertMinutes:oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0)} : null;
+  if(previous && previous.endsAt===(endsAt?.toISOString() || null) && oldAlerts.every(r=>["pending","scheduled","scheduling_pending"].includes(r.status)) && previous.startsAt===startsAt.toISOString() && JSON.stringify([...previous.alertMinutes].sort((a,b)=>a-b))===JSON.stringify([...offsets].sort((a,b)=>a-b))){
     return `Esse compromisso já está em ${display(startsAt)}. Avisos: ${dates.map(display).join(", ")}. Mantive o agendamento existente.`;
   }
   // Preflight the entire replacement while holding the contact lock. No old
@@ -93,15 +102,15 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   if(!appointment){
     const incoming=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId}});
     if(!incoming)throw Error("Origem incompatível.");
-    appointment=await tx.appointment.create({data:{userId:user.id,phoneNumberId,sourceMessageId,title:intent.title!.trim(),description:intent.description,startsAt,subjectId}});
+    appointment=await tx.appointment.create({data:{userId:user.id,phoneNumberId,sourceMessageId,title:intent.title!.trim(),description:intent.description,startsAt,endsAt,subjectId}});
   } else {
     await tx.reminder.updateMany({where:{appointmentId:appointment.id,state:"active",id:{notIn:preserved.map(r=>r.id)}},data:{state:"cancelled",scheduleVersion:{increment:1}}});
     await tx.scheduleOutbox.updateMany({where:{reminder:{appointmentId:appointment.id,state:"cancelled"}},data:{status:"cancelled",leaseToken:null,leaseUntil:null}});
-    appointment=await tx.appointment.update({where:{id:appointment.id},data:{startsAt,version:{increment:1}}});
+    appointment=await tx.appointment.update({where:{id:appointment.id},data:{startsAt,endsAt,version:{increment:1}}});
   }
   for(const alert of future)await persistReminderInTransaction({phone,title:appointment.title,description:`Compromisso em ${display(startsAt)}.`,remindAt:alert.date.toISOString()},tx,{phoneNumberId,appointmentId:appointment.id,appointmentOffsetMinutes:alert.offset});
-  await tx.event.create({data:{userId:user.id,type:previous ? "appointment_changed" : "appointment_created",source:"secretaria",payload:{appointmentId:appointment.id,phoneNumberId,sourceMessageId,action:intent.action,previous,version:appointment.version,startsAt:startsAt.toISOString(),alertMinutes:offsets}}});
-  return `Anotei ${appointment.title} para ${spokenMoment(startsAt,timezone)}. Avisos: ${future.map(r=>alertOffset(r.offset)).join(", ") || "nenhum novo"}.`+
+  await tx.event.create({data:{userId:user.id,type:previous ? "appointment_changed" : "appointment_created",source:"secretaria",payload:{appointmentId:appointment.id,phoneNumberId,sourceMessageId,action:intent.action,previous,version:appointment.version,startsAt:startsAt.toISOString(),endsAt:endsAt?.toISOString() || null,alertMinutes:offsets}}});
+  return `Anotei ${appointment.title} para ${spokenMoment(startsAt,timezone)}${endsAt?", até "+display(endsAt):""}. Avisos: ${future.map(r=>alertOffset(r.offset)).join(", ") || "nenhum novo"}.`+
     (preserved.length ? ` Mantive ${counted(preserved.length,"aviso já aceito","avisos já aceitos")} pelo WhatsApp, sem reenviar.` : "")+
     (future.length ? " O agendamento dos avisos está sendo confirmado." : "");
 }
@@ -128,8 +137,8 @@ async function appointmentHistory(phone:string,phoneNumberId:string,intent:AIInt
     const payload=event.payload as Record<string,unknown>;
     const previous=payload.previous && typeof payload.previous==="object" && !Array.isArray(payload.previous)?payload.previous as Record<string,unknown>:null;
     const detail=event.type==="appointment_cancelled" ? "Compromisso cancelado."
-      : event.type==="appointment_created" ? `Criado para ${date(payload.startsAt)}. Avisos: ${offsets(payload.alertMinutes)}.`
-      : `Horário: ${date(previous?.startsAt)} → ${date(payload.startsAt)}. Avisos: ${offsets(previous?.alertMinutes)} → ${offsets(payload.alertMinutes)}.`;
+      : event.type==="appointment_created" ? `Criado para ${date(payload.startsAt)}${payload.endsAt?" até "+date(payload.endsAt):""}. Avisos: ${offsets(payload.alertMinutes)}.`
+      : `Horário: ${date(previous?.startsAt)} → ${date(payload.startsAt)}.${payload.endsAt || previous?.endsAt?` Término: ${date(previous?.endsAt)} → ${date(payload.endsAt)}.`:""} Avisos: ${offsets(previous?.alertMinutes)} → ${offsets(payload.alertMinutes)}.`;
     const line=`• ${display(event.createdAt)} — ${detail}\n`;
     if(reply.length+line.length>3500)break;reply+=line;shown++;
   }

@@ -23,6 +23,7 @@ export function guardCurrentTarget(intent:AIInterpretation,text:string,context:a
  const target=task?.state==="active" && !appointment?task:appointment?.state==="active" && !task?appointment:null;
  const kind=match[3],wantsAppointment=kind==="compromisso" || kind==="reuniao",wantsTask=kind==="lembrete" || kind==="tarefa";
  if(!target || wantsAppointment && !appointment || wantsTask && !task){fail();return;}
+ if(kind==="reuniao" && !/\breuniao\b/.test(String(appointment?.title || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase())){fail();return;}
  const cancel=match[1].startsWith("cancel"),complete=/^(?:conclu|finaliz)/.test(match[1]);
  if(complete && appointment){fail();return;}
  intent.action=appointment?(cancel?"cancel_appointment":"reschedule_appointment"):(cancel?"cancel_reminder":complete?"complete_reminder":"reschedule_reminder");

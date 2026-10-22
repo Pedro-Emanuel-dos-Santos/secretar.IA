@@ -23,7 +23,7 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
  const subjectScope=subject?{subjectId:subject.id}:{};
  const base={...reminderScope(phone,phoneNumberId),...subjectScope,appointmentId:null,state:"active"};
  const tasks={...base,taskProgress:"pending",remindAt:{gte:start,lt:end}},waiting={...base,taskProgress:"waiting"};
- const appointments={user:{phone},phoneNumberId,...subjectScope,state:"active",startsAt:{gte:start,lt:end}};
+ const appointments={user:{phone},phoneNumberId,...subjectScope,state:"active",startsAt:{lt:end},OR:[{startsAt:{gte:start}},{endsAt:{gt:start}}]};
  const [taskRows,taskCount,eventRows,eventCount,waitingRows,waitingCount,earlier,preference]=await Promise.all([
   tx.reminder.findMany({where:tasks,include:{subject:{select:{name:true}}},orderBy:[{remindAt:"asc"},{id:"asc"}],take:6}),tx.reminder.count({where:tasks}),
   tx.appointment.findMany({where:appointments,include:{subject:{select:{name:true}}},orderBy:[{startsAt:"asc"},{id:"asc"}],take:6}),tx.appointment.count({where:appointments}),
@@ -32,11 +32,11 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
  ]);
  const date=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric"}).format(d);
  const singleDay=calendarDay(start.getTime(),zone)===calendarDay(end.getTime()-1,zone);
- const time=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,...(singleDay?{}:{day:"2-digit" as const,month:"2-digit" as const}),hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
+ const time=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,...(singleDay && calendarDay(d.getTime(),zone)===calendarDay(start.getTime(),zone)?{}:{day:"2-digit" as const,month:"2-digit" as const}),hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
  const title=(item:{title:string;subject?:{name:string}|null},limit=100)=>titledSubject(item.title.slice(0,limit),item.subject?{name:item.subject.name.slice(0,60)}:null);
  const names={today:"Hoje",tomorrow:"Amanhã",day_after_tomorrow:"Depois de amanhã",week:"Sua semana (segunda a domingo)",next_week:"Próxima semana (segunda a domingo)",next_7_days:"Próximos sete dias (inclui hoje)"};
  const rows=[...taskRows.map(t=>({id:t.id,at:t.remindAt,kind:"task",line:`• ${time(t.remindAt)} — Aviso de tarefa: ${title(t)}${["missed","blocked_paused","provider_rejected"].includes(t.status)?" [não enviado]":""}`})),
-  ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${title(a)}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
+  ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)}${a.endsAt?" até "+time(a.endsAt):""} — Compromisso: ${title(a)}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
  const full=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,dateStyle:"short",timeStyle:"short"}).format(d);
  const label=custom?`Agenda do período: ${full(start)} até ${full(end)} (fim exclusivo)`:singleDay?`${names[period]}, ${date(start)}`:`${names[period]}: ${date(start)} a ${date(new Date(end.getTime()-1))}`;
  const counts=[eventCount?counted(eventCount,"compromisso registrado","compromissos registrados"):"",taskCount?counted(taskCount,"tarefa pendente","tarefas pendentes"):""].filter(Boolean);

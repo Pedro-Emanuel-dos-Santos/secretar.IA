@@ -41,7 +41,11 @@ export function preserveRescheduleParts(intent:AIInterpretation,text:string,cont
  const candidates=id?unique.filter(r=>r.id===id):intent.search?unique.filter(r=>normalize(r.title || "")===normalize(intent.search!)):[];
  const target=candidates.length===1?candidates[0]:null;
  const original=target && (appointment?target.startsAt:target.remindAt);
- if(!original || target.state!=="active" || !Number.isFinite(new Date(original).getTime()) || !day && !clock){intent.datetime=null;return;}
+ if(!original || target.state!=="active" || !Number.isFinite(new Date(original).getTime())){intent.datetime=null;return;}
+ if(!day && !clock){
+  if(appointment && intent.durationMinutes!==undefined){intent.datetime=new Date(original).toISOString();if(Number.isSafeInteger(target.version))intent.expectedVersion=target.version;return;}
+  intent.datetime=null;return;
+ }
  const zone=context?.user?.timezone || "America/Sao_Paulo";
  try{
   const old=localCalendarParts(new Date(original),zone);

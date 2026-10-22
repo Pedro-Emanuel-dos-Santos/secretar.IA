@@ -39,3 +39,6 @@ test('modelo que ignora negação ou pergunta não executa alteração de refer�
   const r=await prepare(text,{focusedReminder:task},{action:'cancel_reminder',reminderId:task.id});assert.equal(r.action,'conversation');assert.equal(r.reminderId,null);
  }
 });
+test('reunião não é substituída silenciosamente por visita em foco',async()=>{
+ const r=await prepare('muda aquela reunião para amanhã',{focusedAppointment:{...appointment,title:'Visita Ana'}},{action:'reschedule_appointment',appointmentId:'another',datetime:'2099-06-03T12:30:00Z'});assert.equal(r.action,'conversation');assert.equal(r.appointmentId,null);
+});
