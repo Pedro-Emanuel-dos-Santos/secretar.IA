@@ -1,7 +1,8 @@
 FROM node:24-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ENV NODE_OPTIONS=--max-old-space-size=256
+# Compilation needs more heap than the production process.
+ENV NODE_OPTIONS=--max-old-space-size=1024
 COPY package*.json ./
 RUN npm ci
 COPY prisma ./prisma
