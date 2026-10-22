@@ -4,10 +4,16 @@ import { dayOverview } from "./day.overview";
 import { presentAudioDisclosure,setAudioConsent,executePreferences } from "./preferences";
 import { requestContentDeletion,confirmContentDeletion } from "./privacy";
 import { agendaOverview } from "./agenda.overview";
+import { memoryDisclosure,setPersonalMemoryConsent } from "./personal.memory.consent";
+import { findPersonalMemories,personalMemoryReply } from "./personal.memory";
 
-export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "day_after_tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
+export type LocalCommand = "memory_info" | "memory_accept" | "memory_revoke" | "memory_list" | "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "day_after_tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
+  if(value==="memoria pessoal" || value==="como funciona a memoria")return "memory_info";
+  if(value==="aceito memoria")return "memory_accept";
+  if(value==="desativar memoria")return "memory_revoke";
+  if(value==="minhas memorias")return "memory_list";
   if(value==="audio" || value==="como funciona o audio")return "audio_info";
   if(value==="aceito audio")return "audio_accept";
   if(value==="desativar audio")return "audio_revoke";
@@ -32,6 +38,9 @@ export function localCommandIntent(text: string): AIInterpretation | null {
   return localCommand(text) ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:"Vou conferir seu pedido."} : null;
 }
 export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string;receivedAt?:Date}) {
+  if(command==="memory_info")return memoryDisclosure(phone,phoneNumberId,tx,current?.id);
+  if(command==="memory_accept" || command==="memory_revoke")return setPersonalMemoryConsent(phone,phoneNumberId,command==="memory_accept",tx,current?.id);
+  if(command==="memory_list")return personalMemoryReply(await findPersonalMemories(tx,phone,phoneNumberId));
   if(command==="week" || command==="next_week" || command==="tomorrow" || command==="day_after_tomorrow" || command==="next_7_days")return agendaOverview(phone,phoneNumberId,tx,command,current?.receivedAt || new Date());
   if(command==="erase_request")return requestContentDeletion(phone,phoneNumberId,tx);
   if(command==="erase_confirm")return current?confirmContentDeletion(phone,phoneNumberId,tx,current):"Envie APAGAR MEUS DADOS para receber as instruções de confirmação.";
@@ -39,14 +48,14 @@ export async function executeLocalCommand(command: LocalCommand, phone: string, 
   if(command==="audio_accept" || command==="audio_revoke")return setAudioConsent(phone,phoneNumberId,command==="audio_accept",tx);
   if(command==="profile" || command==="usage")return executePreferences(phone,phoneNumberId,{action:command==="profile"?"show_preferences":"usage_summary",title:null,description:null,datetime:null,category:null,amount:null,reply:"interno"},tx);
   if (command === "today") return dayOverview(phone,phoneNumberId,tx,current?.receivedAt || new Date());
-  if (command === "help") return "Sou a Secretár.IA. Posso ajudar com suas tarefas e prazos. Exemplos:\n" +
+  if (command === "help") return "Sou a Secretár.IA. Posso ajudar com sua rotina, tarefas e compromissos. MEMORIA PESSOAL explica como guardar preferências, pessoas e objetivos com sua autorização; MINHAS MEMORIAS consulta e DESATIVAR MEMORIA interrompe o uso futuro. Exemplos:\n" +
     "• Me lembra amanhã às 9h de enviar o orçamento.\n• Quais são meus lembretes de hoje?\n• Adia o lembrete do orçamento para amanhã às 10h.\n" +
     "Pode conversar naturalmente e continuar um pedido com o horário ou uma correção. Marco compromissos com até três avisos: ‘Reunião amanhã às 10h, me avisa meia hora antes e na hora’. Guardo dados de clientes e projetos: ‘Orçamento do cliente João Silva é R$ 500’. Depois, você pode atualizar o valor ou consultar o histórico. Também guardo anotações gerais.\nPreparo séries de 2 a 12 lembretes diários, semanais ou mensais. Uso o fuso do seu perfil, Brasília por padrão.\n" +
     "Depois de um aviso, pode dizer ‘já fiz’ ou ‘estou aguardando João’. Para acompanhar sem novo aviso, pergunte ‘o que está aguardando?’. Também pode consultar tarefas concluídas ou atrasadas. Para remover um dado específico do cadastro, diga ‘apaga o orçamento do cliente João Silva’; isso não apaga mensagens e notas gerais.\n"+
     "Envie MEU DIA para hoje, MINHA SEMANA para a agenda semanal, PRÓXIMA SEMANA ou RESUMO DE AMANHÃ para outros períodos. PARAR pausa os avisos, RETOMAR volta e PRIVACIDADE explica seus dados.";
-  if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes, compromissos, anotações, dados de clientes/projetos com histórico de alterações e estados de entrega para executar seus pedidos. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
+  if (command === "privacy") return "Guardo suas mensagens, transcrições, lembretes, compromissos, anotações, dados de clientes/projetos com histórico de alterações e estados de entrega para executar seus pedidos. Memórias pessoais pedidas por você exigem explicação e autorização específica para armazenamento e uso pela OpenAI; DESATIVAR MEMORIA interrompe esse uso futuro, sem apagar o que o provedor já processou. O WhatsApp é processado pela Meta, e o texto pode ser enviado ao provedor de IA configurado. " +
     (process.env.AUDIO_TRANSCRIPTION_PROVIDER === "openai" ? "Quando habilitado, o áudio é enviado à OpenAI para transcrição. " : "Quando habilitado, o áudio é transcrito no computador/servidor da Secretár.IA. ") +
-    "A aplicação não salva o arquivo de voz no disco. O piloto ainda não tem exclusão automática nem prazo de descarte configurado; fale com o responsável para solicitar acesso ou exclusão dos seus dados. Envie PARAR para pausar os avisos.";
+    "A aplicação não salva o arquivo de voz no disco. O piloto ainda não tem exclusão automática nem prazo de descarte configurado. APAGAR MEUS DADOS inicia a limpeza local com confirmação; fale com o responsável sobre acesso aos seus dados. Envie PARAR para pausar os avisos.";
   const now = new Date();
   // Upsert locks this contact row until the command and missed-avisos updates
   // commit together. Repeated PARAR must not reset the start of the pause.

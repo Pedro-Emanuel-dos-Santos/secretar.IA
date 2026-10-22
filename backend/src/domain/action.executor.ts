@@ -63,6 +63,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
       return manage ? manage(interpretation) : "Ainda não consigo executar essa operação por aqui.";
     case "create_expense": return "Ainda não consigo registrar gastos.";
     case "save_note":
+    case "remember_personal": case "recall_personal": case "update_personal": case "forget_personal":
     case "search_notes": case "edit_note": case "delete_note": return notes ? notes(interpretation) : "As anotações ainda não estão disponíveis aqui.";
     case "set_preferences": case "show_preferences": case "usage_summary": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "discard_draft": return "Tudo bem, deixei esse pedido em aberto de lado. Os lembretes já salvos continuam como estavam.";

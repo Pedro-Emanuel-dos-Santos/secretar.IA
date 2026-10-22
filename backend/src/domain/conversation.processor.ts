@@ -52,6 +52,10 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId);
         if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;
       }
+      if(["update_personal","forget_personal"].includes(validated.action) && validated.memoryId){
+        const memory=(context as any)?.personalMemories?.find((m:any)=>m.id===validated.memoryId);
+        if(memory && Number.isSafeInteger(memory.version))validated.expectedVersion=memory.version;
+      }
       guardFactLookup(validated,message.text,context);
       guardSubjectReference(validated,message.text,context);
       guardSubjectPeriod(validated,message.text,context);

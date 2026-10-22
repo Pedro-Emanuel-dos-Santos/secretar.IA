@@ -10,6 +10,7 @@ import { AudioRejectedError, audioFallback } from "./audio";
 import { localCommand, executeLocalCommand } from "./local.commands";
 import { requestBudget } from "./request.budget";
 import { executeNote } from "./notes";
+import { executePersonalMemory,personalMemoryActions } from "./personal.memory";
 import { executeFact } from "./business.memory";
 import { subjectOverview } from "./subject.overview";
 import { agendaOverview } from "./agenda.overview";
@@ -129,7 +130,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });
         refreshReminder = true;
         return reminder;
-      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>executeNote(row.phone,row.phoneNumberId,intent,tx),
+      }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>personalMemoryActions.has(intent.action)?executePersonalMemory(row.phone,row.phoneNumberId,intent,tx,row):executeNote(row.phone,row.phoneNumberId,intent,tx),
       intent=>intent.action==="agenda_overview"?agendaOverview(row.phone,row.phoneNumberId,tx,intent.agendaPeriod || "week",row.receivedAt,{subject:intent.subject || undefined,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd}):intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx)
         : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);

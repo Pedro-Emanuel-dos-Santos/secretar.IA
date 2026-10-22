@@ -6,6 +6,8 @@ import { parseInterpretation } from "./interpretation.validation";
 import { mentionsName } from "./conversation.references";
 import { shownTaskList,shownTaskFocus } from "./task.selection";
 import { recentConversationFocus } from "./conversation.focus";
+import { findPersonalMemories,personalMemoryActions } from "./personal.memory";
+import { personalMemoryPolicy } from "./personal.memory.consent";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -22,7 +24,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
         receivedAt: { gte: since, lte: message.receivedAt },
         status: { in: ["reply_pending", "reply_sending", "completed", "reply_unknown"] } },
       orderBy: [{ receivedAt: "desc" }, { id: "desc" }], take: 4,
-      select: { text: true, receivedAt: true,
+      select: { text: true, receivedAt: true,interpretation:true,
         reply: { select: { text: true, status: true } },
         reminder: { select: { id: true, title: true, remindAt: true, status: true, state: true,scheduleVersion:true } } },
     }),
@@ -38,6 +40,11 @@ export async function conversationContext(store: Store, message: IncomingConvers
     findNotes(store,message.phone,message.phoneNumberId),
   ]);
   let memories=notes;
+  const memoryPolicy=await personalMemoryPolicy(store,message.phone,message.phoneNumberId),memoryEnabled=memoryPolicy.enabled;
+  let personalMemories=memoryEnabled?await findPersonalMemories(store,message.phone,message.phoneNumberId):[];
+  if(memoryEnabled)for(const row of draftHistory){
+    try{const intent=parseInterpretation(JSON.stringify(row.interpretation));if(intent.action==="recall_personal"){personalMemories=await findPersonalMemories(store,message.phone,message.phoneNumberId,intent.search || "");break;}if(["remember_personal","update_personal","forget_personal"].includes(intent.action))break;}catch{}
+  }
   for(const row of draftHistory){
     try{const intent=parseInterpretation(JSON.stringify(row.interpretation));if(intent.action==="search_notes"){memories=await findNotes(store,message.phone,message.phoneNumberId,intent.search || "");break;}if(["save_note","edit_note","delete_note"].includes(intent.action))break;}catch{}
   }
@@ -86,10 +93,15 @@ export async function conversationContext(store: Store, message: IncomingConvers
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
-    currentMessage: message.text, memories, subjects, appointments, recentAlerts, habits: [],
+    currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, appointments, recentAlerts, habits: [],
     conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,selectedTask,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
-    lastMessages: recent.reverse().map(row => ({
+    lastMessages: recent.reverse().filter(row=>{
+      if(memoryEnabled)return true;
+      if(memoryPolicy.omitHistory || memoryPolicy.hideHistoryBefore && row.receivedAt<=memoryPolicy.hideHistoryBefore)return false;
+      const action=(row.interpretation as {action?:string}|null)?.action;
+      return !personalMemoryActions.has(action || "") && !/^minhas memorias[.!?]*$/.test(row.text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim());
+    }).map(row => ({
       user: row.text.slice(0, 1000), receivedAt: row.receivedAt.toISOString(),
       assistant: row.reply?.status === "provider_accepted" ? row.reply.text.slice(0, 1000) : null,
       createdReminder: row.reminder ? { ...row.reminder, title: row.reminder.title.slice(0, 160) } : null,

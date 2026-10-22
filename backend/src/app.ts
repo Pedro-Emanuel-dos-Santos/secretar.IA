@@ -7,6 +7,7 @@ import { createAdminGuard } from "./http/admin.guard";
 import { operationsRoutes } from "./routes/operations.routes";
 import { prisma } from "./config/prisma";
 import { reminderQueue } from "./queue/reminder.queue";
+import {createCalendarRouter} from "./http/calendar.handlers";
 
 export const app = express();
 
@@ -49,6 +50,7 @@ app.get("/", (req, res) => {
 
 app.use("/reminders", createAdminGuard(() => process.env.ADMIN_API_TOKEN), reminderRoutes);
 app.use("/operations", operationsRoutes);
+app.use("/calendar",createCalendarRouter(prisma,{adminToken:()=>process.env.ADMIN_API_TOKEN,phoneNumberId:()=>process.env.WHATSAPP_PHONE_NUMBER_ID}));
 
 /*
 |--------------------------------------------------------------------------

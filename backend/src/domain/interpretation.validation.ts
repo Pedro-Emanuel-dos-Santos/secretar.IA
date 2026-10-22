@@ -11,6 +11,7 @@ actions.add("set_task_subject");
 actions.add("select_task");
 actions.add("agenda_overview");
 for(const action of ["edit_note","delete_note","set_preferences","show_preferences","usage_summary"])actions.add(action);
+for(const action of ["remember_personal","recall_personal","update_personal","forget_personal"])actions.add(action);
 
 export function parseInterpretation(content: string): AIInterpretation {
   const value: unknown = JSON.parse(content);
@@ -25,6 +26,7 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.memoryKind!==undefined && record.memoryKind!==null){if(!["routine","preference","person","goal"].includes(record.memoryKind as string))throw Error("Tipo de memória inválido.");extra.memoryKind=record.memoryKind as AIInterpretation["memoryKind"];}
   if(record.agendaPeriod!==undefined && record.agendaPeriod!==null){if(!["today","tomorrow","day_after_tomorrow","week","next_week","next_7_days"].includes(record.agendaPeriod as string))throw Error("Período da agenda inválido.");extra.agendaPeriod=record.agendaPeriod as AIInterpretation["agendaPeriod"];}
   if(record.selectionFocusId!==undefined){if(typeof record.selectionFocusId!=="string" || record.selectionFocusId.length>100)throw Error("Referência inválida.");extra.selectionFocusId=record.selectionFocusId;}
   if(record.clearSubject!==undefined && record.clearSubject!==null){if(typeof record.clearSubject!=="boolean")throw Error("Vínculo inválido.");extra.clearSubject=record.clearSubject;}
@@ -79,7 +81,7 @@ export function parseInterpretation(content: string): AIInterpretation {
     if(typeof record.selectionListId!=="string" || record.selectionListId.length>100 || !Number.isSafeInteger(record.selectionIndex) || (record.selectionIndex as number)<0 || (record.selectionIndex as number)>9)throw Error("Seleção inválida.");
     extra.selectionListId=record.selectionListId;extra.selectionIndex=record.selectionIndex as number;
   }
-  for (const key of ["reminderId", "noteId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
+  for (const key of ["reminderId", "memoryId", "noteId", "search", "rangeStart", "rangeEnd", "appointmentId", "subject", "factKey", "factValue", "newTitle"] as const) {
     if (!(key in record)) continue;
     if (record[key] !== null && (typeof record[key] !== "string" || record[key].length > 500)) throw new Error("Referência inválida.");
     extra[key] = record[key] as string | null;

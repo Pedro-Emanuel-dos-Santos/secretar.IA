@@ -1,4 +1,5 @@
 export type AIAction =
+  | "remember_personal" | "recall_personal" | "update_personal" | "forget_personal"
   | "agenda_overview"
   | "select_task"
   | "set_task_subject"
@@ -23,6 +24,8 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  memoryId?:string|null;
+  memoryKind?:"routine"|"preference"|"person"|"goal";
   action: AIAction;
   title: string | null;
   description: string | null;

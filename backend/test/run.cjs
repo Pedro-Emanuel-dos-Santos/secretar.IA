@@ -209,6 +209,8 @@ require("./conversation-references.test.cjs");
 require("./task-selection.test.cjs");
 require("./reschedule-parts.test.cjs");
 require("./conversation-target.test.cjs");
+require("./personal-memory.test.cjs");
+require("./calendar-export.test.cjs");
 require("./agenda.test.cjs");
 require("./client-period.test.cjs");
 require("./reply-language.test.cjs");
