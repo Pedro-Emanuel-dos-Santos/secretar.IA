@@ -3,6 +3,27 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const {agendaRange}=require('../src/domain/agenda.overview.ts');
 const {localCommand}=require('../src/domain/local.commands.ts');
 const {parseInterpretation}=require('../src/domain/interpretation.validation.ts');
+const {agendaOverview}=require('../src/domain/agenda.overview.ts');
+function presentationStore(){
+ const task={id:'task',title:'Mandar orçamento para Ana Souza',subject:{name:'Ana Souza'},remindAt:new Date('2026-10-22T04:15:00Z'),status:'scheduled'};
+ return {contactPreference:{findUnique:async()=>({timezone:'America/Sao_Paulo'})},
+  reminder:{findMany:async({where})=>where.taskProgress==='waiting'?[]:[task],count:async({where})=>where.taskProgress==='waiting'||where.remindAt?.lt&&!where.remindAt?.gte?0:1},
+  appointment:{findMany:async()=>[],count:async()=>0}};
+}
+test('agenda de amanhã usa uma data local e cada item mostra só a hora sem duplicar nome',async()=>{
+ const reply=await agendaOverview('phone','biz',presentationStore(),'tomorrow',new Date('2026-10-22T02:30:00Z'));
+ assert.match(reply,/Amanhã, 22\/10\/2026/);assert.equal((reply.match(/22\/10\/2026/g)||[]).length,1);
+ assert.match(reply,/• 01:15 — Aviso de tarefa: Mandar orçamento para Ana Souza/);
+ assert.equal((reply.match(/Ana Souza/g)||[]).length,1);assert.match(reply,/1 tarefa pendente/);
+});
+test('agenda semanal mantém dia de cada item e limites de segunda a domingo',async()=>{
+ const reply=await agendaOverview('phone','biz',presentationStore(),'week',new Date('2026-10-22T15:00:00Z'));
+ assert.match(reply,/19\/10\/2026 a 25\/10\/2026/);assert.match(reply,/22\/10, 01:15/);
+});
+test('intervalo personalizado conserva horas e fim exclusivo mesmo dentro do mesmo dia',async()=>{
+ const reply=await agendaOverview('phone','biz',presentationStore(),'week',new Date('2026-10-22T15:00:00Z'),{rangeStart:'2026-10-22T01:00:00-03:00',rangeEnd:'2026-10-22T02:00:00-03:00'});
+ assert.match(reply,/22\/10\/2026, 01:00 até 22\/10\/2026, 02:00 \(fim exclusivo\)/);assert.match(reply,/• 01:15/);
+});
 test('semana usa segunda a domingo no fuso local, inclusive perto da virada UTC',()=>{
  for(const now of ['2026-10-21T15:00:00Z','2026-10-26T01:00:00Z']){const r=agendaRange('week',new Date(now),'America/Sao_Paulo');assert.equal(r.start.toISOString(),'2026-10-19T03:00:00.000Z');assert.equal(r.end.toISOString(),'2026-10-26T03:00:00.000Z');}
 });

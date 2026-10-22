@@ -2,6 +2,14 @@
 
 Incremento local, sem migração nova, publicação ou alteração do callback.
 
+Apresentação revisada em 22/10: hoje/amanhã mostram uma única data no cabeçalho
+e somente a hora em cada item. Semanas e outros períodos com mais de um dia
+conservam dia/mês em cada linha para distinguir horários iguais em dias diferentes.
+Intervalos personalizados continuam mostrando início/fim completos e fim
+exclusivo. O nome completo do cliente não é repetido quando já aparece no título;
+nomes parciais mantêm o vínculo visível. Espera, resultados adicionais, pausa e
+avisos não enviados conservam suas informações. Não houve mudança nas consultas.
+
 Consultas locais, sem interpretação com IA:
 
 - MINHA SEMANA / “Como está minha semana?”

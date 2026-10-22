@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10, agenda mais legível: hoje/amanhã com data única no cabeçalho e horários nos itens, períodos de vários dias preservam dia/mês. Intervalo personalizado conserva início/fim completos e fim exclusivo. Nome do cadastro sem duplicação nos títulos da agenda e espera. Consultas/filtros/contagens/estado intactos. Build, 178 unitários e 184 integrações passaram (agenda-readable-check.log). Sem IA adicional, migração, envio real ou deploy.
+
 - 22/10, reconhecimento contextual: prompt distingue esquecimento, correria, boa notícia e demora, sem deduzir execução ou criar memória ao comentar. Avaliação de 17 turnos passou; revisão encontrou frase sugerindo anotação, corrigida no prompt e verificada em mais três turnos no novo modo --comments. WhatsApp simulado e dados fictícios. Build e 175 unitários aprovados; 184 integrações aprovadas no incremento anterior. Este incremento só altera prompt e avaliador. Variedade geral continua dependente do modelo. Sem deploy.
 
 - 22/10, incremento seguinte: agradecimentos completos são respondidos localmente sem IA; não retomam reagendamento anterior. Texto misto/negado/interrogativo segue interpretação normal. Prompt com exemplos curtos e orientação contra filtros herdados de outro tipo de consulta. Avaliação ampliada passou em 15 turnos com IA real/WhatsApp simulado, incluindo agenda após agradecimento e pedido explícito após “só queria comentar”; sem ofertas genéricas detectadas nesse diálogo. Repetição de reconhecimento entre comentários diferentes ainda observada. Build, 175 unitários e 184 integrações aprovados. Sem publicação ou callback alterado.

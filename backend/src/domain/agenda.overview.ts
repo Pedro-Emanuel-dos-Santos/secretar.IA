@@ -4,7 +4,7 @@ import { contactTimezone } from "./preferences";
 import { reminderScope } from "./reminder.management";
 import { resolveSubject } from "./business.memory";
 import { parseTimestamp } from "./reminder.validation";
-import { counted } from "./reply.language";
+import { counted,titledSubject } from "./reply.language";
 export type AgendaPeriod="today"|"tomorrow"|"week"|"next_week"|"next_7_days";
 export function agendaRange(period:AgendaPeriod,now:Date,zone:string){
  const day=calendarDay(now.getTime(),zone),weekday=(new Date(day).getUTCDay()+6)%7;
@@ -31,15 +31,17 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
   tx.reminder.count({where:{...base,taskProgress:"pending",remindAt:{lt:start}}}),tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}}),
  ]);
  const date=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",year:"numeric"}).format(d);
- const time=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);
+ const singleDay=calendarDay(start.getTime(),zone)===calendarDay(end.getTime()-1,zone);
+ const time=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,...(singleDay?{}:{day:"2-digit" as const,month:"2-digit" as const}),hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
+ const title=(item:{title:string;subject?:{name:string}|null},limit=100)=>titledSubject(item.title.slice(0,limit),item.subject?{name:item.subject.name.slice(0,60)}:null);
  const names={today:"Hoje",tomorrow:"Amanhã",week:"Sua semana (segunda a domingo)",next_week:"Próxima semana (segunda a domingo)",next_7_days:"Próximos sete dias (inclui hoje)"};
- const rows=[...taskRows.map(t=>({id:t.id,at:t.remindAt,kind:"task",line:`• ${time(t.remindAt)} — Aviso de tarefa: ${t.title.slice(0,100)}${t.subject?` (${t.subject.name.slice(0,60)})`:""}${["missed","blocked_paused","provider_rejected"].includes(t.status)?" [não enviado]":""}`})),
-  ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${a.title.slice(0,100)}${a.subject?` (${a.subject.name.slice(0,60)})`:""}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
+ const rows=[...taskRows.map(t=>({id:t.id,at:t.remindAt,kind:"task",line:`• ${time(t.remindAt)} — Aviso de tarefa: ${title(t)}${["missed","blocked_paused","provider_rejected"].includes(t.status)?" [não enviado]":""}`})),
+  ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${title(a)}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
  const full=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,dateStyle:"short",timeStyle:"short"}).format(d);
- const label=custom?`Agenda do período: ${full(start)} até ${full(end)} (fim exclusivo)`:`${names[period]}: ${date(start)} a ${date(new Date(end.getTime()-1))}`;
+ const label=custom?`Agenda do período: ${full(start)} até ${full(end)} (fim exclusivo)`:singleDay?`${names[period]}, ${date(start)}`:`${names[period]}: ${date(start)} a ${date(new Date(end.getTime()-1))}`;
  const lines=[`${subject?`Agenda de ${subject.name}. `:""}${label}. Fuso: ${zone}.`,`${counted(eventCount,"compromisso registrado","compromissos registrados")} e ${counted(taskCount,"tarefa pendente","tarefas pendentes")} com aviso nesse período.`,...rows.map(r=>r.line)];
  if(rows.filter(r=>r.kind==="task").length<taskCount || rows.filter(r=>r.kind==="event").length<eventCount)lines.push("Há mais itens no período. Consulte um dia ou liste tarefas/compromissos para ver os demais.");
- if(waitingCount){lines.push(`${counted(waitingCount,"tarefa aguardando","tarefas aguardando")} resposta, incluindo avisos fora do período:`);for(const task of waitingRows)lines.push(`• ${task.title.slice(0,90)}${task.subject?` (${task.subject.name.slice(0,50)})`:""}${task.waitingFor?` — aguardando ${task.waitingFor.slice(0,100)}`:""}`);if(waitingCount>waitingRows.length)lines.push("Há mais retornos aguardando. Peça para listar as tarefas em espera.");}
+ if(waitingCount){lines.push(`${counted(waitingCount,"tarefa aguardando","tarefas aguardando")} resposta, incluindo avisos fora do período:`);for(const task of waitingRows)lines.push(`• ${title(task,90)}${task.waitingFor?` — aguardando ${task.waitingFor.slice(0,100)}`:""}`);if(waitingCount>waitingRows.length)lines.push("Há mais retornos aguardando. Peça para listar as tarefas em espera.");}
  if(earlier)lines.push(`${counted(earlier,"tarefa pendente","tarefas pendentes")} com aviso anterior a este período.`);
  if(preference?.remindersPaused)lines.push("Seus avisos estão pausados. Envie RETOMAR para voltar.");
  return lines.join("\n");
