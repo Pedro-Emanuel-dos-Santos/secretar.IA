@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10, agenda sem contagens zeradas: período vazio informa ausência de compromissos/avisos naquele intervalo, mas mantém espera, avisos anteriores e pausa. Build, 179 unitários e 184 integrações aprovados. Status Railway consultado: atualização de 19:42 UTC (16:42 Brasília) ainda mantém builds Hobby indisponíveis; Pro/Enterprise liberados. Comunicado de segurança sem novidade. Nenhum deploy nem credencial alterada.
+
 - 22/10, agenda mais legível: hoje/amanhã com data única no cabeçalho e horários nos itens, períodos de vários dias preservam dia/mês. Intervalo personalizado conserva início/fim completos e fim exclusivo. Nome do cadastro sem duplicação nos títulos da agenda e espera. Consultas/filtros/contagens/estado intactos. Build, 178 unitários e 184 integrações passaram (agenda-readable-check.log). Sem IA adicional, migração, envio real ou deploy.
 
 - 22/10, reconhecimento contextual: prompt distingue esquecimento, correria, boa notícia e demora, sem deduzir execução ou criar memória ao comentar. Avaliação de 17 turnos passou; revisão encontrou frase sugerindo anotação, corrigida no prompt e verificada em mais três turnos no novo modo --comments. WhatsApp simulado e dados fictícios. Build e 175 unitários aprovados; 184 integrações aprovadas no incremento anterior. Este incremento só altera prompt e avaliador. Variedade geral continua dependente do modelo. Sem deploy.

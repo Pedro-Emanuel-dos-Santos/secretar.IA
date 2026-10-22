@@ -20,6 +20,17 @@ test('agenda semanal mantém dia de cada item e limites de segunda a domingo',as
  const reply=await agendaOverview('phone','biz',presentationStore(),'week',new Date('2026-10-22T15:00:00Z'));
  assert.match(reply,/19\/10\/2026 a 25\/10\/2026/);assert.match(reply,/22\/10, 01:15/);
 });
+test('período vazio não esconde espera, pendências anteriores ou pausa',async()=>{
+ const store=presentationStore();
+ store.reminder.findMany=async({where})=>where.taskProgress==='waiting'?[{id:'waiting',title:'Retorno da gráfica',waitingFor:'aprovação'}]:[];
+ store.reminder.count=async({where})=>where.taskProgress==='waiting'||where.remindAt?.lt&&!where.remindAt?.gte?1:0;
+ store.contactPreference.findUnique=async()=>({timezone:'America/Sao_Paulo',remindersPaused:true});
+ const reply=await agendaOverview('phone','biz',store,'tomorrow',new Date('2026-10-22T02:30:00Z'));
+ assert.match(reply,/Não há compromissos registrados nem avisos de tarefas pendentes nesse período/);
+ assert.match(reply,/1 tarefa aguardando resposta, incluindo avisos fora do período/);assert.match(reply,/Retorno da gráfica/);
+ assert.match(reply,/1 tarefa pendente com aviso anterior/);assert.match(reply,/avisos estão pausados/);
+ assert.doesNotMatch(reply,/0 compromissos|0 tarefas/);
+});
 test('intervalo personalizado conserva horas e fim exclusivo mesmo dentro do mesmo dia',async()=>{
  const reply=await agendaOverview('phone','biz',presentationStore(),'week',new Date('2026-10-22T15:00:00Z'),{rangeStart:'2026-10-22T01:00:00-03:00',rangeEnd:'2026-10-22T02:00:00-03:00'});
  assert.match(reply,/22\/10\/2026, 01:00 até 22\/10\/2026, 02:00 \(fim exclusivo\)/);assert.match(reply,/• 01:15/);

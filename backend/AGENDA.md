@@ -9,6 +9,10 @@ Intervalos personalizados continuam mostrando início/fim completos e fim
 exclusivo. O nome completo do cliente não é repetido quando já aparece no título;
 nomes parciais mantêm o vínculo visível. Espera, resultados adicionais, pausa e
 avisos não enviados conservam suas informações. Não houve mudança nas consultas.
+Contagens zeradas não aparecem quando há apenas tarefas ou apenas compromissos.
+Um período sem itens recebe uma frase explícita sobre a ausência de registros
+nesse intervalo, sem afirmar que a pessoa está livre ou que resolveu pendências.
+Espera, avisos anteriores e pausa continuam aparecendo mesmo nesse caso.
 
 Consultas locais, sem interpretação com IA:
 

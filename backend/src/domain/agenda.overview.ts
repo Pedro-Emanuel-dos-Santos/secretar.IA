@@ -39,7 +39,9 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
   ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${title(a)}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
  const full=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,dateStyle:"short",timeStyle:"short"}).format(d);
  const label=custom?`Agenda do período: ${full(start)} até ${full(end)} (fim exclusivo)`:singleDay?`${names[period]}, ${date(start)}`:`${names[period]}: ${date(start)} a ${date(new Date(end.getTime()-1))}`;
- const lines=[`${subject?`Agenda de ${subject.name}. `:""}${label}. Fuso: ${zone}.`,`${counted(eventCount,"compromisso registrado","compromissos registrados")} e ${counted(taskCount,"tarefa pendente","tarefas pendentes")} com aviso nesse período.`,...rows.map(r=>r.line)];
+ const counts=[eventCount?counted(eventCount,"compromisso registrado","compromissos registrados"):"",taskCount?counted(taskCount,"tarefa pendente","tarefas pendentes"):""].filter(Boolean);
+ const summary=counts.length?`${counts.join(" e ")}${taskCount?" com aviso":""} nesse período.`:"Não há compromissos registrados nem avisos de tarefas pendentes nesse período.";
+ const lines=[`${subject?`Agenda de ${subject.name}. `:""}${label}. Fuso: ${zone}.`,summary,...rows.map(r=>r.line)];
  if(rows.filter(r=>r.kind==="task").length<taskCount || rows.filter(r=>r.kind==="event").length<eventCount)lines.push("Há mais itens no período. Consulte um dia ou liste tarefas/compromissos para ver os demais.");
  if(waitingCount){lines.push(`${counted(waitingCount,"tarefa aguardando","tarefas aguardando")} resposta, incluindo avisos fora do período:`);for(const task of waitingRows)lines.push(`• ${title(task,90)}${task.waitingFor?` — aguardando ${task.waitingFor.slice(0,100)}`:""}`);if(waitingCount>waitingRows.length)lines.push("Há mais retornos aguardando. Peça para listar as tarefas em espera.");}
  if(earlier)lines.push(`${counted(earlier,"tarefa pendente","tarefas pendentes")} com aviso anterior a este período.`);
