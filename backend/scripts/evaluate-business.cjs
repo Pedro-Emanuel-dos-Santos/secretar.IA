@@ -92,10 +92,28 @@ async function commentConversation(){
  assert.deepEqual(styleObservations,[]);
  console.log(JSON.stringify({result:'passed',suite:'comments',turns,realWhatsAppSends:0}));
 }
+async function agendaConversation(){
+ const {agendaRange}=require('../dist/domain/agenda.overview');
+ const created=await turn('Me lembra depois de amanhã às nove da manhã de enviar o recibo para Ana Souza.','create_reminder');
+ const task=await p.reminder.findFirstOrThrow({where:{user:{phone},appointmentId:null},include:{subject:true}});
+ const range=agendaRange('day_after_tomorrow',created.receivedAt,'America/Sao_Paulo');
+ assert.ok(task.remindAt>=range.start && task.remindAt<range.end,'Stored task must use the second local calendar day');
+ assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(task.remindAt),'09:00');
+ assert.equal(task.subject?.name,'Ana Souza');
+ const result=await turn('Como está a agenda da Ana Souza depois de amanhã?',['agenda_overview','subject_overview']);
+ assert.equal(result.interpretation.subject,'Ana Souza');assert.equal(result.interpretation.agendaPeriod,'day_after_tomorrow');
+ assert.match(result.reply.text,/enviar o recibo/i);assert.match(result.reply.text,/09:00/);assert.match(result.reply.text,/Depois de amanhã/);
+ const tomorrow=await turn('O que tenho amanhã?','conversation'); // Exact local command bypasses the provider.
+ assert.doesNotMatch(tomorrow.reply.text,/enviar o recibo/i);assert.match(tomorrow.reply.text,/Não há compromissos/);
+ assert.equal(await p.reminder.count({where:{user:{phone},appointmentId:null}}),1);
+ assert.equal((await p.reminder.findUniqueOrThrow({where:{id:task.id}})).remindAt.getTime(),task.remindAt.getTime());
+ console.log(JSON.stringify({result:'passed',suite:'agenda',turns,realWhatsAppSends:0}));
+}
 async function main(){
  // Fail before entering cleanup when the local database is unavailable.
  try{await p.$queryRaw`SELECT 1`;}catch{await p.$disconnect();throw Error('Local test database unavailable. Start Docker/PostgreSQL before evaluation.');}
  try{
+ if(process.argv.includes('--agenda')){await agendaConversation();return;}
  if(process.argv.includes('--comments')){await commentConversation();return;}
  if(process.argv.includes('--natural')){await naturalConversation();return;}
  await turn('Guarda no cadastro do cliente João Silva: o orçamento é R$ 500.','save_fact');

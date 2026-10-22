@@ -52,7 +52,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       }
       guardFactLookup(validated,message.text,context);
       guardSubjectReference(validated,message.text,context);
-      guardSubjectPeriod(validated,message.text);
+      guardSubjectPeriod(validated,message.text,context);
       if(validated.action==="create_reminder" && validated.subject){
         const pending=(context as any)?.conversationState?.pendingRequest;
         const carried=pending?.action==="create_reminder" && pending.subject===validated.subject && typeof pending.originalMessage==="string" && mentionsName(pending.originalMessage,validated.subject);

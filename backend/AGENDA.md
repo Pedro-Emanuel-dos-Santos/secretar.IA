@@ -38,6 +38,16 @@ mês/ano ou mudar o offset. O pedido direto consulta sem IA; com cliente/projeto
 a interpretação preserva o cadastro e o servidor confere esse período explícito.
 “Amanhã e depois de amanhã” pede qual consultar primeiro, sem escolher um sozinho.
 
+Avaliação com IA real em 22/10: o modelo inicialmente escolheu list_reminders
+para uma pergunta explícita pela agenda da Ana. A guarda agora encaminha esse
+caso para agenda_overview, sem herdar filtro de tarefa e preservando cadastro
+explícito do contexto. Pedidos que mencionam tarefas/lembretes/estados continuam
+nas listas; homônimos de cliente/projeto pedem esclarecimento. O modo
+`evaluate-business.cjs --allow-provider --agenda` passou em três turnos: tarefa
+vinculada às 09:00 no segundo dia local, agenda desse cliente nesse dia e
+consulta de amanhã sem misturar a tarefa. Banco isolado, dados fictícios e
+WhatsApp simulado; nenhum envio real nem confirmação de agendamento da fila.
+
 A consulta reúne compromissos ativos pelo horário real e tarefas pendentes pelo
 horário do aviso. Os avisos vinculados a compromissos não reaparecem como tarefas
 avulsas; resumos diários automáticos também não entram. “Compromisso registrado”

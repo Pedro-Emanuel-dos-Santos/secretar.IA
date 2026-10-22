@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10: avaliação real de agenda por cliente encontrou list_reminders indevido para pedido explícito de agenda. Corrigida guarda para incluir compromissos, remover filtro herdado, preservar cadastro explícito e perguntar por homônimos; listas explícitas de tarefas/estados não são convertidas. Novo modo de avaliação --agenda passou em três turnos com IA real e WhatsApp simulado. Build, 182 unitários e 185 integrações aprovados nesta etapa; após refinamento de preservação do cadastro, unitários e avaliação real repetidos. Sem publicação ou migração.
+
 - 22/10, agenda de depois de amanhã: novo período day_after_tomorrow no contrato, comandos locais completos e guarda de período em consultas por cliente/projeto. Usa segundo dia local após recebimento, não duração fixa de 48h. Pedido com amanhã + depois de amanhã é ambíguo e não escolhe silenciosamente. Testes cobrem virada UTC, mês bissexto, dia de 23h e inbox sem IA com fim exclusivo. Build, 181 unitários (rodada final) e 185 integrações passaram. IA real para novas formulações por cliente ainda não avaliada. Sem migração, deploy ou envio real.
 
 - 22/10, agenda sem contagens zeradas: período vazio informa ausência de compromissos/avisos naquele intervalo, mas mantém espera, avisos anteriores e pausa. Build, 179 unitários e 184 integrações aprovados. Status Railway consultado: atualização de 19:42 UTC (16:42 Brasília) ainda mantém builds Hobby indisponíveis; Pro/Enterprise liberados. Comunicado de segurança sem novidade. Nenhum deploy nem credencial alterada.

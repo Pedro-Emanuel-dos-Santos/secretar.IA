@@ -2,6 +2,17 @@ require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {detectedAgendaPeriod,guardSubjectPeriod}=require('../src/domain/agenda.period.ts');
 const {prepareConversation}=require('../src/domain/conversation.processor.ts');
+test('pedido explícito de agenda não vira lista só de tarefas por filtro herdado',async()=>{
+ const deps={buildContext:async()=>({subjects:[{name:'Ana Souza',kind:'client'}]}),interpret:async()=>({action:'list_reminders',subject:'Bruno',taskFilter:'pending',agendaPeriod:'tomorrow',reply:'interno'})};
+ const r=await prepareConversation({text:'Como está a agenda da Ana Souza depois de amanhã?',receivedAt:new Date()},deps);
+ assert.equal(r.action,'agenda_overview');assert.equal(r.subject,'Ana Souza');assert.equal(r.taskFilter,undefined);assert.equal(r.agendaPeriod,'day_after_tomorrow');
+ const ambiguous=await prepareConversation({text:'Como está a agenda da Ana Souza depois de amanhã?',receivedAt:new Date()},
+  {...deps,buildContext:async()=>({subjects:[{name:'Ana Souza',kind:'client'},{name:'Ana Souza',kind:'project'}]})});
+ assert.equal(ambiguous.action,'conversation');assert.match(ambiguous.reply,/qual cliente ou projeto/);
+ for(const text of ['Lista as tarefas pendentes da agenda amanhã','Quais lembretes da agenda foram concluídos?']){
+  const result=await prepareConversation({text,receivedAt:new Date()},deps);assert.equal(result.action,'list_reminders',text);
+ }
+});
 test('consulta de cliente depois de amanhã corrige período amanhã sugerido pelo modelo',async()=>{
  const r=await prepareConversation({text:'O que tenho com Ana depois de amanhã?',receivedAt:new Date()},
   {buildContext:async()=>({subjects:[{name:'Ana',kind:'client'}]}),interpret:async()=>({action:'subject_overview',subject:'Ana',agendaPeriod:'tomorrow',reply:'interno'})});

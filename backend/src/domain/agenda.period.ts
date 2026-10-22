@@ -1,6 +1,7 @@
 import type { AIInterpretation } from "../types/ai.types";
 import type { AgendaPeriod } from "./agenda.overview";
 import { explicitClock } from "./conversation.timing";
+import { matchingSubjects } from "./conversation.references";
 export function detectedAgendaPeriod(text:string):AgendaPeriod|"ambiguous"|null{
  const s=text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  const found:AgendaPeriod[]=[];
@@ -12,7 +13,16 @@ export function detectedAgendaPeriod(text:string):AgendaPeriod|"ambiguous"|null{
  if(/\bamanha\b/.test(s.replace(/\bdepois de amanha\b/g,"")))found.push("tomorrow");
  return found.length>1?"ambiguous":found[0] || null;
 }
-export function guardSubjectPeriod(intent:AIInterpretation,text:string){
+export function guardSubjectPeriod(intent:AIInterpretation,text:string,context?:any){
+ const query=text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ // An explicit agenda request includes appointments as well as task notices.
+ // Do not carry a task-only interpretation/filter from the previous turn.
+ if(intent.action==="list_reminders" && /\bagenda\b/.test(query) && !/\b(?:tarefa\w*|lembrete\w*|pendente\w*|concluid\w*|cancelad\w*|aguard\w*|atrasad\w*)\b/.test(query)){
+  const subjects=matchingSubjects(text,Array.isArray(context?.subjects)?context.subjects:[]);
+  if(subjects.length>1){intent.action="conversation";intent.reply="De qual cliente ou projeto você quer consultar a agenda?";return;}
+  if(subjects.length===1){intent.subject=subjects[0].name;intent.subjectKind=subjects[0].kind;}
+  intent.action="agenda_overview";delete intent.taskFilter;
+ }
  if(!["subject_overview","agenda_overview"].includes(intent.action))return;
  if(explicitClock(text) && !(intent.rangeStart && intent.rangeEnd)){intent.action="conversation";intent.reply="Você quer consultar um horário específico? Diga o dia e o início e fim do intervalo para eu não mostrar registros fora dele.";return;}
  const period=detectedAgendaPeriod(text);
