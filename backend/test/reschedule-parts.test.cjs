@@ -31,3 +31,39 @@ test('preserva hora local ao mudar offset e recusa horário inexistente ou ambí
  const ambiguous=await prepare('Passa para amanhã',{datetime:null},make('2027-11-06T05:30:00Z'),new Date('2027-11-06T15:00:00Z'));assert.equal(ambiguous.datetime,null);
 });
 test('duração relativa continua resolvida a partir do recebimento',async()=>{const r=await prepare('Adia por um minuto');assert.equal(r.datetime,'2099-06-01T15:01:00.000Z');});
+
+test('correção curta de dia recupera tarefa sem duplicar e preserva hora e versão',async()=>{
+ const ctx={user:context.user,reminders:[task],conversationState:{focusedReminder:task}};
+ for(const action of ['conversation','create_reminder','create_appointment']){
+  const r=await prepare('Melhor depois de amanhã.',{action,reminderId:null,datetime:'2099-06-09T03:00:00Z'},ctx);
+  assert.equal(r.action,'reschedule_reminder');assert.equal(r.reminderId,'task');
+  assert.equal(r.datetime,'2099-06-03T12:30:00.000Z');assert.equal(r.expectedVersion,3);
+ }
+});
+
+test('correção curta de dia recupera compromisso e não reaproveita rascunho',async()=>{
+ const ctx={user:context.user,appointments:[appointment],conversationState:{focusedAppointment:appointment}};
+ const r=await prepare('Na verdade, pra amanhã!',{action:'create_appointment',reminderId:null,appointmentId:null,draft:{date:'2099-06-09',time:null}},ctx);
+ assert.equal(r.action,'reschedule_appointment');assert.equal(r.appointmentId,'event');
+ assert.equal(r.datetime,'2099-06-02T12:30:00.000Z');assert.equal(r.expectedVersion,5);assert.equal(r.draft,undefined);
+});
+
+test('correção curta sem referência única pergunta sem alterar ou criar',async()=>{
+ for(const ctx of [context,{}, {conversationState:{focusedReminder:{...task,state:'cancelled'}}}]){
+  const r=await prepare('Melhor amanhã',{action:'create_reminder',reminderId:null},ctx);
+  assert.equal(r.action,'conversation');assert.equal(r.datetime,null);assert.equal(r.reminderId,null);assert.match(r.reply,/\?/);
+ }
+});
+
+test('comentário, negação e pedido adicional não são convertidos em correção de dia',async()=>{
+ for(const text of ['Melhor amanhã?', 'Não, melhor amanhã', 'Melhor amanhã eu vejo isso', 'Melhor amanhã, cria outra tarefa']){
+  const r=await prepare(text,{action:'conversation',reminderId:null}, {conversationState:{focusedReminder:task}});
+  assert.equal(r.action,'conversation');assert.equal(r.reminderId,null);
+ }
+});
+
+test('dia que completa rascunho não muda tarefa antiga em foco',async()=>{
+ const ctx={user:context.user,conversationState:{focusedReminder:task,pendingRequest:{action:'create_reminder',draft:{date:null,time:'10:00'}}}};
+ const r=await prepare('Melhor amanhã',{action:'create_reminder',reminderId:null,title:'Outra tarefa',datetime:'2099-06-02T13:00:00Z'},ctx);
+ assert.equal(r.action,'create_reminder');assert.equal(r.reminderId,null);assert.equal(r.datetime,'2099-06-02T13:00:00Z');
+});

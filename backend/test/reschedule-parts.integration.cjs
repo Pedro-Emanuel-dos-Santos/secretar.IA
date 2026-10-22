@@ -35,3 +35,19 @@ test('reagendamento parcial antigo não sobrescreve compromisso alterado durante
  const reply=await p.$transaction(tx=>executeAppointment(phone,biz,prepared,tx,message.id));assert.match(reply,/mudou desde a consulta/);
  const current=await p.appointment.findUnique({where:{id:appointment.id}});assert.equal(current.startsAt.toISOString(),'2099-06-05T14:00:00.000Z');assert.equal(current.version,1);
 });
+
+test('melhor amanhã com IA conversacional altera uma tarefa existente sem duplicar',async()=>{
+ const isolatedPhone='5582'+String(Date.now()).slice(-9),receivedAt=new Date('2099-06-01T15:01:00Z');
+ try{
+  const source=await p.incomingMessage.create({data:{phone:isolatedPhone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Me lembra de enviar o contrato amanhã às nove e meia',receivedAt:new Date('2099-06-01T15:00:00Z'),status:'completed',interpretation:intent('create_reminder',{title:'Enviar contrato',datetime:'2099-06-02T12:30:00Z'})}});
+  const task=await persistReminder({phone:isolatedPhone,title:'Enviar contrato',remindAt:'2099-06-02T12:30:00Z'},p,{phoneNumberId:biz,sourceMessageId:source.id});
+  const message=await p.incomingMessage.create({data:{phone:isolatedPhone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Melhor depois de amanhã',receivedAt,nextAttemptAt:new Date(0)}});
+  await processInboxBatch(p,deps(intent('conversation',{reply:'Tudo bem.'})),biz);
+  const current=await p.reminder.findUnique({where:{id:task.id},include:{scheduleOutbox:true}});
+  assert.equal(current.remindAt.toISOString(),'2099-06-03T12:30:00.000Z');assert.equal(current.scheduleVersion,1);
+  assert.equal(current.scheduleOutbox.status,'pending');assert.equal(await p.reminder.count({where:{user:{phone:isolatedPhone}}}),1);
+  assert.match((await p.replyOutbox.findUnique({where:{messageId:message.id}})).text,/09:30/);
+ }finally{
+  await p.user.deleteMany({where:{phone:isolatedPhone}});await p.incomingMessage.deleteMany({where:{phone:isolatedPhone,phoneNumberId:biz}});await p.contactPreference.deleteMany({where:{phone:isolatedPhone,phoneNumberId:biz}});
+ }
+});

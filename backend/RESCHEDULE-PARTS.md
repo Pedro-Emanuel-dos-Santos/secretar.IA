@@ -31,3 +31,18 @@ Limites: o servidor não substitui toda a interpretação de linguagem temporal.
 Dia/hora completos e datas com qualificadores complexos ainda dependem do modelo.
 Seleção do alvo também precisa ser inequívoca; este incremento não escolhe entre
 duas reuniões nem cria associações por aproximação.
+
+# Correção curta de dia — 22/10
+
+“Melhor amanhã” ou “na verdade, pra depois de amanhã” continuam o único item
+ativo em foco, mesmo se a IA responder como conversa ou tentar criar outro.
+O horário local e a proteção de versão do reagendamento são mantidos. Com dois
+alvos possíveis, a resposta pede qual tarefa ou compromisso mudar; sem alvo,
+pergunta o que passar para o dia. Um rascunho em andamento tem precedência.
+Essa recuperação reconhece somente a frase completa, sem perguntas, negações
+ou outro pedido no mesmo texto. Não escolhe um alvo pelo primeiro item da lista.
+
+Validação: TypeScript e build aprovados, 188 testes unitários e 186 integrações
+locais passaram. A nova integração usa contexto persistido, interpretação
+simulada como conversa e confere horário, versão, outbox e ausência de duplicata.
+Interpretação com IA real e WhatsApp ainda não avaliados para esta nova regra.

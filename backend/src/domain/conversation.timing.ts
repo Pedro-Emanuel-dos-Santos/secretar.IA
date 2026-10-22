@@ -36,8 +36,27 @@ export function guardUnstatedTime(intent:AIInterpretation,text:string,context:an
 export function guardCorrectionTarget(intent:AIInterpretation,text:string,context:any){
  const s=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const appointment=context?.conversationState?.focusedAppointment;
- if(appointment?.state==="active" && ["create_reminder","create_appointment"].includes(intent.action) && /^(?:melhor|na verdade)[, ]/.test(s) && explicitClock(text)){intent.action="reschedule_appointment";intent.appointmentId=appointment.id;intent.search=null;intent.title=null;return;}
  const focused=context?.conversationState?.focusedReminder;
+ // A complete day-only correction continues the existing item, even when the
+ // model labels it as conversation or creation. Never guess between two items.
+ const dayCorrection=/^(?:melhor|na verdade)[, ]+(?:(?:para|pra|fica para|fica pra)\s+)?(?:hoje|amanha|depois de amanha|(?:segunda|terca|quarta|quinta|sexta)(?:-feira)?|sabado|domingo)[.!]*$/.test(s);
+ if(dayCorrection && !context?.conversationState?.pendingRequest && ["conversation","create_reminder","create_appointment"].includes(intent.action)){
+  const targets=[...(focused?.id && focused.state==="active"?[{kind:"task",record:focused}]:[]),...(appointment?.id && appointment.state==="active"?[{kind:"appointment",record:appointment}]:[])];
+  if(targets.length!==1){
+   intent.action="conversation";intent.title=null;intent.datetime=null;intent.draft=undefined;
+   intent.reminderId=null;intent.appointmentId=null;
+   intent.reply=targets.length?"Qual tarefa ou compromisso você quer mudar?":"O que você quer passar para esse dia?";
+   return;
+  }
+  const target=targets[0];
+  intent.action=target.kind==="task"?"reschedule_reminder":"reschedule_appointment";
+  intent.reminderId=target.kind==="task"?target.record.id:null;
+  intent.appointmentId=target.kind==="appointment"?target.record.id:null;
+  intent.title=null;intent.search=null;intent.datetime=null;intent.draft=undefined;
+  intent.recurrence=null;intent.cancelSeries=false;
+  return;
+ }
+ if(appointment?.state==="active" && ["create_reminder","create_appointment"].includes(intent.action) && /^(?:melhor|na verdade)[, ]/.test(s) && explicitClock(text)){intent.action="reschedule_appointment";intent.appointmentId=appointment.id;intent.search=null;intent.title=null;return;}
  if(intent.action!=="create_reminder" || !focused?.id || focused.state!=="active")return;
  if(!/^(?:melhor|na verdade)[, ]+(?:(?:as|para|umas)\s+)?(?:\d|uma\b|duas\b|tres\b|quatro\b|cinco\b|seis\b|sete\b|oito\b|nove\b|dez\b|onze\b|doze\b|treze\b|quinze\b|vinte\b)/.test(s) || !explicitClock(text))return;
  intent.action="reschedule_reminder";intent.reminderId=focused.id;intent.search=null;intent.title=null;
