@@ -2,6 +2,9 @@
 
 ## Estado confirmado mais recente
 
+- Incremento de linguagem natural concluído localmente: perguntas só sobre o detalhe ausente, confirmações hoje/amanhã no fuso, avisos por antecedência, séries curtas, singular/plural e orientação de conversa sem ofertas automáticas. TypeScript, build, 172 unitários e 184 integrações passaram. A revisão automática voltou a funcionar na retomada. Expectativa de texto do aviso atualizada mantendo asserção do horário real no banco. Ver NATURAL-CONVERSATION.md; avaliação com IA real ainda pendente.
+- Acompanhamento horário do incidente Railway criado neste chat (acompanhar-recupera-o-da-railway), silencioso sem mudanças relevantes. Apenas consulta fontes oficiais e avisa sobre recuperação/orientações de segurança; não publica, muda callback nem troca/revoga credenciais. Usuário decidiu seguir código local e aguardar recuperação.
+
 - Mais recente: agenda por cliente/projeto e período, incluindo intervalos personalizados ISO com fuso até 31 dias. subject_overview com agendaPeriod/rangeStart/rangeEnd usa agenda filtrada; sem período conserva visão geral. Consulta por pronome recente preserva cadastro e período. Desambiguação explícita cliente/projeto homônimos e rejeição de intervalos incompletos/conflitantes. Sem migração, deploy ou callback alterado. Ver AGENDA.md; avaliação com IA real pendente.
 - Verificação desse incremento: build/TypeScript, 166 unitários e 184 integrações passaram; seis cenários específicos repetidos após o último ajuste passaram. Banco local isolado e provedores simulados.
 

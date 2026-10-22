@@ -21,7 +21,7 @@ test('aguardar suspende aviso antigo sem concluir tarefa e consulta distingue at
  assert.equal(await deliverReminder(r.id,business,p,()=>assert.fail('Não deve enviar'),0),'stale');
  assert.match(await run('list_reminders',{taskFilter:'waiting'}),/Cobrar João/);
  assert.doesNotMatch(await run('list_reminders',{taskFilter:'overdue'}),/Cobrar João/);
- const summary=await p.$transaction(tx=>dayOverview(phone,business,tx,new Date('2099-06-02T15:00:00Z')));assert.match(summary,/1 tarefa\(s\) aguardando resposta/);assert.doesNotMatch(summary,/pendência\(s\) de dias anteriores/);
+ const summary=await p.$transaction(tx=>dayOverview(phone,business,tx,new Date('2099-06-02T15:00:00Z')));assert.match(summary,/1 tarefa aguardando resposta/);assert.doesNotMatch(summary,/pendências? de dias anteriores/);
  assert.match(await run('complete_reminder',{reminderId:r.id}),/concluído/);
  assert.equal((await p.reminder.findUniqueOrThrow({where:{id:r.id}})).taskProgress,'completed');
  assert.match(await run('list_reminders',{taskFilter:'completed'}),/Cobrar João/);

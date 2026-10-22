@@ -209,6 +209,7 @@ require("./task-selection.test.cjs");
 require("./reschedule-parts.test.cjs");
 require("./agenda.test.cjs");
 require("./client-period.test.cjs");
+require("./reply-language.test.cjs");
 require("./ai-usage.test.cjs");
 require("./timezone.test.cjs");
 require("./appointment-guards.test.cjs");

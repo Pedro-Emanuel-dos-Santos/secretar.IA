@@ -40,8 +40,7 @@ export function recurrenceDates(first: string, recurrence?: Recurrence,zone="Ame
 
 export function recurrenceSummary(reminder: { recurrenceFrequency?: string | null; recurrenceCount?: number | null; scheduleTimezone?:string }) {
   if (!reminder.recurrenceFrequency || !reminder.recurrenceCount) return "";
-  const label: Record<string,string> = { daily: "diária", weekly: "semanal", monthly: "mensal" };
-  return ` Série ${label[reminder.recurrenceFrequency]} com ${reminder.recurrenceCount} avisos no fuso ${reminder.scheduleTimezone || "America/Sao_Paulo"}.` +
-    (reminder.recurrenceFrequency === "monthly" ? " Meses sem esse dia serão pulados." : "") +
-    " Concluir ou adiar afeta só um aviso. Para interromper os próximos, peça para cancelar a série.";
+  const label: Record<string,string> = { daily: "diariamente", weekly: "toda semana", monthly: "todo mês" };
+  return ` Isso se repete ${label[reminder.recurrenceFrequency]}, com ${reminder.recurrenceCount} avisos ao todo.` +
+    (reminder.recurrenceFrequency === "monthly" ? " Meses sem esse dia serão pulados." : "");
 }

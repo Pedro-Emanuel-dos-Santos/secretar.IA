@@ -3,18 +3,17 @@ import { ReminderInput, validateReminder } from "./reminder.validation";
 import { recurrenceDates, recurrenceSummary } from "./recurrence";
 import { ReminderQuotaError, RemindersPausedError } from "./reminder.limits";
 import { TaskSubjectError } from "./task.subject";
+import { spokenMoment,reminderQuestion } from "./reply.language";
 
 type CreateReminder = (data: ReminderInput) => Promise<{ title: string; remindAt: Date; status?: string; state?: string }>;
 
-export function formatReminderReply(reminder: { title: string; remindAt: Date; status?: string; state?: string; recurrenceFrequency?: string | null; recurrenceCount?: number | null; scheduleTimezone?:string;subject?:{name:string}|null }, timeZone=reminder.scheduleTimezone || "America/Sao_Paulo") {
+export function formatReminderReply(reminder: { title: string; remindAt: Date; status?: string; state?: string; recurrenceFrequency?: string | null; recurrenceCount?: number | null; scheduleTimezone?:string;subject?:{name:string}|null }, timeZone=reminder.scheduleTimezone || "America/Sao_Paulo",reference=new Date()) {
   const title=reminder.title+(reminder.subject?` (${reminder.subject.name})`:"");
   if (reminder.state === "cancelled") return "Esse lembrete está cancelado.";
   if (reminder.state === "completed") return "Esse lembrete já está concluído.";
-  const date = new Intl.DateTimeFormat("pt-BR", {
-    timeZone, dateStyle: "short", timeStyle: "short",
-  }).format(reminder.remindAt);
+  const date=spokenMoment(reminder.remindAt,timeZone,reference);
   if (reminder.status === "scheduling_pending" || reminder.status === "scheduling_failed") {
-    return `Registrei: ${title}, em ${date}. O agendamento ainda não foi confirmado.` + recurrenceSummary(reminder);
+    return `Anotei: ${title}, ${date}. O agendamento ainda não foi confirmado.` + recurrenceSummary(reminder);
   }
   if (reminder.status === "sending" || reminder.status === "delivery_unknown") return "O lembrete já entrou em envio. Ainda não consigo confirmar o resultado.";
   if (reminder.status === "provider_accepted") return "Esse lembrete já foi aceito pelo provedor para envio.";
@@ -22,11 +21,11 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
   if (reminder.status === "blocked_paused") return "Esse aviso não foi enviado porque seus lembretes estavam pausados. Pode reagendá-lo se precisar.";
   if (reminder.status === "missed") return "Esse aviso venceu durante uma indisponibilidade e não foi enviado. Pode reagendá-lo se precisar.";
   if (reminder.status === "provider_rejected") return "O WhatsApp recusou esse aviso. Ele não foi confirmado como enviado; é preciso verificar o motivo antes de tentar novamente.";
-  return `Combinado. Em ${date}, eu te lembro de: ${title}.` + recurrenceSummary(reminder);
+  return `Combinado, ${date} eu te lembro de ${title}.` + recurrenceSummary(reminder);
 }
 
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
-  manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo"): Promise<string> {
+  manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo",reference=new Date()): Promise<string> {
   switch (interpretation.action) {
     case "agenda_overview":
       if(!interpretation.agendaPeriod && !interpretation.rangeStart && !interpretation.rangeEnd)return "Você quer consultar hoje, amanhã, esta semana, a próxima semana ou os próximos sete dias?";
@@ -38,8 +37,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
     case "subject_overview": case "save_fact": case "search_facts": case "forget_fact": return business ? business(interpretation) : "Essa operação ainda não está disponível aqui.";
     case "create_reminder": {
       if (!interpretation.title?.trim()) return "Do que você quer que eu te lembre?";
-      if (!interpretation.datetime) return interpretation.draft?.date ? "Que horas você quer que eu te lembre?"
-        : interpretation.draft?.time ? "Em qual dia você quer esse lembrete?" : "Em qual dia e horário?";
+      if (!interpretation.datetime) return reminderQuestion(interpretation.draft,timeZone,reference);
       if (interpretation.recurrence && !interpretation.recurrence.count) return "Quantos avisos você quer nessa série? Posso preparar de 2 a 12.";
       const recurrence = interpretation.recurrence ? { frequency: interpretation.recurrence.frequency, count: interpretation.recurrence.count! } : undefined;
       const input = { phone, title: interpretation.title, description: interpretation.description ?? undefined, remindAt: interpretation.datetime, recurrence,subject:interpretation.subject ?? undefined,subjectKind:interpretation.subjectKind };
@@ -48,7 +46,7 @@ export async function executeAction(phone: string, interpretation: AIInterpretat
       }
       try {
         const reminder = await create(input);
-        return formatReminderReply(reminder,timeZone);
+        return formatReminderReply(reminder,timeZone,reference);
       } catch (error) {
         if (error instanceof ReminderQuotaError || error instanceof RemindersPausedError || error instanceof TaskSubjectError) return error.reply;
         throw error;

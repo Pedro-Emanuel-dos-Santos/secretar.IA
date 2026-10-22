@@ -112,7 +112,7 @@ test('busca tolera artigos e acentos sem substituir um identificador inválido',
 test('MEU DIA mostra horário do evento sem duplicar seus avisos como tarefas',async()=>{
  const row=await incoming();await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Agenda do dia',datetime:'2099-05-03T10:00:00-03:00',alertMinutes:[30,0]}),tx,row.id));
  const summary=await p.$transaction(tx=>dayOverview(phone,biz,tx,new Date('2099-05-03T12:00:00Z')));
- assert.match(summary,/1 compromisso\(s\)/);assert.match(summary,/10:00 — Agenda do dia/);assert.doesNotMatch(summary,/09:30/);assert.match(summary,/Nenhuma tarefa pendente/);
+ assert.match(summary,/1 compromisso hoje/);assert.match(summary,/10:00 — Agenda do dia/);assert.doesNotMatch(summary,/09:30/);assert.match(summary,/Nenhuma tarefa pendente/);
  const created=await p.appointment.findUniqueOrThrow({where:{sourceMessageId:row.id}});await call('cancel_appointment',{appointmentId:created.id});
 });
 test('orçamento atual substitui o anterior com histórico por cliente e conta',async()=>{
@@ -174,6 +174,7 @@ test('remover dado apaga todas as revisões do campo sem remover outros dados ou
 test('fluxo inbox persiste compromisso e resposta juntos sem envio real',async()=>{
  const row=await p.incomingMessage.create({data:{phone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Reunião às dez dia dois de maio de 2099',nextAttemptAt:new Date(0)}});
  await processInboxBatch(p,{buildContext:async()=>({}),interpret:async()=>intent('create_appointment',{title:'Fluxo completo',datetime:'2099-05-02T10:00:00-03:00',alertMinutes:[30]})},biz);
- const saved=await p.incomingMessage.findUniqueOrThrow({where:{id:row.id},include:{reply:true,appointment:true}});assert.ok(saved.appointment);assert.match(saved.reply.text,/10:00/);assert.match(saved.reply.text,/09:30/);
+ const saved=await p.incomingMessage.findUniqueOrThrow({where:{id:row.id},include:{reply:true,appointment:true}});assert.ok(saved.appointment);assert.match(saved.reply.text,/10:00/);assert.match(saved.reply.text,/30 minutos antes/);
+ const alert=await p.reminder.findFirstOrThrow({where:{appointmentId:saved.appointment.id,state:'active'}});assert.equal(alert.remindAt.toISOString(),'2099-05-02T12:30:00.000Z');
  const c=await conversationContext(p,{phone,phoneNumberId:biz,text:'me avisa antes',receivedAt:new Date(Date.now()+1000)});assert.equal(c.conversationState.focusedAppointment.id,saved.appointment.id);
 });

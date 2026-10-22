@@ -4,6 +4,7 @@ import { contactTimezone } from "./preferences";
 import { reminderScope } from "./reminder.management";
 import { resolveSubject } from "./business.memory";
 import { parseTimestamp } from "./reminder.validation";
+import { counted } from "./reply.language";
 export type AgendaPeriod="today"|"tomorrow"|"week"|"next_week"|"next_7_days";
 export function agendaRange(period:AgendaPeriod,now:Date,zone:string){
  const day=calendarDay(now.getTime(),zone),weekday=(new Date(day).getUTCDay()+6)%7;
@@ -36,10 +37,10 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
   ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${a.title.slice(0,100)}${a.subject?` (${a.subject.name.slice(0,60)})`:""}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
  const full=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,dateStyle:"short",timeStyle:"short"}).format(d);
  const label=custom?`Agenda do período: ${full(start)} até ${full(end)} (fim exclusivo)`:`${names[period]}: ${date(start)} a ${date(new Date(end.getTime()-1))}`;
- const lines=[`${subject?`Agenda de ${subject.name}. `:""}${label}. Fuso: ${zone}.`,`${eventCount} compromisso(s) registrado(s) e ${taskCount} tarefa(s) pendente(s) com aviso nesse período.`,...rows.map(r=>r.line)];
+ const lines=[`${subject?`Agenda de ${subject.name}. `:""}${label}. Fuso: ${zone}.`,`${counted(eventCount,"compromisso registrado","compromissos registrados")} e ${counted(taskCount,"tarefa pendente","tarefas pendentes")} com aviso nesse período.`,...rows.map(r=>r.line)];
  if(rows.filter(r=>r.kind==="task").length<taskCount || rows.filter(r=>r.kind==="event").length<eventCount)lines.push("Há mais itens no período. Consulte um dia ou liste tarefas/compromissos para ver os demais.");
- if(waitingCount){lines.push(`${waitingCount} tarefa(s) aguardando resposta, incluindo avisos fora do período:`);for(const task of waitingRows)lines.push(`• ${task.title.slice(0,90)}${task.subject?` (${task.subject.name.slice(0,50)})`:""}${task.waitingFor?` — aguardando ${task.waitingFor.slice(0,100)}`:""}`);if(waitingCount>waitingRows.length)lines.push("Há mais retornos aguardando. Peça para listar as tarefas em espera.");}
- if(earlier)lines.push(`${earlier} tarefa(s) pendente(s) com aviso anterior a este período.`);
+ if(waitingCount){lines.push(`${counted(waitingCount,"tarefa aguardando","tarefas aguardando")} resposta, incluindo avisos fora do período:`);for(const task of waitingRows)lines.push(`• ${task.title.slice(0,90)}${task.subject?` (${task.subject.name.slice(0,50)})`:""}${task.waitingFor?` — aguardando ${task.waitingFor.slice(0,100)}`:""}`);if(waitingCount>waitingRows.length)lines.push("Há mais retornos aguardando. Peça para listar as tarefas em espera.");}
+ if(earlier)lines.push(`${counted(earlier,"tarefa pendente","tarefas pendentes")} com aviso anterior a este período.`);
  if(preference?.remindersPaused)lines.push("Seus avisos estão pausados. Envie RETOMAR para voltar.");
  return lines.join("\n");
 }

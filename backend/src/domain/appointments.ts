@@ -1,4 +1,5 @@
 import { contactTimezone } from "./preferences";
+import { spokenMoment,appointmentQuestion,alertOffset,counted } from "./reply.language";
 import { Prisma } from "@prisma/client";
 import type { Appointment } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
@@ -66,7 +67,7 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   let startsAt:Date;
   if(intent.action==="set_appointment_alerts")startsAt=appointment!.startsAt;
   else {
-    if(!intent.datetime)return intent.draft?.date ? "Que horas será o compromisso?" : "Em qual dia e horário será o compromisso?";
+    if(!intent.datetime)return appointmentQuestion(intent.draft);
     try{startsAt=validateReminder({phone,title:intent.title || appointment!.title,remindAt:intent.datetime}).reminderDate;}catch{return "Preciso de um dia e horário válidos no futuro para o compromisso.";}
   }
   if(intent.action==="set_appointment_alerts" && !intent.alertMinutes)return "Quanto tempo antes do compromisso você quer ser avisado?";
@@ -100,8 +101,8 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   }
   for(const alert of future)await persistReminderInTransaction({phone,title:appointment.title,description:`Compromisso em ${display(startsAt)}.`,remindAt:alert.date.toISOString()},tx,{phoneNumberId,appointmentId:appointment.id,appointmentOffsetMinutes:alert.offset});
   await tx.event.create({data:{userId:user.id,type:previous ? "appointment_changed" : "appointment_created",source:"secretaria",payload:{appointmentId:appointment.id,phoneNumberId,sourceMessageId,action:intent.action,previous,version:appointment.version,startsAt:startsAt.toISOString(),alertMinutes:offsets}}});
-  return `Compromisso: ${appointment.title}, em ${display(startsAt)}. Avisos: ${future.map(r=>display(r.date)).join(", ") || "nenhum novo"}.`+
-    (preserved.length ? ` Preservei ${preserved.length} aviso(s) já aceito(s) pelo provedor, sem reenviar.` : "")+
+  return `Anotei ${appointment.title} para ${spokenMoment(startsAt,timezone)}. Avisos: ${future.map(r=>alertOffset(r.offset)).join(", ") || "nenhum novo"}.`+
+    (preserved.length ? ` Mantive ${counted(preserved.length,"aviso já aceito","avisos já aceitos")} pelo WhatsApp, sem reenviar.` : "")+
     (future.length ? " O agendamento dos avisos está sendo confirmado." : "");
 }
 

@@ -1,6 +1,7 @@
 import { contactTimezone } from "./preferences";
 import type { Prisma } from "@prisma/client";
 import { reminderScope } from "./reminder.management";
+import { counted } from "./reply.language";
 
 export function calendarDay(time:number,timeZone="America/Sao_Paulo") {
   const dayFormatter=new Intl.DateTimeFormat("en-CA",{timeZone,year:"numeric",month:"2-digit",day:"2-digit"});
@@ -36,10 +37,10 @@ export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.Tr
   const items=rows.map(r=>`• ${time(r.remindAt)} — ${r.title.slice(0,120)}`+
     (r.status === "missed" || r.status === "blocked_paused" ? " (não enviado)" : r.status === "provider_rejected" ? " (recusado pelo WhatsApp)" : "")).join("\n");
   return `Seu dia, ${date}, ${timezone==="America/Sao_Paulo"?"no horário de Brasília":"no fuso "+timezone}:\n`+
-    (today ? `${today} tarefa(s) pendente(s) para hoje.\n${items}` : "Nenhuma tarefa pendente para hoje.")+
+    (today ? `${counted(today,"tarefa pendente","tarefas pendentes")} para hoje.\n${items}` : "Nenhuma tarefa pendente para hoje.")+
     (today>5 ? "\nMostrei as cinco primeiras; peça um período para consultar as demais." : "")+
-    (eventCount ? `\n${eventCount} compromisso(s) hoje:\n`+appointments.map(a=>`• ${time(a.startsAt)} — ${a.title.slice(0,120)}`).join("\n")+(eventCount>5?"\nMostrei os cinco primeiros; peça para consultar a agenda completa.":"") : "")+
-    (overdue ? `\nVocê também tem ${overdue} pendência(s) de dias anteriores. Peça para listar as pendências anteriores.` : "")+
-    (waiting ? `\n${waiting} tarefa(s) aguardando resposta. Pergunte o que está aguardando para consultar.` : "")+
+    (eventCount ? `\n${counted(eventCount,"compromisso","compromissos")} hoje:\n`+appointments.map(a=>`• ${time(a.startsAt)} — ${a.title.slice(0,120)}`).join("\n")+(eventCount>5?"\nMostrei os cinco primeiros; peça para consultar a agenda completa.":"") : "")+
+    (overdue ? `\nVocê também tem ${counted(overdue,"pendência","pendências")} de dias anteriores. Peça para listar as pendências anteriores.` : "")+
+    (waiting ? `\n${counted(waiting,"tarefa aguardando","tarefas aguardando")} resposta. Pergunte o que está aguardando para consultar.` : "")+
     (preference?.remindersPaused ? "\nSeus avisos estão pausados. Envie RETOMAR para voltar." : "");
 }

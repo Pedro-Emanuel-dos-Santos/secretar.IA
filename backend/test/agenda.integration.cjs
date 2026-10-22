@@ -16,7 +16,7 @@ test('agenda combina eventos e avisos sem duplicar alertas e inclui espera fora 
  await create('SEGREDO PESSOA','2099-06-05T12:00:00Z',foreign);await create('SEGREDO CONTA','2099-06-05T12:00:00Z',phone,other);
  const source=await p.incomingMessage.create({data:{phone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Visita',status:'completed'}});
  await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Visita Ana',datetime:'2099-06-04T13:00:00Z',alertMinutes:[1440,60]}),tx,source.id));
- const before=await p.reminder.count({where:{user:{phone}}}),reply=await overview();assert.match(reply,/1 compromisso\(s\).*1 tarefa\(s\)/);assert.equal((reply.match(/Visita Ana/g)||[]).length,1);assert.match(reply,/Aviso de tarefa: Enviar proposta/);assert.match(reply,/Retorno do fornecedor/);assert.match(reply,/aguardando João/);assert.doesNotMatch(reply,/SEGREDO|Só próxima semana/);assert.ok(reply.indexOf('Visita Ana')<reply.indexOf('Enviar proposta'));assert.equal(await p.reminder.count({where:{user:{phone}}}),before);
+ const before=await p.reminder.count({where:{user:{phone}}}),reply=await overview();assert.match(reply,/1 compromisso registrado e 1 tarefa pendente/);assert.equal((reply.match(/Visita Ana/g)||[]).length,1);assert.match(reply,/Aviso de tarefa: Enviar proposta/);assert.match(reply,/Retorno do fornecedor/);assert.match(reply,/aguardando João/);assert.doesNotMatch(reply,/SEGREDO|Só próxima semana/);assert.ok(reply.indexOf('Visita Ana')<reply.indexOf('Enviar proposta'));assert.equal(await p.reminder.count({where:{user:{phone}}}),before);
 });
 test('período seguinte e fim exclusivo não misturam semanas',async()=>{
  await create('Limite exato da semana seguinte','2099-06-08T03:00:00Z');assert.doesNotMatch(await overview(),/Limite exato/);const next=await overview('next_week');assert.match(next,/Limite exato/);assert.match(next,/Só próxima semana/);assert.doesNotMatch(next,/Enviar proposta|Visita Ana/);
@@ -30,7 +30,7 @@ test('consulta local usa recebimento da mensagem e não chama IA nem muda pausa'
 test('muitos itens têm limite de texto, contagem real e aviso de resultados adicionais',async()=>{
  await p.contactPreference.update({where:{phoneNumberId_phone:{phoneNumberId:biz,phone}},data:{remindersPaused:false}});
  for(let i=0;i<12;i++)await create('Longa '+i+' '+ 'x'.repeat(450),'2099-06-06T12:00:00Z');
- const reply=await overview();assert.match(reply,/13 tarefa\(s\)/);assert.match(reply,/Há mais itens/);assert.ok(reply.length<3500);assert.doesNotMatch(reply,/SEGREDO/);
+ const reply=await overview();assert.match(reply,/13 tarefas pendentes/);assert.match(reply,/Há mais itens/);assert.ok(reply.length<3500);assert.doesNotMatch(reply,/SEGREDO/);
 });
 test('ação interpretada usa período solicitado e consulta registros reais pelo inbox',async()=>{
  const source=await p.incomingMessage.create({data:{phone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Pode reunir meus compromissos e tarefas da próxima semana?',receivedAt:now,nextAttemptAt:new Date(0)}});let calls=0;

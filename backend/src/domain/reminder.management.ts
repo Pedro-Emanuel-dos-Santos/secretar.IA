@@ -88,7 +88,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId},select:{id:true}});
     if(!source)throw Error("Origem da seleção incompatível.");
     await tx.event.create({data:{userId:target.userId,type:"task_selection_focus",source:"secretaria",payload:{phoneNumberId,sourceMessageId:source.id,listId:intent.selectionListId!,index:intent.selectionIndex!}}});
-    return `O item ${intent.selectionIndex!+1} é: ${target.title}. Quer concluir ou cancelar essa tarefa?`;
+    return `É a tarefa “${target.title}”. Quer concluir ou cancelar?`;
   }
   // A linked alert is managed through its event so offsets and event time
   // cannot diverge during concurrent rescheduling (including old buttons).
