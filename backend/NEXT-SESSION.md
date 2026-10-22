@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10, publicação retomada após liberação Hobby: backup real do PostgreSQL 18 criado/download, leitura completa e SHA-256 local/remoto conferidos; arquivo privado na workspace, fora do Git. 183 unitários, 185 integrações e build aprovados. Código ad88ba8 enviado à branch remota codex/release-20261022, mantendo branch ativa de produção intacta. Três serviços conferidos com /backend e comandos corretos. Usuário confirmou credenciais antigas ainda não substituídas; entrada de novas credenciais no navegador exige intervenção dele. Nenhuma migração/deploy de produção, callback ou credencial alterados. Ver RELEASE-20261022.md.
+
 - 22/10, continuação “e a agenda dela amanhã?”: leitura reconhecida mesmo se modelo tentar responder só conversa. Cadastro recente confiável é preservado, ausência pede nome; negação explícita não aciona essa recuperação. Avaliação --agenda ampliada passou em cinco turnos com IA real, alternando dias sem alterar cliente/horário. Build, 183 unitários e integrações direcionadas client-period passaram. Suíte completa anterior: 185 integrações. Sem deploy.
 
 - 22/10: avaliação real de agenda por cliente encontrou list_reminders indevido para pedido explícito de agenda. Corrigida guarda para incluir compromissos, remover filtro herdado, preservar cadastro explícito e perguntar por homônimos; listas explícitas de tarefas/estados não são convertidas. Novo modo de avaliação --agenda passou em três turnos com IA real e WhatsApp simulado. Build, 182 unitários e 185 integrações aprovados nesta etapa; após refinamento de preservação do cadastro, unitários e avaliação real repetidos. Sem publicação ou migração.
