@@ -103,6 +103,11 @@ async function agendaConversation(){
  const result=await turn('Como está a agenda da Ana Souza depois de amanhã?',['agenda_overview','subject_overview']);
  assert.equal(result.interpretation.subject,'Ana Souza');assert.equal(result.interpretation.agendaPeriod,'day_after_tomorrow');
  assert.match(result.reply.text,/enviar o recibo/i);assert.match(result.reply.text,/09:00/);assert.match(result.reply.text,/Depois de amanhã/);
+ const pronoun=await turn('E a agenda dela amanhã?',['agenda_overview','subject_overview']);
+ assert.equal(pronoun.interpretation.subject,'Ana Souza');assert.equal(pronoun.interpretation.agendaPeriod,'tomorrow');
+ assert.doesNotMatch(pronoun.reply.text,/enviar o recibo/i);assert.match(pronoun.reply.text,/Não há compromissos/);
+ const back=await turn('E a agenda dela depois de amanhã?',['agenda_overview','subject_overview']);
+ assert.equal(back.interpretation.subject,'Ana Souza');assert.equal(back.interpretation.agendaPeriod,'day_after_tomorrow');assert.match(back.reply.text,/enviar o recibo/i);
  const tomorrow=await turn('O que tenho amanhã?','conversation'); // Exact local command bypasses the provider.
  assert.doesNotMatch(tomorrow.reply.text,/enviar o recibo/i);assert.match(tomorrow.reply.text,/Não há compromissos/);
  assert.equal(await p.reminder.count({where:{user:{phone},appointmentId:null}}),1);

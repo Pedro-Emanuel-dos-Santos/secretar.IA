@@ -48,6 +48,12 @@ vinculada às 09:00 no segundo dia local, agenda desse cliente nesse dia e
 consulta de amanhã sem misturar a tarefa. Banco isolado, dados fictícios e
 WhatsApp simulado; nenhum envio real nem confirmação de agendamento da fila.
 
+Continuação por pronome: “e a agenda dela amanhã?” também força consulta real
+quando o modelo sugerir conversa sem buscar registros. Usa somente o cadastro
+recente confiável do contexto; sem referência pede nome, e comentário negando
+a consulta não a dispara. A avaliação --agenda passou em cinco turnos, mantendo
+Ana Souza ao alternar amanhã/depois de amanhã e sem modificar o horário salvo.
+
 A consulta reúne compromissos ativos pelo horário real e tarefas pendentes pelo
 horário do aviso. Os avisos vinculados a compromissos não reaparecem como tarefas
 avulsas; resumos diários automáticos também não entram. “Compromisso registrado”

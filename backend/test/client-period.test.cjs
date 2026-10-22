@@ -2,6 +2,16 @@ require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {detectedAgendaPeriod,guardSubjectPeriod}=require('../src/domain/agenda.period.ts');
 const {prepareConversation}=require('../src/domain/conversation.processor.ts');
+test('agenda dela em continuação consulta o cliente em foco e pergunta se não há referência',async()=>{
+ const message={text:'E a agenda dela amanhã?',receivedAt:new Date()};
+ const interpret=async()=>({action:'conversation',reply:'Não tem nada amanhã.'});
+ const r=await prepareConversation(message,{interpret,buildContext:async()=>({conversationState:{focusedSubject:{name:'Ana Souza',kind:'client'}}})});
+ assert.equal(r.action,'subject_overview');assert.equal(r.subject,'Ana Souza');assert.equal(r.agendaPeriod,'tomorrow');
+ const missing=await prepareConversation(message,{interpret,buildContext:async()=>({})});
+ assert.equal(missing.action,'conversation');assert.match(missing.reply,/De qual cliente ou projeto/);
+ const comment=await prepareConversation({...message,text:'Não quero consultar a agenda dela agora.'},{interpret,buildContext:async()=>({conversationState:{focusedSubject:{name:'Ana Souza',kind:'client'}}})});
+ assert.equal(comment.action,'conversation');
+});
 test('pedido explícito de agenda não vira lista só de tarefas por filtro herdado',async()=>{
  const deps={buildContext:async()=>({subjects:[{name:'Ana Souza',kind:'client'}]}),interpret:async()=>({action:'list_reminders',subject:'Bruno',taskFilter:'pending',agendaPeriod:'tomorrow',reply:'interno'})};
  const r=await prepareConversation({text:'Como está a agenda da Ana Souza depois de amanhã?',receivedAt:new Date()},deps);

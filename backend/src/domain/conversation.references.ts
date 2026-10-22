@@ -16,7 +16,8 @@ export function guardSubjectReference(intent:AIInterpretation,text:string,contex
  const pronoun=/\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/.test(s);
  const target=explicit.length===1?explicit[0]:explicit.length===0 && pronoun?focused:null;
  if(target && /\b(?:cliente|projeto)\b/.test(s) && ["subject_overview","agenda_overview","search_facts","list_reminders"].includes(intent.action)){intent.subjectKind=target.kind==="project"?"project":"client";}
- const overview=/\b(?:o que (?:eu )?(?:tenho|tem|temos|ficou)|me (?:mostra|mostre|traz)|resumo|pendencias|pendente)\b/.test(s);
+ const agendaRead=!/\b(?:nao|nunca)\b/.test(s) && (/^(?:e )?(?:a )?agenda\b/.test(s) || /\b(?:como esta|como ficou|qual e|mostra|mostre|consultar|consulta|ver)\b.*\bagenda\b/.test(s));
+ const overview=agendaRead || /\b(?:o que (?:eu )?(?:tenho|tem|temos|ficou)|me (?:mostra|mostre|traz)|resumo|pendencias|pendente)\b/.test(s);
  const factual=/\b(?:orcamento|valor|prazo|status|telefone|endereco)\b/.test(s) && /\b(?:qual|quanto|mostra|mostre|diga)\b/.test(s);
  if(intent.action==="conversation" && (overview || factual) && (explicit.length>1 || pronoun && !target)){
   intent.subject=null;intent.reply="De qual cliente ou projeto você está falando?";return;
