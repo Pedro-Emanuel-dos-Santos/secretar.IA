@@ -204,6 +204,7 @@ require("./ai-provider.test.cjs");
 require("./preflight.test.cjs");
 require("./reminder.http.test.cjs");
 require("./conversation.test.cjs");
+require("./conversation-social.test.cjs");
 require("./conversation-references.test.cjs");
 require("./task-selection.test.cjs");
 require("./reschedule-parts.test.cjs");

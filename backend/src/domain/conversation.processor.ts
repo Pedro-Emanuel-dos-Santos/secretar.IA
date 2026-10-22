@@ -11,6 +11,7 @@ import type { UsageObserver } from "./ai.usage";
 import { applyTaskSelection } from "./task.selection";
 import { preserveRescheduleParts } from "./reschedule.parts";
 import { guardSubjectPeriod } from "./agenda.period";
+import { socialAcknowledgement } from "./conversation.social";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -25,6 +26,8 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   if (button) return button;
   const command = localCommandIntent(message.text);
   if (command) return command;
+  const acknowledgement=socialAcknowledgement(message.text);
+  if(acknowledgement)return acknowledgement;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([(async () => {

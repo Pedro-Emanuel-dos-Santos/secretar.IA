@@ -38,7 +38,8 @@ async function naturalConversation(){
  const id=rows[0].id,initial=rows[0].remindAt.getTime();
  await turn('Melhor às dez da manhã.','reschedule_reminder');
  rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].id,id);assert.equal(rows[0].remindAt.getTime(),initial+1800000,'Clock correction must preserve calendar day');
- await turn('Valeu!','conversation');
+ const thanks=await turn('Valeu!','conversation');
+ assert.ok(thanks.reply.text.length<=140,'Simple thanks should stay brief');
  assert.equal((await tasks()).length,1);
  await turn('Putz, esqueci de mandar. Só queria comentar mesmo.','conversation');
  rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].state,'active');assert.equal(rows[0].taskProgress,'pending');
@@ -54,6 +55,20 @@ async function naturalConversation(){
  await turn('Pode concluir.','complete_reminder');
  rows=await tasks();assert.equal(rows.find(r=>r.id===id).taskProgress,'pending');
  assert.equal(rows.find(r=>r.id!==id).taskProgress,'completed','Only the selected item should be completed');
+ const agenda=await turn('Valeu, e amanhã o que tenho?','agenda_overview');
+ assert.match(agenda.reply.text,/orçamento/i);
+ assert.doesNotMatch(agenda.reply.text,/conferir o estoque/i,'Completed task must not return as pending');
+ await turn('Só queria comentar: me lembra amanhã às dez de cobrar a gráfica.','create_reminder');
+ rows=await tasks();assert.equal(rows.length,3,'A conversational preface must not hide an explicit request');
+ assert.equal(clock(rows.find(r=>/gráfica/i.test(r.title)).remindAt),'10:00');
+ const state=items=>items.map(({id,state,taskProgress,remindAt})=>({id,state,taskProgress,remindAt}));
+ const before=state(rows);
+ for(const text of ['Show, obrigado pela força!','Hoje foi uma correria, só desabafando mesmo.']){
+  const comment=await turn(text,'conversation');
+  assert.ok(comment.reply.text.length<=180,'Social acknowledgement should stay brief');
+  assert.deepEqual(state(await tasks()),before,'Social comment must not alter saved tasks');
+ }
+ assert.deepEqual(styleObservations,[],'Unsolicited offers in this conversation need review');
  console.log(JSON.stringify({result:'passed',suite:'natural',turns,realWhatsAppSends:0,styleObservations}));
 }
 async function event(){return p.appointment.findFirstOrThrow({where:{phoneNumberId:business},include:{reminders:{where:{state:'active'}}}});}

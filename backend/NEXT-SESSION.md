@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10, incremento seguinte: agradecimentos completos são respondidos localmente sem IA; não retomam reagendamento anterior. Texto misto/negado/interrogativo segue interpretação normal. Prompt com exemplos curtos e orientação contra filtros herdados de outro tipo de consulta. Avaliação ampliada passou em 15 turnos com IA real/WhatsApp simulado, incluindo agenda após agradecimento e pedido explícito após “só queria comentar”; sem ofertas genéricas detectadas nesse diálogo. Repetição de reconhecimento entre comentários diferentes ainda observada. Build, 175 unitários e 184 integrações aprovados. Sem publicação ou callback alterado.
+
 - 22/10: avaliação com IA real de conversa natural passou em 11 turnos no banco local isolado, sem WhatsApp real. Novo modo `evaluate-business.cjs --allow-provider --natural` verifica estado/horário e seleção em dois turnos; registra ofertas genéricas como observações de estilo (ainda pendentes). Removida duplicação do nome completo em confirmações/listas/avisos, preservando nomes parciais/homônimos. Docker local foi reativado. Build, 173 unitários e 184 integrações passaram; log natural-live-check.log da workspace.
 - Conta Railway confirmada Hobby pelo painel; 5/5 serviços online com versão antiga. Publicação não iniciada: status oficial ainda não liberou builds Hobby. Segurança: revisar/substituir credenciais armazenadas após incidente, sem alteração nesta etapa.
 

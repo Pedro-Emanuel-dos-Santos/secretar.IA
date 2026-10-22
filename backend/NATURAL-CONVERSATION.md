@@ -33,11 +33,25 @@ comentários sem criar/concluir tarefas, desistência de rascunho sem cancelar
 tarefa salva e escolha do segundo item seguida de conclusão somente dele.
 Isso cobre uma conversa, não todos os cenários abaixo nem garantia do modelo.
 
-A revisão das respostas encontrou ofertas genéricas após agradecimento/comentário;
-continuam como pendência de linguagem, registradas como observações no avaliador.
+A revisão das respostas encontrou ofertas genéricas após agradecimento/comentário.
+Na etapa seguinte, o prompt recebeu exemplos de reconhecimentos curtos e pedidos
+misturados. Agradecimentos completos e inequívocos são respondidos sem IA;
+mensagens com negação, pergunta ou novo pedido continuam para interpretação.
+Um “Valeu!” chegou a ser interpretado como retomada de reagendamento durante a
+avaliação, justificando esse tratamento restrito. O avaliador agora verifica
+ofertas genéricas e casos com mudança de assunto; não apenas a ação escolhida.
+A avaliação ampliada passou em 15 turnos, com IA real nos pedidos/comentários
+e respostas locais nos agradecimentos completos: nenhuma oferta genérica
+detectada nesse diálogo. Pedido de agenda após agradecimento consultou dados
+reais sem carregar o filtro anterior; pedido de lembrete após “só queria
+comentar” foi salvo. Comentários finais mantiveram tarefas e horários intactos.
+Ainda houve repetição de “Entendi, acabou passando” em comentários diferentes;
+portanto, variedade e adequação do reconhecimento continuam merecendo revisão.
 Também encontrou nome completo duplicado no título e no vínculo: corrigido em
 confirmações, listas de tarefas e avisos, preservando nomes parciais/homônimos.
 O avaliador falha com diagnóstico claro se o banco estiver desligado.
+
+Referência para exemplos no prompt: [OpenAI Docs — Prompt engineering](https://developers.openai.com/api/docs/guides/prompt-engineering).
 
 Executar após build, com `AI_MODE=openai` e `INBOX_TEST_DATABASE_URL` local
 terminado em `_test`. Requer chave do provedor e consome tokens; não executa
