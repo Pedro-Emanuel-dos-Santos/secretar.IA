@@ -52,3 +52,21 @@ test('versão muda entre interpretação e execução sem permitir alteração t
  await p.reminder.update({where:{id:second.id},data:{taskProgress:'waiting',scheduleVersion:{increment:1}}});
  const reply=await p.$transaction(tx=>manageReminders(phone,biz,selected,tx));assert.match(reply,/mudou/);assert.equal((await p.reminder.findUnique({where:{id:second.id}})).state,'active');
 });
+
+test('último usa snapshot enviado mesmo após nova tarefa',async()=>{
+ const {phone,first,second}=await setup();await persistReminder({phone,title:'Nova após a lista',remindAt:'2099-06-03T12:00:00Z'},p,{phoneNumberId:biz});
+ await incoming(phone,'Cancela o último');await processInboxBatch(p,deps('cancel_reminder'),biz);
+ assert.equal((await p.reminder.findUnique({where:{id:second.id}})).state,'cancelled');assert.equal((await p.reminder.findUnique({where:{id:first.id}})).state,'active');
+});
+test('penúltimo seleciona e confirmação posterior conclui só o item escolhido',async()=>{
+ const {phone,first,second}=await setup();await incoming(phone,'O penúltimo');await processInboxBatch(p,deps('conversation'),biz);
+ assert.equal((await p.reminder.findUnique({where:{id:first.id}})).state,'active');
+ await relayReplies(p,async()=>({messages:[{id:randomUUID()}]}),biz);
+ await incoming(phone,'Pode concluir');await processInboxBatch(p,deps('complete_reminder'),biz);
+ assert.equal((await p.reminder.findUnique({where:{id:first.id}})).state,'completed');assert.equal((await p.reminder.findUnique({where:{id:second.id}})).state,'active');
+});
+test('último alterado após apresentação é recusado pela versão do snapshot',async()=>{
+ const {phone,second}=await setup();await p.reminder.update({where:{id:second.id},data:{title:'Corrigida',scheduleVersion:{increment:1}}});
+ const source=await incoming(phone,'Conclui o último');await processInboxBatch(p,deps('complete_reminder'),biz);
+ assert.equal((await p.reminder.findUnique({where:{id:second.id}})).state,'active');assert.match((await p.replyOutbox.findUnique({where:{messageId:source.id}})).text,/mudou/);
+});

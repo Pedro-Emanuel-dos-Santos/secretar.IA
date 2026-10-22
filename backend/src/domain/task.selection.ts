@@ -31,6 +31,14 @@ export function ordinalIndex(text:string):number|null{
  const value=(matches[0][1] || matches[0][2]).replace(/[ºª]$/,""),number=Number(value);
  return Number.isInteger(number)?number-1:ordinalWords.findIndex(word=>value.startsWith(word));
 }
+export function listPosition(text:string,count:number):number|null{
+ const s=normalize(text);
+ const relative=[...s.matchAll(/\b(?:o|a)\s+(penultim[oa]|ultim[oa])(?:\s+(?:item|tarefa|lembrete))?(?:\s+da lista)?(?=$|[.!?,;]|\s+(?:para|pra|em|por|amanha|hoje)\b)/g)];
+ const ordinal=ordinalIndex(text);
+ if(!relative.length)return ordinal;
+ if(relative.length!==1 || ordinal!==null)return -1;
+ return count-(relative[0][1].startsWith("pen")?2:1);
+}
 export function applyTaskSelection(intent:AIInterpretation,text:string,list:TaskList|null,focus:TaskFocus|null=null){
  delete intent.selectionListId;delete intent.selectionIndex;delete intent.selectionFocusId;
  const normalized=normalize(text).trim();
@@ -44,7 +52,7 @@ export function applyTaskSelection(intent:AIInterpretation,text:string,list:Task
   intent.action="conversation";intent.reply="Qual tarefa você quer alterar? Peça uma lista ou diga o título.";intent.reminderId=null;intent.search=null;return;
  }
  if(!["conversation","select_task","set_task_subject","complete_reminder","cancel_reminder","reschedule_reminder","edit_reminder","mark_waiting","reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action))return;
- const index=ordinalIndex(text);if(index===null)return;
+ const index=listPosition(text,list?.items.length || 0);if(index===null)return;
  const s=normalize(text);
  const fail=(reply:string)=>{intent.action="conversation";intent.reply=reply;intent.reminderId=null;intent.search=null;intent.title=null;intent.datetime=null;};
  if(["set_task_subject","reschedule_appointment","cancel_appointment","edit_note","delete_note"].includes(intent.action)){fail("Para essa alteração, preciso do título ou texto do registro. Não escolhi o alvo pelo número.");return;}
@@ -58,7 +66,7 @@ export function applyTaskSelection(intent:AIInterpretation,text:string,list:Task
   : /\b(?:corrige|corrija|renomeia|renomeie)\b/.test(s)?"edit_reminder"
   : /\b(?:aguardando|esperando)\b/.test(s)?"mark_waiting":null;
  if(!action){
-  if(/^(?:o|a|item|numero)\s+(?:primeir[oa]|segund[oa]|terceir[oa]|quart[oa]|quint[oa]|sext[oa]|setim[oa]|oitav[oa]|non[oa]|decim[oa]|\d{1,2}[ºª]?)(?:\s+por favor)?[.!]?\s*$/.test(s.trim())){intent.action="select_task";intent.reminderId=item.id;intent.search=null;intent.title=null;intent.expectedVersion=item.version;intent.selectionListId=list.id;intent.selectionIndex=index;intent.cancelSeries=false;return;}
+  if(/^(?:o|a|item|numero)\s+(?:primeir[oa]|segund[oa]|terceir[oa]|quart[oa]|quint[oa]|sext[oa]|setim[oa]|oitav[oa]|non[oa]|decim[oa]|ultim[oa]|penultim[oa]|\d{1,2}[ºª]?)(?:\s+(?:item|tarefa|lembrete))?(?:\s+da lista)?(?:\s+por favor)?[.!]?\s*$/.test(s.trim())){intent.action="select_task";intent.reminderId=item.id;intent.search=null;intent.title=null;intent.expectedVersion=item.version;intent.selectionListId=list.id;intent.selectionIndex=index;intent.cancelSeries=false;return;}
   fail(`O item ${index+1} é: ${item.title}. O que você quer fazer com essa tarefa?`);return;
  }
  if(intent.action!==action){fail(`O item ${index+1} é: ${item.title}. Confirme o que deseja fazer com essa tarefa.`);return;}

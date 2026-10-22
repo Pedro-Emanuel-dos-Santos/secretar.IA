@@ -67,3 +67,17 @@ test('dia que completa rascunho não muda tarefa antiga em foco',async()=>{
  const r=await prepare('Melhor amanhã',{action:'create_reminder',reminderId:null,title:'Outra tarefa',datetime:'2099-06-02T13:00:00Z'},ctx);
  assert.equal(r.action,'create_reminder');assert.equal(r.reminderId,null);assert.equal(r.datetime,'2099-06-02T13:00:00Z');
 });
+
+test('período vago preserva dia para perguntar só a hora e resposta curta completa esse dia',async()=>{
+ const first=await prepare('Passa para quinta de manhã');assert.equal(first.datetime,null);assert.deepEqual(first.draft,{date:'2099-06-04',time:null});
+ const ctx={...context,conversationState:{focusedReminder:task,pendingRequest:{action:'reschedule_reminder',reminderId:task.id,draft:first.draft}}};
+ const completed=await prepare('às nove',{datetime:'2099-06-09T12:00:00Z'},ctx);assert.equal(completed.datetime,'2099-06-04T12:00:00.000Z');assert.equal(completed.expectedVersion,3);
+ const unrelated=await prepare('às nove',{datetime:'2099-06-09T12:00:00Z'},{...ctx,conversationState:{...ctx.conversationState,pendingRequest:{...ctx.conversationState.pendingRequest,reminderId:'other'}}});assert.equal(unrelated.datetime,'2099-06-02T12:00:00.000Z');
+});
+test('hora que completa reagendamento de compromisso respeita data do rascunho',async()=>{
+ const ctx={...context,conversationState:{focusedAppointment:appointment,pendingRequest:{action:'reschedule_appointment',appointmentId:appointment.id,draft:{date:'2099-06-04',time:null}}}};
+ const completed=await prepare('às nove',{action:'reschedule_appointment',reminderId:null,appointmentId:appointment.id,datetime:'2099-06-09T12:00:00Z'},ctx);assert.equal(completed.datetime,'2099-06-04T12:00:00.000Z');assert.equal(completed.expectedVersion,5);
+});
+test('período vago com dias conflitantes não guarda um dia escolhido pela IA',async()=>{
+ const r=await prepare('Passa para amanhã ou depois de amanhã de manhã',{draft:{date:'2099-06-02',time:'09:00'}});assert.equal(r.datetime,null);assert.equal(r.draft,null);
+});

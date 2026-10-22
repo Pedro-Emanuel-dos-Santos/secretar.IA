@@ -1,6 +1,7 @@
 require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {ordinalIndex,applyTaskSelection}=require('../src/domain/task.selection.ts');
+const {listPosition}=require('../src/domain/task.selection.ts');
 const list={id:'list',items:[{id:'a',version:2,title:'Primeira'},{id:'b',version:4,title:'Segunda'}]};
 test('ordinais não confundem duração relativa ou dia da semana com item',()=>{
  for(const s of ['me lembra daqui a 1 minuto','daqui a dois segundos','muda para a quarta','agenda para a segunda','daqui a 10 minutos'])assert.equal(ordinalIndex(s),null,s);
@@ -22,3 +23,16 @@ test('ordinal sem ação seleciona sem concluir e confirmação curta usa refer�
  const missing={action:'complete_reminder',reminderId:'inventado'};applyTaskSelection(missing,'pode concluir',null);assert.equal(missing.action,'conversation');
 });
 test('sim sozinho e pedido negado não autorizam alteração da tarefa selecionada',()=>{for(const text of ['sim','pode','não conclui','talvez cancela']){const i={action:'complete_reminder',reminderId:'a'};applyTaskSelection(i,text,null,{id:'focus',list,index:1});assert.equal(i.action,'conversation',text);assert.equal(i.reminderId,null);}});
+
+test('último e penúltimo são posições da lista mostrada, sem inferir ordem de criação',()=>{
+ for(const [text,index] of [['conclui o último',1],['a última tarefa da lista',1],['o penúltimo',0],['adia o último para amanhã',1]])assert.equal(listPosition(text,2),index,text);
+ for(const text of ['cancela o último que criei','o último cadastrado','a última reunião','última semana'])assert.equal(listPosition(text,2),null,text);
+ assert.equal(listPosition('conclui o primeiro e o último',2),-1);
+ const i={action:'conversation'};applyTaskSelection(i,'a última tarefa da lista',list);assert.equal(i.action,'select_task');assert.equal(i.reminderId,'b');
+ const cancel={action:'cancel_reminder',reminderId:'wrong'};applyTaskSelection(cancel,'cancela o penúltimo',list);assert.equal(cancel.reminderId,'a');assert.equal(cancel.selectionIndex,0);
+});
+test('último sem lista ou penúltimo de lista unitária pede nova referência',()=>{
+ for(const [text,value] of [['cancela o último',null],['conclui o penúltimo',{...list,items:[list.items[0]]}]]){
+  const r={action:'cancel_reminder'};applyTaskSelection(r,text,value);assert.equal(r.action,'conversation');assert.equal(r.reminderId,null);
+ }
+});

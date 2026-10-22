@@ -12,6 +12,7 @@ import { applyTaskSelection } from "./task.selection";
 import { preserveRescheduleParts } from "./reschedule.parts";
 import { guardSubjectPeriod } from "./agenda.period";
 import { socialAcknowledgement } from "./conversation.social";
+import { guardCurrentTarget } from "./conversation.target";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -39,6 +40,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       delete validated.expectedVersion;
       delete validated.expectedSubjectId;
       applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null,(context as any)?.conversationState?.selectedTask || null);
+      guardCurrentTarget(validated,message.text,context);
       if(validated.action==="set_task_subject"){
         const normalized=message.text.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
         const removal=/\b(?:tira|tire|retira|retire|remove|remova|remover|desvincula|desvincule|desvincular|sem cliente|sem projeto)\b/i.test(normalized) && !/\b(?:nao|nunca|talvez|se)\b/i.test(normalized);

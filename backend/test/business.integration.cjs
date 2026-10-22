@@ -176,5 +176,7 @@ test('fluxo inbox persiste compromisso e resposta juntos sem envio real',async()
  await processInboxBatch(p,{buildContext:async()=>({}),interpret:async()=>intent('create_appointment',{title:'Fluxo completo',datetime:'2099-05-02T10:00:00-03:00',alertMinutes:[30]})},biz);
  const saved=await p.incomingMessage.findUniqueOrThrow({where:{id:row.id},include:{reply:true,appointment:true}});assert.ok(saved.appointment);assert.match(saved.reply.text,/10:00/);assert.match(saved.reply.text,/30 minutos antes/);
  const alert=await p.reminder.findFirstOrThrow({where:{appointmentId:saved.appointment.id,state:'active'}});assert.equal(alert.remindAt.toISOString(),'2099-05-02T12:30:00.000Z');
+ // A follow-up can refer to the confirmation only once it has been sent.
+ await p.replyOutbox.update({where:{messageId:row.id},data:{status:'provider_accepted',finishedAt:new Date()}});
  const c=await conversationContext(p,{phone,phoneNumberId:biz,text:'me avisa antes',receivedAt:new Date(Date.now()+1000)});assert.equal(c.conversationState.focusedAppointment.id,saved.appointment.id);
 });

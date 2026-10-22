@@ -25,7 +25,7 @@ test('correção só de dia mantém hora do compromisso e intervalos dos avisos'
 test('período vago não altera tarefa nem promete novo horário',async()=>{
  const task=await persistReminder({phone,title:'Retornar fornecedor',remindAt:'2099-06-02T21:00:00Z'},p,{phoneNumberId:biz}),source=await incoming('Passa para quinta de manhã');
  await processInboxBatch(p,deps(intent('reschedule_reminder',{reminderId:task.id,datetime:'2099-06-04T12:00:00Z'})),biz);
- const unchanged=await p.reminder.findUnique({where:{id:task.id}});assert.equal(unchanged.remindAt.toISOString(),task.remindAt.toISOString());assert.equal(unchanged.scheduleVersion,task.scheduleVersion);assert.match((await p.replyOutbox.findUnique({where:{messageId:source.id}})).text,/dia e horário/);
+ const unchanged=await p.reminder.findUnique({where:{id:task.id}});assert.equal(unchanged.remindAt.toISOString(),task.remindAt.toISOString());assert.equal(unchanged.scheduleVersion,task.scheduleVersion);assert.match((await p.replyOutbox.findUnique({where:{messageId:source.id}})).text,/Que horas/);
 });
 test('reagendamento parcial antigo não sobrescreve compromisso alterado durante interpretação',async()=>{
  const source=await incoming('Reunião do projeto',{status:'completed'});await p.$transaction(tx=>executeAppointment(phone,biz,intent('create_appointment',{title:'Reunião do projeto',datetime:'2099-06-02T12:30:00Z',alertMinutes:[30]}),tx,source.id));
@@ -41,6 +41,7 @@ test('melhor amanhã com IA conversacional altera uma tarefa existente sem dupli
  try{
   const source=await p.incomingMessage.create({data:{phone:isolatedPhone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Me lembra de enviar o contrato amanhã às nove e meia',receivedAt:new Date('2099-06-01T15:00:00Z'),status:'completed',interpretation:intent('create_reminder',{title:'Enviar contrato',datetime:'2099-06-02T12:30:00Z'})}});
   const task=await persistReminder({phone:isolatedPhone,title:'Enviar contrato',remindAt:'2099-06-02T12:30:00Z'},p,{phoneNumberId:biz,sourceMessageId:source.id});
+  await p.replyOutbox.create({data:{messageId:source.id,text:'Lembrete confirmado',status:'provider_accepted',finishedAt:source.receivedAt}});
   const message=await p.incomingMessage.create({data:{phone:isolatedPhone,phoneNumberId:biz,providerMessageId:randomUUID(),text:'Melhor depois de amanhã',receivedAt,nextAttemptAt:new Date(0)}});
   await processInboxBatch(p,deps(intent('conversation',{reply:'Tudo bem.'})),biz);
   const current=await p.reminder.findUnique({where:{id:task.id},include:{scheduleOutbox:true}});

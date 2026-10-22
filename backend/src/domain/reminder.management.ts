@@ -5,7 +5,7 @@ import { parseTimestamp, validateReminder } from "./reminder.validation";
 import { resolveSubject } from "./business.memory";
 import { validateTaskSelection } from "./task.selection";
 import { relinkTask } from "./task.relink";
-import { titledSubject } from "./reply.language";
+import { titledSubject,reminderQuestion } from "./reply.language";
 
 export const reminderScope = (phone: string, phoneNumberId: string,includeSystem=false): Prisma.ReminderWhereInput => ({
   ...(includeSystem?{}:{kind:"task"}),
@@ -146,7 +146,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     return `Cancelei ${cancelled.count} próximos avisos da série ${target.title}. Avisos cujo envio já começou não são desfeitos.`;
   }
   if (intent.action === "reschedule_reminder") {
-    if (!intent.datetime) return "Para qual dia e horário você quer mudar esse lembrete?";
+    if (!intent.datetime) return intent.draft?reminderQuestion(intent.draft,timezone):"Para qual dia e horário você quer mudar esse lembrete?";
     let reminderDate: Date;
     try { reminderDate = validateReminder({ phone, title: target.title, remindAt: intent.datetime }).reminderDate; }
     catch { return "Preciso de uma data e horário válidos no futuro. Quando devo te lembrar?"; }
