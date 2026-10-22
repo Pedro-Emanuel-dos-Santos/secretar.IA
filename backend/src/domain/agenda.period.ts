@@ -8,7 +8,8 @@ export function detectedAgendaPeriod(text:string):AgendaPeriod|"ambiguous"|null{
  if(/\b(?:proxima semana|semana que vem)\b/.test(s))found.push("next_week");
  if(/\b(?:(?:esta|essa|nesta|nessa|desta|dessa|minha) semana)\b/.test(s))found.push("week");
  if(/\bhoje\b/.test(s))found.push("today");
- if(/\bamanha\b/.test(s) && !/\bdepois de amanha\b/.test(s))found.push("tomorrow");
+ if(/\bdepois de amanha\b/.test(s))found.push("day_after_tomorrow");
+ if(/\bamanha\b/.test(s.replace(/\bdepois de amanha\b/g,"")))found.push("tomorrow");
  return found.length>1?"ambiguous":found[0] || null;
 }
 export function guardSubjectPeriod(intent:AIInterpretation,text:string){

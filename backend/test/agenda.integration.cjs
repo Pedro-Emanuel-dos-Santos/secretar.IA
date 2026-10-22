@@ -9,6 +9,21 @@ const p=createPrismaClient(require('./integration.database.cjs')),biz='agenda-'+
 const intent=(action,fields={})=>({action,title:null,description:null,datetime:null,amount:null,category:null,reply:'interno',...fields});
 const create=(title,date,owner=phone,business=biz)=>persistReminder({phone:owner,title,remindAt:date},p,{phoneNumberId:business,limits:{active:100,perDay:100}});
 const overview=(period='week')=>p.$transaction(tx=>agendaOverview(phone,biz,tx,period,now));
+
+test('depois de amanhã pelo inbox usa recebimento, consulta somente o dia e dispensa IA',async()=>{
+ const business=biz+'after';
+ await create('Enviar nota no dia certo','2099-06-05T12:00:00Z',phone,business);
+ await create('Não incluir amanhã','2099-06-04T12:00:00Z',phone,business);
+ await create('Não incluir no fim exclusivo','2099-06-06T03:00:00Z',phone,business);
+ const source=await p.incomingMessage.create({data:{phone,phoneNumberId:business,providerMessageId:randomUUID(),text:'O que tenho depois de amanhã?',receivedAt:now,nextAttemptAt:new Date(0)}});
+ try{
+  const before=await p.reminder.count({where:{user:{phone}}});
+  await processInboxBatch(p,{buildContext:async()=>assert.fail('No context'),interpret:async()=>assert.fail('No AI')},business);
+  const reply=await p.replyOutbox.findUniqueOrThrow({where:{messageId:source.id}});
+  assert.match(reply.text,/Depois de amanhã, 05\/06\/2099/);assert.match(reply.text,/Enviar nota no dia certo/);assert.doesNotMatch(reply.text,/Não incluir/);
+  assert.equal(await p.reminder.count({where:{user:{phone}}}),before);
+ }finally{await p.incomingMessage.deleteMany({where:{phoneNumberId:business}});}
+});
 after(async()=>{await p.user.deleteMany({where:{phone:{in:[phone,foreign]}}});await p.incomingMessage.deleteMany({where:{phoneNumberId:{in:[biz,other]}}});await p.contactPreference.deleteMany({where:{phoneNumberId:{in:[biz,other]}}});await p.$disconnect();});
 test('agenda combina eventos e avisos sem duplicar alertas e inclui espera fora do período',async()=>{
  await create('Enviar proposta','2099-06-05T12:00:00Z');await create('Anterior pendente','2099-05-30T12:00:00Z');await create('Só próxima semana','2099-06-10T12:00:00Z');

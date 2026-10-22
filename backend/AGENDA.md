@@ -19,10 +19,11 @@ Consultas locais, sem interpretação com IA:
 - MINHA SEMANA / “Como está minha semana?”
 - PRÓXIMA SEMANA
 - RESUMO DE AMANHÃ / “O que tenho amanhã?”
+- RESUMO DE DEPOIS DE AMANHÃ / “O que tenho depois de amanhã?”
 - PRÓXIMOS 7 DIAS
 
 Pedidos fora desses comandos podem usar agenda_overview com agendaPeriod:
-today, tomorrow, week, next_week ou next_7_days. Pode filtrar por cliente/projeto
+today, tomorrow, day_after_tomorrow, week, next_week ou next_7_days. Pode filtrar por cliente/projeto
 com subject/subjectKind ou usar rangeStart/rangeEnd em vez de agendaPeriod,
 com fuso explícito e até 31 dias de calendário. Não misturar período pronto e
 intervalo personalizado. Filtros por estado ainda usam as listas de tarefas;
@@ -32,6 +33,10 @@ Semana significa segunda a domingo, incluindo dias já passados da semana atual.
 Próximos sete dias inclui hoje e os seis dias seguintes. Os limites são inclusivos
 no início e exclusivos no fim, calculados no fuso do perfil e na data de recebimento
 da mensagem. Semanas com transição de offset não presumem duração de 168 horas.
+“Depois de amanhã” usa o segundo dia local após o recebimento, mesmo ao virar
+mês/ano ou mudar o offset. O pedido direto consulta sem IA; com cliente/projeto,
+a interpretação preserva o cadastro e o servidor confere esse período explícito.
+“Amanhã e depois de amanhã” pede qual consultar primeiro, sem escolher um sozinho.
 
 A consulta reúne compromissos ativos pelo horário real e tarefas pendentes pelo
 horário do aviso. Os avisos vinculados a compromissos não reaparecem como tarefas

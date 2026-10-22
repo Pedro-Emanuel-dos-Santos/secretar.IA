@@ -4,6 +4,17 @@ const {agendaRange}=require('../src/domain/agenda.overview.ts');
 const {localCommand}=require('../src/domain/local.commands.ts');
 const {parseInterpretation}=require('../src/domain/interpretation.validation.ts');
 const {agendaOverview}=require('../src/domain/agenda.overview.ts');
+test('depois de amanhã segue calendário local inclusive virada UTC, mês e mudança de offset',()=>{
+ for(const [now,zone,start,end] of [
+  ['2026-10-22T02:30:00Z','America/Sao_Paulo','2026-10-23T03:00:00.000Z','2026-10-24T03:00:00.000Z'],
+  ['2028-02-28T15:00:00Z','America/Sao_Paulo','2028-03-01T03:00:00.000Z','2028-03-02T03:00:00.000Z'],
+  ['2026-03-06T15:00:00Z','America/New_York','2026-03-08T05:00:00.000Z','2026-03-09T04:00:00.000Z']]){
+  const range=agendaRange('day_after_tomorrow',new Date(now),zone);assert.equal(range.start.toISOString(),start);assert.equal(range.end.toISOString(),end);
+ }
+ assert.equal(localCommand('O que tenho depois de amanhã?'),'day_after_tomorrow');
+ for(const text of ['Cancela depois de amanhã','O que tenho depois de amanhã com Ana?','O que tenho amanhã e depois de amanhã?'])assert.equal(localCommand(text),null);
+ assert.equal(parseInterpretation(JSON.stringify({action:'agenda_overview',agendaPeriod:'day_after_tomorrow',reply:'interno'})).agendaPeriod,'day_after_tomorrow');
+});
 function presentationStore(){
  const task={id:'task',title:'Mandar orçamento para Ana Souza',subject:{name:'Ana Souza'},remindAt:new Date('2026-10-22T04:15:00Z'),status:'scheduled'};
  return {contactPreference:{findUnique:async()=>({timezone:'America/Sao_Paulo'})},

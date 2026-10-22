@@ -5,7 +5,7 @@ import { presentAudioDisclosure,setAudioConsent,executePreferences } from "./pre
 import { requestContentDeletion,confirmContentDeletion } from "./privacy";
 import { agendaOverview } from "./agenda.overview";
 
-export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
+export type LocalCommand = "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "day_after_tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
   if(value==="audio" || value==="como funciona o audio")return "audio_info";
@@ -24,6 +24,7 @@ export function localCommand(text: string): LocalCommand | null {
   if(["minha semana","resumo da semana","agenda da semana","como esta minha semana","como esta a minha semana","o que tenho esta semana","o que tenho nessa semana"].includes(value))return "week";
   if(["proxima semana","minha proxima semana","resumo da proxima semana","agenda da proxima semana","como esta minha proxima semana","o que tenho na proxima semana"].includes(value))return "next_week";
   if(["meu dia amanha","minha agenda de amanha","resumo de amanha","o que tenho amanha"].includes(value))return "tomorrow";
+  if(["meu dia depois de amanha","minha agenda de depois de amanha","agenda de depois de amanha","resumo de depois de amanha","o que tenho depois de amanha"].includes(value))return "day_after_tomorrow";
   if(["proximos sete dias","proximos 7 dias","minha agenda dos proximos sete dias","minha agenda dos proximos 7 dias"].includes(value))return "next_7_days";
   return null;
 }
@@ -31,7 +32,7 @@ export function localCommandIntent(text: string): AIInterpretation | null {
   return localCommand(text) ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:"Vou conferir seu pedido."} : null;
 }
 export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string;receivedAt?:Date}) {
-  if(command==="week" || command==="next_week" || command==="tomorrow" || command==="next_7_days")return agendaOverview(phone,phoneNumberId,tx,command,current?.receivedAt || new Date());
+  if(command==="week" || command==="next_week" || command==="tomorrow" || command==="day_after_tomorrow" || command==="next_7_days")return agendaOverview(phone,phoneNumberId,tx,command,current?.receivedAt || new Date());
   if(command==="erase_request")return requestContentDeletion(phone,phoneNumberId,tx);
   if(command==="erase_confirm")return current?confirmContentDeletion(phone,phoneNumberId,tx,current):"Envie APAGAR MEUS DADOS para receber as instruções de confirmação.";
   if(command==="audio_info")return presentAudioDisclosure(phone,phoneNumberId,tx);

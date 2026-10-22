@@ -2,6 +2,8 @@
 
 ## Estado confirmado mais recente
 
+- 22/10, agenda de depois de amanhã: novo período day_after_tomorrow no contrato, comandos locais completos e guarda de período em consultas por cliente/projeto. Usa segundo dia local após recebimento, não duração fixa de 48h. Pedido com amanhã + depois de amanhã é ambíguo e não escolhe silenciosamente. Testes cobrem virada UTC, mês bissexto, dia de 23h e inbox sem IA com fim exclusivo. Build, 181 unitários (rodada final) e 185 integrações passaram. IA real para novas formulações por cliente ainda não avaliada. Sem migração, deploy ou envio real.
+
 - 22/10, agenda sem contagens zeradas: período vazio informa ausência de compromissos/avisos naquele intervalo, mas mantém espera, avisos anteriores e pausa. Build, 179 unitários e 184 integrações aprovados. Status Railway consultado: atualização de 19:42 UTC (16:42 Brasília) ainda mantém builds Hobby indisponíveis; Pro/Enterprise liberados. Comunicado de segurança sem novidade. Nenhum deploy nem credencial alterada.
 
 - 22/10, agenda mais legível: hoje/amanhã com data única no cabeçalho e horários nos itens, períodos de vários dias preservam dia/mês. Intervalo personalizado conserva início/fim completos e fim exclusivo. Nome do cadastro sem duplicação nos títulos da agenda e espera. Consultas/filtros/contagens/estado intactos. Build, 178 unitários e 184 integrações passaram (agenda-readable-check.log). Sem IA adicional, migração, envio real ou deploy.

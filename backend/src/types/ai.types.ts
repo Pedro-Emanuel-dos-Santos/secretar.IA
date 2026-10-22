@@ -54,7 +54,7 @@ export type AIInterpretation = {
   expectedVersion?: number;
   expectedSubjectId?:string|null;
   clearSubject?:boolean;
-  agendaPeriod?:"today"|"tomorrow"|"week"|"next_week"|"next_7_days";
+  agendaPeriod?:"today"|"tomorrow"|"day_after_tomorrow"|"week"|"next_week"|"next_7_days";
   selectionListId?:string;
   selectionIndex?:number;
   selectionFocusId?:string;

@@ -5,15 +5,15 @@ import { reminderScope } from "./reminder.management";
 import { resolveSubject } from "./business.memory";
 import { parseTimestamp } from "./reminder.validation";
 import { counted,titledSubject } from "./reply.language";
-export type AgendaPeriod="today"|"tomorrow"|"week"|"next_week"|"next_7_days";
+export type AgendaPeriod="today"|"tomorrow"|"day_after_tomorrow"|"week"|"next_week"|"next_7_days";
 export function agendaRange(period:AgendaPeriod,now:Date,zone:string){
  const day=calendarDay(now.getTime(),zone),weekday=(new Date(day).getUTCDay()+6)%7;
- const offset=period==="tomorrow"?1:period==="week"?-weekday:period==="next_week"?7-weekday:0;
+ const offset=period==="tomorrow"?1:period==="day_after_tomorrow"?2:period==="week"?-weekday:period==="next_week"?7-weekday:0;
  const days=["week","next_week","next_7_days"].includes(period)?7:1;
  return {start:dayBoundary(day+offset*86400000,zone),end:dayBoundary(day+(offset+days)*86400000,zone)};
 }
 export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma.TransactionClient,period:AgendaPeriod="week",now=new Date(),filter?:{subject?:string;subjectKind?:"client"|"project";rangeStart?:string|null;rangeEnd?:string|null}){
- if(!["today","tomorrow","week","next_week","next_7_days"].includes(period) || !Number.isFinite(now.getTime()))return "Você quer consultar hoje, amanhã, esta semana, a próxima semana ou os próximos sete dias?";
+ if(!["today","tomorrow","day_after_tomorrow","week","next_week","next_7_days"].includes(period) || !Number.isFinite(now.getTime()))return "Você quer consultar hoje, amanhã, depois de amanhã, esta semana, a próxima semana ou os próximos sete dias?";
  const zone=await contactTimezone(tx,phone,phoneNumberId);
  let {start,end}=agendaRange(period,now,zone);
  const custom=!!(filter?.rangeStart || filter?.rangeEnd);
@@ -34,7 +34,7 @@ export async function agendaOverview(phone:string,phoneNumberId:string,tx:Prisma
  const singleDay=calendarDay(start.getTime(),zone)===calendarDay(end.getTime()-1,zone);
  const time=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,...(singleDay?{}:{day:"2-digit" as const,month:"2-digit" as const}),hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d);
  const title=(item:{title:string;subject?:{name:string}|null},limit=100)=>titledSubject(item.title.slice(0,limit),item.subject?{name:item.subject.name.slice(0,60)}:null);
- const names={today:"Hoje",tomorrow:"Amanhã",week:"Sua semana (segunda a domingo)",next_week:"Próxima semana (segunda a domingo)",next_7_days:"Próximos sete dias (inclui hoje)"};
+ const names={today:"Hoje",tomorrow:"Amanhã",day_after_tomorrow:"Depois de amanhã",week:"Sua semana (segunda a domingo)",next_week:"Próxima semana (segunda a domingo)",next_7_days:"Próximos sete dias (inclui hoje)"};
  const rows=[...taskRows.map(t=>({id:t.id,at:t.remindAt,kind:"task",line:`• ${time(t.remindAt)} — Aviso de tarefa: ${title(t)}${["missed","blocked_paused","provider_rejected"].includes(t.status)?" [não enviado]":""}`})),
   ...eventRows.map(a=>({id:a.id,at:a.startsAt,kind:"event",line:`• ${time(a.startsAt)} — Compromisso: ${title(a)}`}))].sort((a,b)=>a.at.getTime()-b.at.getTime() || a.id.localeCompare(b.id)).slice(0,8);
  const full=(d:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:zone,dateStyle:"short",timeStyle:"short"}).format(d);
