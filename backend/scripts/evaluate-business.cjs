@@ -41,7 +41,7 @@ async function naturalConversation(){
  const thanks=await turn('Valeu!','conversation');
  assert.ok(thanks.reply.text.length<=140,'Simple thanks should stay brief');
  assert.equal((await tasks()).length,1);
- await turn('Putz, esqueci de mandar. Só queria comentar mesmo.','conversation');
+ const forgotten=await turn('Putz, esqueci de mandar. Só queria comentar mesmo.','conversation');
  rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].state,'active');assert.equal(rows[0].taskProgress,'pending');
  await turn('Me lembra depois de amanhã de revisar o contrato.','create_reminder');
  assert.equal((await tasks()).length,1);
@@ -63,19 +63,40 @@ async function naturalConversation(){
  assert.equal(clock(rows.find(r=>/gráfica/i.test(r.title)).remindAt),'10:00');
  const state=items=>items.map(({id,state,taskProgress,remindAt})=>({id,state,taskProgress,remindAt}));
  const before=state(rows);
- for(const text of ['Show, obrigado pela força!','Hoje foi uma correria, só desabafando mesmo.']){
+ const comments=['Show, obrigado pela força!','Hoje foi uma correria, só desabafando mesmo.',
+  'Fechei meu primeiro contrato hoje! Só dividindo a boa notícia.',
+  'A aprovação ainda não chegou. Só comentando, não muda nada nas tarefas.'];
+ const commentReplies=[];
+ for(const text of comments){
   const comment=await turn(text,'conversation');
+  commentReplies.push(comment.reply.text);
   assert.ok(comment.reply.text.length<=180,'Social acknowledgement should stay brief');
   assert.deepEqual(state(await tasks()),before,'Social comment must not alter saved tasks');
  }
+ assert.notEqual(commentReplies[1],forgotten.reply.text,'Busy day must not reuse an unrelated forgetting acknowledgement');
+ assert.equal(new Set(commentReplies.slice(1)).size,3,'Different comments should receive contextual acknowledgements');
+ assert.doesNotMatch(commentReplies[1],/esquec|acabou passando/i,'Busy day does not imply forgetting');
  assert.deepEqual(styleObservations,[],'Unsolicited offers in this conversation need review');
  console.log(JSON.stringify({result:'passed',suite:'natural',turns,realWhatsAppSends:0,styleObservations}));
 }
 async function event(){return p.appointment.findFirstOrThrow({where:{phoneNumberId:business},include:{reminders:{where:{state:'active'}}}});}
+async function commentConversation(){
+ for(const text of ['Foi uma manhã bem corrida, só desabafando.',
+  'Consegui meu primeiro cliente! Só queria dividir a notícia.',
+  'A gráfica ainda não respondeu. Só comentando, não anota nem muda tarefa.']){
+  const r=await turn(text,'conversation');
+  assert.doesNotMatch(r.reply.text,/registrando|anotei|guardei|vou lembrar/i,'Acknowledgement must not claim persistence');
+  assert.ok(r.reply.text.length<=180);
+ }
+ assert.equal(await p.reminder.count({where:{user:{phone}}}),0);
+ assert.deepEqual(styleObservations,[]);
+ console.log(JSON.stringify({result:'passed',suite:'comments',turns,realWhatsAppSends:0}));
+}
 async function main(){
  // Fail before entering cleanup when the local database is unavailable.
  try{await p.$queryRaw`SELECT 1`;}catch{await p.$disconnect();throw Error('Local test database unavailable. Start Docker/PostgreSQL before evaluation.');}
  try{
+ if(process.argv.includes('--comments')){await commentConversation();return;}
  if(process.argv.includes('--natural')){await naturalConversation();return;}
  await turn('Guarda no cadastro do cliente João Silva: o orçamento é R$ 500.','save_fact');
  await turn('Atualiza o orçamento do cliente João Silva para R$ 650.','save_fact');

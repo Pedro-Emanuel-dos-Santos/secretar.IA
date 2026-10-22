@@ -47,6 +47,19 @@ reais sem carregar o filtro anterior; pedido de lembrete após “só queria
 comentar” foi salvo. Comentários finais mantiveram tarefas e horários intactos.
 Ainda houve repetição de “Entendi, acabou passando” em comentários diferentes;
 portanto, variedade e adequação do reconhecimento continuam merecendo revisão.
+
+Etapa seguinte: exemplos passaram a distinguir esquecimento, dia corrido, boa
+notícia e demora de resposta. A rodada de 17 turnos passou, com reconhecimentos
+diferentes e tarefas/horários preservados. A revisão humana da saída encontrou
+“registrando seu comentário”, que poderia sugerir criação de nota inexistente.
+Foi acrescentada orientação explícita contra promessas de memória em conversation.
+O novo modo `--comments` avaliou três mensagens diferentes das frases de exemplo,
+com IA real e sem WhatsApp real: passou sem ofertas detectadas, criação de
+lembrete ou afirmação de anotação. Build e 175 unitários passaram nesta etapa;
+a suíte de 184 integrações passou no incremento anterior. Não há alteração de
+schema ou da execução de tarefas neste incremento de prompt/avaliação.
+Isso melhora os cenários avaliados, sem garantir variedade ou entendimento em
+todas as conversas; frases semelhantes aos exemplos ainda podem aparecer.
 Também encontrou nome completo duplicado no título e no vínculo: corrigido em
 confirmações, listas de tarefas e avisos, preservando nomes parciais/homônimos.
 O avaliador falha com diagnóstico claro se o banco estiver desligado.
