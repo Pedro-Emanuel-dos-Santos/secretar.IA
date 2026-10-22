@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { WhatsAppPreflightError } from "./whatsapp.policy";
 import type { ReminderControls } from "./reminder.buttons";
 import { WhatsAppSendRejected } from "./whatsapp.errors";
+import { titledSubject } from "./reply.language";
 
 type Store = Pick<PrismaClient, "reminder">;
 type Sender = (phone: string, text: string, controls?: ReminderControls) => Promise<unknown>;
@@ -21,7 +22,7 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
   if (!claimed.count) return "skipped";
   try {
     const late = Date.now() - reminder.remindAt.getTime() > 60_000;
-    const text=`⏰ Lembrete${late ? " atrasado" : ""}: ${reminder.title}${reminder.subject?` (${reminder.subject.name})`:""}`+
+    const text=`⏰ Lembrete${late ? " atrasado" : ""}: ${titledSubject(reminder.title,reminder.subject)}`+
       (reminder.appointmentId && reminder.description ? `\n${reminder.description.slice(0,300)}` : "");
     const result = await send(reminder.user.phone, text,
       reminder.appointmentId || reminder.kind==="daily_summary" ? undefined : { id: reminder.id, version: expectedVersion });

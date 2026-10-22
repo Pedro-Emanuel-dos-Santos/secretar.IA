@@ -2,6 +2,9 @@
 
 ## Estado confirmado mais recente
 
+- 22/10: avaliação com IA real de conversa natural passou em 11 turnos no banco local isolado, sem WhatsApp real. Novo modo `evaluate-business.cjs --allow-provider --natural` verifica estado/horário e seleção em dois turnos; registra ofertas genéricas como observações de estilo (ainda pendentes). Removida duplicação do nome completo em confirmações/listas/avisos, preservando nomes parciais/homônimos. Docker local foi reativado. Build, 173 unitários e 184 integrações passaram; log natural-live-check.log da workspace.
+- Conta Railway confirmada Hobby pelo painel; 5/5 serviços online com versão antiga. Publicação não iniciada: status oficial ainda não liberou builds Hobby. Segurança: revisar/substituir credenciais armazenadas após incidente, sem alteração nesta etapa.
+
 - Incremento de linguagem natural concluído localmente: perguntas só sobre o detalhe ausente, confirmações hoje/amanhã no fuso, avisos por antecedência, séries curtas, singular/plural e orientação de conversa sem ofertas automáticas. TypeScript, build, 172 unitários e 184 integrações passaram. A revisão automática voltou a funcionar na retomada. Expectativa de texto do aviso atualizada mantendo asserção do horário real no banco. Ver NATURAL-CONVERSATION.md; avaliação com IA real ainda pendente.
 - Acompanhamento horário do incidente Railway criado neste chat (acompanhar-recupera-o-da-railway), silencioso sem mudanças relevantes. Apenas consulta fontes oficiais e avisa sobre recuperação/orientações de segurança; não publica, muda callback nem troca/revoga credenciais. Usuário decidiu seguir código local e aguardar recuperação.
 

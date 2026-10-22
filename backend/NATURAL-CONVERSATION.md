@@ -24,7 +24,26 @@ Não há chamada adicional de IA para reescrever confirmações de execução.
 Confirmações continuam baseadas no resultado persistido, não no reply do modelo.
 Avisos pendentes, incertos, recusados ou pausados continuam sendo informados.
 
-## Roteiro de avaliação com IA real (pendente)
+## Avaliação com IA real em 22/10
+
+O modo `scripts/evaluate-business.cjs --allow-provider --natural` passou em
+11 turnos, com dados fictícios, banco local isolado e envio WhatsApp simulado.
+Conferiu o instante 09:30, correção para 10:00 sem trocar o dia nem duplicar,
+comentários sem criar/concluir tarefas, desistência de rascunho sem cancelar
+tarefa salva e escolha do segundo item seguida de conclusão somente dele.
+Isso cobre uma conversa, não todos os cenários abaixo nem garantia do modelo.
+
+A revisão das respostas encontrou ofertas genéricas após agradecimento/comentário;
+continuam como pendência de linguagem, registradas como observações no avaliador.
+Também encontrou nome completo duplicado no título e no vínculo: corrigido em
+confirmações, listas de tarefas e avisos, preservando nomes parciais/homônimos.
+O avaliador falha com diagnóstico claro se o banco estiver desligado.
+
+Executar após build, com `AI_MODE=openai` e `INBOX_TEST_DATABASE_URL` local
+terminado em `_test`. Requer chave do provedor e consome tokens; não executa
+envios reais. O resultado funcional e as observações de estilo são separados.
+
+## Roteiro adicional de avaliação com IA real
 
 Usar dados fictícios e WhatsApp simulado antes de publicar. Os exemplos abaixo
 orientam a avaliação; não são textos obrigatórios nem resultados já comprovados.

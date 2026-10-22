@@ -5,6 +5,7 @@ import { parseTimestamp, validateReminder } from "./reminder.validation";
 import { resolveSubject } from "./business.memory";
 import { validateTaskSelection } from "./task.selection";
 import { relinkTask } from "./task.relink";
+import { titledSubject } from "./reply.language";
 
 export const reminderScope = (phone: string, phoneNumberId: string,includeSystem=false): Prisma.ReminderWhereInput => ({
   ...(includeSystem?{}:{kind:"task"}),
@@ -58,7 +59,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
       await tx.event.create({data:{userId:reminders[0].userId,type:"task_list_presented",source:"secretaria",payload:{phoneNumberId,sourceMessageId,items:reminders.slice(0,10).map(r=>({id:r.id,version:r.scheduleVersion,title:r.title,remindAt:r.remindAt.toISOString(),state:r.state,taskProgress:r.taskProgress,subjectId:r.subjectId}))}}});
     }
     return heading+":\n" + reminders.slice(0, 10).map((r, index) =>
-      `${index + 1}. ${displayTitle(r.title)}${r.subject?" ("+r.subject.name+")":""} — ${displayDate(r.remindAt)}` +
+      `${index + 1}. ${titledSubject(displayTitle(r.title),r.subject)} — ${displayDate(r.remindAt)}` +
       (r.taskProgress==="waiting" ? ` (aguardando${r.waitingFor?" "+r.waitingFor:" resposta"}${["awaiting_followup","provider_accepted"].includes(r.status)?"; sem novo aviso agendado":""})` : "")+
       (r.status === "blocked_paused" ? " (não enviado durante a pausa)" : r.status === "missed" ? " (vencido, não enviado)"
         : r.status === "provider_rejected" ? " (recusado pelo WhatsApp)" : "")).join("\n") +

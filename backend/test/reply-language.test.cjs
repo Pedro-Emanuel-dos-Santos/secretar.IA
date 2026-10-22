@@ -2,6 +2,13 @@ require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {spokenMoment,reminderQuestion,appointmentQuestion,alertOffset,counted}=require('../src/domain/reply.language.ts');
 const {formatReminderReply,executeAction}=require('../src/domain/action.executor.ts');
+test('nome completo não se repete, mas nomes parciais e homônimos conservam o vínculo',()=>{
+ const {titledSubject}=require('../src/domain/reply.language.ts');
+ assert.equal(titledSubject('Enviar orçamento para ANA SOUZA',{name:'Ana Souza'}),'Enviar orçamento para ANA SOUZA');
+ assert.equal(titledSubject('Cobrar João Silva',{name:'Joao Silva'}),'Cobrar João Silva');
+ assert.equal(titledSubject('Cobrar Mariana',{name:'Ana'}),'Cobrar Mariana (Ana)');
+ assert.equal(titledSubject('Cobrar Ana',{name:'Ana Souza'}),'Cobrar Ana (Ana Souza)');
+});
 test('hoje e amanhã usam dia local, não o dia UTC nem intervalos fixos de 24 horas',()=>{
  const reference=new Date('2026-10-22T01:00:00Z');assert.equal(spokenMoment(new Date('2026-10-22T02:30:00Z'),'America/Sao_Paulo',reference),'hoje às 23:30');assert.equal(spokenMoment(new Date('2026-10-22T12:30:00Z'),'America/Sao_Paulo',reference),'amanhã às 09:30');
  const beforeDST=new Date('2027-03-13T23:00:00-05:00');assert.equal(spokenMoment(new Date('2027-03-14T09:30:00-04:00'),'America/New_York',beforeDST),'amanhã às 09:30');

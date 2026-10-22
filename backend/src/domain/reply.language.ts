@@ -28,3 +28,8 @@ export function alertOffset(minutes:number){
  const hours=Math.floor(minutes/60),rest=minutes%60;
  return [hours?counted(hours,"hora","horas"):"",rest?counted(rest,"minuto","minutos"):""].filter(Boolean).join(" e ")+" antes";
 }
+import { mentionsName } from "./conversation.references";
+
+export function titledSubject(title:string,subject?:{name:string}|null){
+ return subject && !mentionsName(title,subject.name)?`${title} (${subject.name})`:title;
+}

@@ -3,12 +3,12 @@ import { ReminderInput, validateReminder } from "./reminder.validation";
 import { recurrenceDates, recurrenceSummary } from "./recurrence";
 import { ReminderQuotaError, RemindersPausedError } from "./reminder.limits";
 import { TaskSubjectError } from "./task.subject";
-import { spokenMoment,reminderQuestion } from "./reply.language";
+import { spokenMoment,reminderQuestion,titledSubject } from "./reply.language";
 
 type CreateReminder = (data: ReminderInput) => Promise<{ title: string; remindAt: Date; status?: string; state?: string }>;
 
 export function formatReminderReply(reminder: { title: string; remindAt: Date; status?: string; state?: string; recurrenceFrequency?: string | null; recurrenceCount?: number | null; scheduleTimezone?:string;subject?:{name:string}|null }, timeZone=reminder.scheduleTimezone || "America/Sao_Paulo",reference=new Date()) {
-  const title=reminder.title+(reminder.subject?` (${reminder.subject.name})`:"");
+  const title=titledSubject(reminder.title,reminder.subject);
   if (reminder.state === "cancelled") return "Esse lembrete está cancelado.";
   if (reminder.state === "completed") return "Esse lembrete já está concluído.";
   const date=spokenMoment(reminder.remindAt,timeZone,reference);

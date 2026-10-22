@@ -16,6 +16,7 @@ async function interpretMessage(context){
 const {relayReplies}=require('../dist/domain/reply.relay');
 const p=createPrismaClient(url.href),business='eval-business-'+randomUUID(),phone='5582'+String(Date.now()).slice(-9);
 let turns=0;
+const styleObservations=[];
 async function turn(text,action){
  const row=await p.incomingMessage.create({data:{phoneNumberId:business,phone,providerMessageId:randomUUID(),text,nextAttemptAt:new Date(0)}});
  await processInboxBatch(p,{buildContext:m=>conversationContext(p,m),interpret:interpretMessage},business);
@@ -23,11 +24,44 @@ async function turn(text,action){
  assert.ok(saved.reply,'Turn failed to produce reply: '+JSON.stringify({text,status:saved.status,lastError:saved.lastError,interpretation:saved.interpretation}));
  await relayReplies(p,async()=>({messages:[{id:'wamid.fictional-'+randomUUID()}]}),business);
  turns++;console.log(JSON.stringify({turn:turns,text,action:saved.interpretation.action,reply:saved.reply.text}));
+ if(saved.interpretation.action==='conversation' && /se (?:precisar|quiser)|fique [àa] vontade|[ée] s[oó] (?:avisar|pedir)/i.test(saved.reply.text))styleObservations.push({turn:turns,issue:'possible_unsolicited_offer',reply:saved.reply.text});
  if(/Não encontrei.*compromisso/.test(saved.reply.text))console.log(JSON.stringify({fictionalTargetDiagnostic:saved.interpretation,appointments:await p.appointment.findMany({where:{phoneNumberId:business},select:{id:true,title:true,state:true}})}));
- assert.equal(saved.interpretation.action,action);return saved;
+ assert.ok([action].flat().includes(saved.interpretation.action),`Expected ${action}; got ${saved.interpretation.action}`);return saved;
+}
+async function naturalConversation(){
+ const tasks=()=>p.reminder.findMany({where:{user:{phone},appointmentId:null,kind:'task'},orderBy:{createdAt:'asc'}});
+ const clock=d=>new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(d);
+ await turn('Me lembra amanhã de mandar o orçamento para Ana Souza.','create_reminder');
+ assert.equal((await tasks()).length,0,'Incomplete request must not schedule midnight');
+ await turn('Nove e meia da manhã.','create_reminder');
+ let rows=await tasks();assert.equal(rows.length,1);assert.equal(clock(rows[0].remindAt),'09:30');
+ const id=rows[0].id,initial=rows[0].remindAt.getTime();
+ await turn('Melhor às dez da manhã.','reschedule_reminder');
+ rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].id,id);assert.equal(rows[0].remindAt.getTime(),initial+1800000,'Clock correction must preserve calendar day');
+ await turn('Valeu!','conversation');
+ assert.equal((await tasks()).length,1);
+ await turn('Putz, esqueci de mandar. Só queria comentar mesmo.','conversation');
+ rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].state,'active');assert.equal(rows[0].taskProgress,'pending');
+ await turn('Me lembra depois de amanhã de revisar o contrato.','create_reminder');
+ assert.equal((await tasks()).length,1);
+ await turn('Não, deixa pra lá.','discard_draft');
+ rows=await tasks();assert.equal(rows.length,1);assert.equal(rows[0].state,'active','Discarding a draft must not cancel a saved task');
+ await turn('Me lembra amanhã às onze da manhã de conferir o estoque.','create_reminder');
+ rows=await tasks();assert.equal(rows.length,2);
+ const list=await turn('Lista minhas tarefas pendentes.','list_reminders');
+ assert.match(list.reply.text,/orçamento/i);assert.match(list.reply.text,/estoque/i);
+ await turn('O segundo.',['select_task','conversation']);
+ await turn('Pode concluir.','complete_reminder');
+ rows=await tasks();assert.equal(rows.find(r=>r.id===id).taskProgress,'pending');
+ assert.equal(rows.find(r=>r.id!==id).taskProgress,'completed','Only the selected item should be completed');
+ console.log(JSON.stringify({result:'passed',suite:'natural',turns,realWhatsAppSends:0,styleObservations}));
 }
 async function event(){return p.appointment.findFirstOrThrow({where:{phoneNumberId:business},include:{reminders:{where:{state:'active'}}}});}
-async function main(){try{
+async function main(){
+ // Fail before entering cleanup when the local database is unavailable.
+ try{await p.$queryRaw`SELECT 1`;}catch{await p.$disconnect();throw Error('Local test database unavailable. Start Docker/PostgreSQL before evaluation.');}
+ try{
+ if(process.argv.includes('--natural')){await naturalConversation();return;}
  await turn('Guarda no cadastro do cliente João Silva: o orçamento é R$ 500.','save_fact');
  await turn('Atualiza o orçamento do cliente João Silva para R$ 650.','save_fact');
  let r=await turn('Qual é o orçamento atual do João Silva?','search_facts');assert.match(r.reply.text,/650/);assert.doesNotMatch(r.reply.text,/500/);
