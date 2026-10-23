@@ -8,6 +8,8 @@ import { parseTimestamp, validateReminder } from "./reminder.validation";
 import { reminderLimits } from "./reminder.limits";
 import { reminderScope } from "./reminder.management";
 import { resolveSubject, normalizeName } from "./business.memory";
+import {appointmentAlternatives,slotLabel} from "./appointment.slots";
+import {shownAppointmentSuggestions} from "./appointment.suggestions";
 
 const formatDate=(date:Date,timeZone:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone,dateStyle:"short",timeStyle:"short"}).format(date);
 const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"];
@@ -30,6 +32,14 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
     return rows.length ? "Seus compromissos:\n"+rows.slice(0,10).map(a=>`• ${a.title.slice(0,160)} — ${display(a.startsAt)}${a.endsAt?" até "+display(a.endsAt):""}; avisos: ${a.reminders.map(r=>display(r.remindAt)).join(", ")||"nenhum"}`).join("\n")+(rows.length>10?"\nMostrei os dez primeiros. Consulte um período menor.":"") : "Você não tem compromissos nesse período.";
   }
   const user=await tx.user.upsert({where:{phone},create:{phone},update:{updatedAt:new Date()}});
+  if(intent.appointmentSuggestionId){
+    const suggestions=await shownAppointmentSuggestions(tx,phone,phoneNumberId,new Date()),slot=suggestions?.items[intent.appointmentSuggestionIndex ?? -1];
+    if(!suggestions || suggestions.id!==intent.appointmentSuggestionId || !slot || intent.datetime!==slot.startsAt || intent.action!==suggestions.request.action)return "Essas opções mudaram ou expiraram. Peça novamente os horários antes de escolher.";
+    const index=intent.appointmentSuggestionIndex;
+    await tx.event.delete({where:{id:suggestions.id}});
+    for(const key of Object.keys(intent))delete (intent as any)[key];
+    Object.assign(intent,suggestions.request,{datetime:slot.startsAt,appointmentSuggestionId:suggestions.id,appointmentSuggestionIndex:index});
+  }
   let appointment:Appointment|undefined;
   if(intent.action!=="create_appointment") {
     const search=intent.search?.trim();
@@ -78,7 +88,14 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   if(endsAt && endsAt<=startsAt)return "A duração desse compromisso não está válida. Qual é a duração correta?";
   if(intent.action!=="set_appointment_alerts"){
     const conflicts=await tx.appointment.findMany({where:{...scope,state:"active",...(appointment?{id:{not:appointment.id}}:{}),startsAt:{lt:endsAt || new Date(startsAt.getTime()+1)},...(endsAt?{OR:[{endsAt:{gt:startsAt}},{endsAt:null,startsAt:{gte:startsAt}}]}:{endsAt:{gt:startsAt}})},select:{title:true,startsAt:true,endsAt:true},orderBy:{startsAt:"asc"},take:3});
-    if(conflicts.length)return "Esse horário se sobrepõe a compromissos na sua agenda cadastrada:\n"+conflicts.map(c=>`• ${c.title.slice(0,100)} — ${display(c.startsAt)}${c.endsAt?" até "+display(c.endsAt):" (fim não informado)"}`).join("\n")+"\nNão alterei o agendamento. Qual outro horário você prefere?";
+    if(conflicts.length){
+      const alternatives=endsAt?await appointmentAlternatives(tx,phone,phoneNumberId,startsAt,endsAt.getTime()-startsAt.getTime(),timezone,appointment?.id,Math.max(...(intent.alertMinutes || oldAlerts.map(a=>a.appointmentOffsetMinutes || 0)),0)):[];
+      if(alternatives.length){
+        const request=JSON.parse(JSON.stringify({...intent,...(appointment?{expectedVersion:appointment.version}:{})}));
+        await tx.event.create({data:{userId:user.id,type:"appointment_suggestions",source:"secretaria",payload:{phoneNumberId,sourceMessageId,request,items:alternatives.map(a=>({startsAt:a.startsAt.toISOString(),endsAt:a.endsAt.toISOString()}))}}});
+      }
+      return "Esse horário se sobrepõe a compromissos na sua agenda cadastrada:\n"+conflicts.map(c=>`• ${c.title.slice(0,100)} — ${display(c.startsAt)}${c.endsAt?" até "+display(c.endsAt):" (fim não informado)"}`).join("\n")+"\nNão alterei o agendamento."+(alternatives.length?"\nNa agenda cadastrada, estas opções posteriores cabem no mesmo dia:\n"+alternatives.map((s,i)=>`${i+1}. ${slotLabel(s,timezone)}`).join("\n")+"\nQual opção você prefere? Ainda não consultei agendas externas.":endsAt?" Não encontrei outra opção segura no restante desse dia. Qual outro dia ou horário você prefere?":" Qual é a duração para eu procurar alternativas sem presumir o término?");
+    }
   }
   const offsets=intent.alertMinutes || (appointment ? oldAlerts.map(r=>r.appointmentOffsetMinutes ?? 0) : [0]);
   if(!offsets.length || offsets.length>3)return "Quais avisos você quer? Posso preparar até três por compromisso.";

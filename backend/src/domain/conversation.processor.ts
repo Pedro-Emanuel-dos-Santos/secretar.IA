@@ -14,6 +14,7 @@ import { guardSubjectPeriod } from "./agenda.period";
 import { socialAcknowledgement } from "./conversation.social";
 import { guardCurrentTarget } from "./conversation.target";
 import {guardAppointmentDuration} from "./appointment.duration";
+import {chooseAppointmentSuggestion} from "./appointment.suggestions";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -40,6 +41,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       // not invented by the language model.
       delete validated.expectedVersion;
       delete validated.expectedSubjectId;
+      delete validated.appointmentSuggestionId;delete validated.appointmentSuggestionIndex;
       applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null,(context as any)?.conversationState?.selectedTask || null);
       guardCurrentTarget(validated,message.text,context);
       if(validated.action==="set_task_subject"){
@@ -89,6 +91,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if (relative) validated.datetime = relative;
         else preserveRescheduleParts(validated,message.text,context,message.receivedAt);
       }
+      chooseAppointmentSuggestion(validated,message.text,(context as any)?.conversationState?.appointmentSuggestions || null);
       return validated;
     })(), new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(new Error("Preparação sem resposta no prazo.")), timeoutMs);

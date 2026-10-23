@@ -24,6 +24,8 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  appointmentSuggestionId?:string;
+  appointmentSuggestionIndex?:number;
   memoryId?:string|null;
   memoryKind?:"routine"|"preference"|"person"|"goal";
   action: AIAction;

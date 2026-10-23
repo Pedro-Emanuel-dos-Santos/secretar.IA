@@ -8,6 +8,7 @@ import { shownTaskList,shownTaskFocus } from "./task.selection";
 import { recentConversationFocus } from "./conversation.focus";
 import { findPersonalMemories,personalMemoryActions } from "./personal.memory";
 import { personalMemoryPolicy } from "./personal.memory.consent";
+import {shownAppointmentSuggestions} from "./appointment.suggestions";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -58,6 +59,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
   const {focusedReminder,focusedAppointment}=await recentConversationFocus(store,message.phone,message.phoneNumberId,message.receivedAt,draftHistory);
   const taskList=await shownTaskList(store,message.phone,message.phoneNumberId,message.receivedAt);
   const selectedTask=await shownTaskFocus(store,message.phone,message.phoneNumberId,message.receivedAt);
+  const appointmentSuggestions=await shownAppointmentSuggestions(store,message.phone,message.phoneNumberId,message.receivedAt);
   let focusedSubject:{id:string;name:string;kind:string}|null=null;
   for(const row of draftHistory){
     if(row.receivedAt<since)break;
@@ -94,7 +96,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
     currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, appointments, recentAlerts, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,selectedTask,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().filter(row=>{
       if(memoryEnabled)return true;
