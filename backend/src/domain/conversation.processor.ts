@@ -16,6 +16,7 @@ import { guardCurrentTarget } from "./conversation.target";
 import {guardAppointmentDuration} from "./appointment.duration";
 import {chooseAppointmentSuggestion} from "./appointment.suggestions";
 import {subjectProposalCommand} from "./subject.proposal";
+import {pendingFollowupIntent} from "./subject.pending.followup";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -38,11 +39,14 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   try {
     return await Promise.race([(async () => {
       const context = await deps.buildContext(message);
+      const followup=pendingFollowupIntent((context as any)?.conversationState?.pendingFollowup || null);
+      if(followup)return followup;
       const interpretation = await deps.interpret(context,deps.onUsage);
       const validated = parseInterpretation(JSON.stringify(interpretation));
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;
+      delete validated.subjectPendingId;
       delete validated.expectedSubjectId;
       delete validated.appointmentSuggestionId;delete validated.appointmentSuggestionIndex;
       applyTaskSelection(validated,message.text,(context as any)?.conversationState?.shownTaskList || null,(context as any)?.conversationState?.selectedTask || null);

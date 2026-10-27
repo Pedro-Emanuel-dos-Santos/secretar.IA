@@ -9,7 +9,8 @@ import { recentConversationFocus } from "./conversation.focus";
 import { findPersonalMemories,personalMemoryActions } from "./personal.memory";
 import { personalMemoryPolicy } from "./personal.memory.consent";
 import {shownAppointmentSuggestions} from "./appointment.suggestions";
-type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference">;
+import {pendingFollowupContext,subjectFromPendingAudit} from "./subject.pending.followup";
+type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference" | "subjectPending">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
   const since = new Date(message.receivedAt.getTime() - 30 * 60_000);
@@ -64,6 +65,10 @@ export async function conversationContext(store: Store, message: IncomingConvers
   for(const row of draftHistory){
     if(row.receivedAt<since)break;
     let intent;try{intent=parseInterpretation(JSON.stringify(row.interpretation));}catch{continue;}
+    if(intent.action==="update_subject_pending" && intent.subjectPendingId){
+      if(row.reply?.status==="provider_accepted" && row.reply.finishedAt && row.reply.finishedAt<=message.receivedAt)focusedSubject=await subjectFromPendingAudit(store,message.phone,message.phoneNumberId,row.id,intent.subjectPendingId);
+      break;
+    }
     if(intent.action==="confirm_subject_update"){
       if(row.reply?.status!=="provider_accepted" || !row.reply.finishedAt || row.reply.finishedAt>message.receivedAt)break;
       const applied=await store.event.findFirst({where:{type:"subject_update_proposal",user:{phone:message.phone},AND:[{payload:{path:["phoneNumberId"],equals:message.phoneNumberId}},{payload:{path:["confirmationMessageId"],equals:row.id}},{payload:{path:["status"],equals:"applied"}}]},orderBy:{createdAt:"desc"}});
@@ -100,11 +105,12 @@ export async function conversationContext(store: Store, message: IncomingConvers
         originalMessage:row.text.slice(0,1000),receivedAt:row.receivedAt.toISOString()};break;
     }
   }
+  const pendingFollowup=await pendingFollowupContext(store,message);
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
     currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, appointments, recentAlerts, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().filter(row=>{
       if(memoryEnabled)return true;

@@ -1,5 +1,16 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Continuidade de pendências — próximo incremento
+
+Implementado retorno “O Evandro respondeu, agora falta revisar o contrato” com
+referência recente confiável ou prefixo explícito “No projeto Piloto,”. Atualiza
+a mesma pendência waiting→pending, limpa espera, preserva fatos e histórico.
+Revalidação no executor com ID/versão internos, sem confiar em ID da IA; duas
+pendências possíveis pedem esclarecimento. Ver PENDING-FOLLOWUPS.md.
+TypeScript,264 integrações e11 cenários repetidos na revisão final aprovados.
+Imagem em finalização; ainda não declarar publicado este incremento. Produção
+confirmada abaixo continua0d9004f até verificar o novo rollout.
+
 ## Publicação concluída — estado mais recente
 
 Teste real posterior passou: projeto Piloto criado com status em análise; mensagem

@@ -26,6 +26,7 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  subjectPendingId?:string;
   nextAction?:string|null;
   pendingState?:"pending"|"waiting"|"completed"|"cancelled";
   appointmentSuggestionId?:string;

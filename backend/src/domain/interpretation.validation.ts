@@ -28,6 +28,7 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.subjectPendingId!==undefined){if(typeof record.subjectPendingId!=="string" || !record.subjectPendingId || record.subjectPendingId.length>100)throw Error("Referência de pendência inválida.");extra.subjectPendingId=record.subjectPendingId;}
   if(record.nextAction!==undefined && record.nextAction!==null){if(typeof record.nextAction!=="string" || !record.nextAction.trim() || record.nextAction.length>300)throw Error("Próxima ação inválida.");extra.nextAction=record.nextAction.trim();}
   if(record.pendingState!==undefined && record.pendingState!==null){if(!["pending","waiting","completed","cancelled"].includes(record.pendingState as string))throw Error("Estado de pendência inválido.");extra.pendingState=record.pendingState as AIInterpretation["pendingState"];}
   if(record.appointmentSuggestionId!==undefined){if(typeof record.appointmentSuggestionId!=="string" || record.appointmentSuggestionId.length>100 || !Number.isSafeInteger(record.appointmentSuggestionIndex) || (record.appointmentSuggestionIndex as number)<0 || (record.appointmentSuggestionIndex as number)>2)throw Error("Opção de compromisso inválida.");extra.appointmentSuggestionId=record.appointmentSuggestionId;extra.appointmentSuggestionIndex=record.appointmentSuggestionIndex as number;}

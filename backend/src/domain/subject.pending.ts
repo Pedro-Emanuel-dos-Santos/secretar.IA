@@ -2,6 +2,7 @@ import type { Prisma,BusinessSubject } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
 import { resolveSubject,normalizeName } from "./business.memory";
 import { mentionsName } from "./conversation.references";
+import {pendingFollowupContext} from "./subject.pending.followup";
 
 export const subjectPendingActions=new Set(["create_subject_pending","list_subject_pendings","update_subject_pending"]);
 const open=["pending","waiting"];
@@ -14,6 +15,14 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
  const reading=intent.action==="list_subject_pendings";
  const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId}});
  if(!source)throw Error("Origem incompatível.");
+ let followup=false;
+ if(intent.subjectPendingId){
+  if(intent.action!=="update_subject_pending" || !Number.isSafeInteger(intent.expectedVersion) || intent.pendingState!=="pending" || intent.waitingFor)return "Preciso revalidar a referência dessa pendência. Consulte o projeto antes de atualizar.";
+  if(await tx.event.findFirst({where:{id:`subject_pending_change:${sourceMessageId}`,user:{phone},payload:{path:["phoneNumberId"],equals:phoneNumberId}}}))return "Essa alteração de pendência já foi registrada.";
+  const reference=await pendingFollowupContext(tx,source),candidate=reference?.candidates.length===1?reference.candidates[0]:null;
+  if(!candidate || candidate.id!==intent.subjectPendingId || candidate.version!==intent.expectedVersion || reference?.nextAction!==intent.nextAction || reference?.subject?.name!==intent.subject)return "A referência ou a pendência mudou desde a conversa. Consulte a posição atual antes de atualizar.";
+  followup=true;
+ }
  const name=intent.subject?.trim();
  let subject:BusinessSubject|undefined;
  if(name){
@@ -27,7 +36,7 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
   if(!rows.length)return "Não encontrei pendências nesse filtro.";
   return `Pendências${subject?` de ${subject.name}`:" registradas"} (sem aviso agendado):\n`+rows.slice(0,10).map(r=>pendingLine(r)+(subject?"":`\n  Assunto: ${r.subject.name}`)).join("\n")+(rows.length>10?"\nHá mais itens; consulte um projeto específico.":"");
  }
- if(!subject || !mentionsName(source.text,subject.name))return "Diga o nome completo do cliente ou projeto na atualização para eu registrar no assunto certo.";
+ if(!subject || !followup && !mentionsName(source.text,subject.name))return "Diga o nome completo do cliente ou projeto na atualização para eu registrar no assunto certo.";
  const text=normalizeName(source.text);
  if(authorization!=="confirmed_proposal" && (/[?]|\b(?:nao|nunca|talvez|se)\b/.test(text) || /^(?:como|qual|quando|sera|o que)\b/.test(text)))return "Você quer consultar a pendência ou registrar uma alteração? Não alterei os registros.";
  if(intent.datetime || /\b(?:avisa|avise|avisar|lembra|lembre|lembrar|notifica|notifique|amanha|hoje|semana|segunda|terca|quarta|quinta|sexta|sabado|domingo)\b|\d{1,2}[/:]\d{1,2}|\d{1,2}h\b/.test(text))return "Esse pedido inclui prazo ou aviso. Para não perder essa parte, diga se quer registrar apenas a pendência sem prazo ou criar um lembrete com dia e hora. Ainda não registrei nem agendei um aviso.";
@@ -54,10 +63,11 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
   await tx.event.create({data:{id:eventId,userId:user.id,type:"subject_pending_created",source:"secretaria",payload:{phoneNumberId,subjectId:subject.id,pendingId:record.id,sourceMessageId,state,nextAction:record.nextAction,waitingFor:record.waitingFor,version:0}}});
   return `Registrei em ${subject.name}:\n${pendingLine(record)}\nSem prazo definido e sem aviso agendado.`;
  }
- const matches=await tx.subjectPending.findMany({where:{...scope,subjectId:subject.id,normalizedTitle:key,state:{in:open}},take:2});
+ const matches=await tx.subjectPending.findMany({where:{...scope,subjectId:subject.id,...(intent.subjectPendingId?{id:intent.subjectPendingId}:{normalizedTitle:key}),state:{in:open}},take:2});
  if(matches.length!==1)return matches.length?"Há mais de uma pendência com esse título. Informe um título distinto para não alterar a errada.":"Não encontrei essa pendência aberta pelo título exato nesse projeto.";
  const current=matches[0],state=intent.pendingState || current.state;
- if(current.state==="waiting" && state==="pending" && !/\b(?:retoma|retome|retomar|reabre|reabra|reabrir|pendente|em andamento)\b/.test(text))return "Essa pendência estava aguardando retorno. Você quer retomar o trabalho ou apenas atualizar a próxima ação?";
+ if(intent.expectedVersion!==undefined && intent.expectedVersion!==current.version)return "Essa pendência mudou desde a conversa. Consulte a posição atual antes de atualizar.";
+ if(current.state==="waiting" && state==="pending" && !followup && !/\b(?:retoma|retome|retomar|reabre|reabra|reabrir|pendente|em andamento)\b/.test(text))return "Essa pendência estava aguardando retorno. Você quer retomar o trabalho ou apenas atualizar a próxima ação?";
  if(state==="completed" && !/\b(?:conclui|concluir|conclua|concluido|concluida|finaliza|finalize|finalizado|finalizada|resolvido|resolvida)\b/.test(text))return "Para concluir, diga explicitamente qual pendência foi concluída.";
  if(state==="cancelled" && !/\b(?:cancela|cancele|cancelar|cancelado|cancelada)\b/.test(text))return "Para cancelar, diga explicitamente qual pendência deve ser cancelada.";
  const waitingFor=state==="waiting"?(intent.waitingFor || current.waitingFor):null;
@@ -66,6 +76,6 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
  if(current.state===state && current.nextAction===nextAction && current.waitingFor===waitingFor)return "Essa pendência já está com essas informações. Mantive o registro existente.";
  const changed=await tx.subjectPending.updateMany({where:{id:current.id,version:current.version,...scope},data:{state,nextAction,waitingFor,version:{increment:1}}});
  if(!changed.count)return "Essa pendência mudou durante a atualização. Consulte a posição atual antes de tentar novamente.";
- await tx.event.create({data:{id:eventId,userId:user.id,type:"subject_pending_updated",source:"secretaria",payload:{phoneNumberId,subjectId:subject.id,pendingId:current.id,sourceMessageId,previous:{state:current.state,nextAction:current.nextAction,waitingFor:current.waitingFor,version:current.version},state,nextAction,waitingFor,version:current.version+1}}});
+ await tx.event.create({data:{id:eventId,userId:user.id,type:"subject_pending_updated",source:"secretaria",payload:{phoneNumberId,subjectId:subject.id,pendingId:current.id,sourceMessageId,resolvedBy:followup?"interlocutor_response":"explicit_update",previous:{state:current.state,nextAction:current.nextAction,waitingFor:current.waitingFor,version:current.version},state,nextAction,waitingFor,version:current.version+1}}});
  return `Atualizei em ${subject.name}:\n${pendingLine({...current,state,nextAction,waitingFor})}\nNenhum aviso foi criado ou alterado.`;
 }
