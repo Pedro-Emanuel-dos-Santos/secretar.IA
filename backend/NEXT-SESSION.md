@@ -1,13 +1,28 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Incremento mais recente: propostas compostas
+
+Ler SUBJECT-PROPOSALS.md. Implementado localmente: propose_subject_update e
+comandos controlados de confirmar/descartar. Campo factual e nova pendência sem
+prazo são persistidos atomicamente após revisão da proposta enviada, com
+expiração, revalidação e consumo único. Sem migração extra além de SubjectPending.
+Ainda sem push/deploy; produção continua fe88705. Validação real de IA/WhatsApp
+pendente; não confundir simulação de fornecedor com comprovação da experiência.
+Validação concluída:244 unitários,255 integrações PostgreSQL, TypeScript e imagem
+subject-proposal-release-20261027 aprovados; smoke compilado Node24.22.1/UID1000/
+SubjectPending/comando de confirmação passou sem banco ou mensagem real. Logs
+subject-proposal-* na workspace. Próximo marco: avaliação com IA real da captura
+de propostas e preparação da publicação coordenada (backup e migração17 antes
+de liberar a versão integrada). A tabela nova ainda existe só no banco local.
+
 ## Incremento local mais recente: pendências sem prazo
 
 Ler SUBJECT-PENDINGS.md. SubjectPending, ações de criar/listar/atualizar e resumo
 do assunto implementados. Migração aditiva20261027170000_add_subject_pendings
 aplicada só no banco local de testes. Worker aguarda tabela. Sem push/deploy;
 produção continua fe88705. Não apresentar este incremento como proposta composta
-pronta: próxima etapa é atualização de fato + acompanhamento proposto com
-confirmação vinculada à versão e execução atômica.
+pronta na época dessa nota; essa etapa foi implementada depois, conforme seção
+de propostas compostas acima, e permanece local.
 MEU DIA também mostra até três pendências sem prazo com próximas ações, sem
 confundi-las com avisos de hoje. Validação final dessa conexão: TypeScript e47
 integrações afetadas aprovados. Núcleo:243 unitários,240 integrações na suíte

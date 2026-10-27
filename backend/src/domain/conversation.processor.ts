@@ -15,6 +15,7 @@ import { socialAcknowledgement } from "./conversation.social";
 import { guardCurrentTarget } from "./conversation.target";
 import {guardAppointmentDuration} from "./appointment.duration";
 import {chooseAppointmentSuggestion} from "./appointment.suggestions";
+import {subjectProposalCommand} from "./subject.proposal";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -25,6 +26,8 @@ export type ConversationDependencies = {
 };
 
 export async function prepareConversation(message: IncomingConversation, deps: ConversationDependencies, timeoutMs = 45000) {
+  const proposalCommand=!message.mediaId && subjectProposalCommand(message.text);
+  if(proposalCommand)return proposalCommand;
   const button = !message.mediaId && buttonInterpretation(message.text, message.receivedAt);
   if (button) return button;
   const command = localCommandIntent(message.text);

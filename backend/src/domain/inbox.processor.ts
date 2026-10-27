@@ -14,6 +14,7 @@ import { executePersonalMemory,personalMemoryActions } from "./personal.memory";
 import { executeFact } from "./business.memory";
 import { subjectOverview } from "./subject.overview";
 import { executeSubjectPending,subjectPendingActions } from "./subject.pending";
+import { executeSubjectProposal,subjectProposalActions,subjectProposalCommand } from "./subject.proposal";
 import { agendaOverview } from "./agenda.overview";
 import { executeAppointment } from "./appointments";
 import { executePreferences,contactTimezone } from "./preferences";
@@ -59,7 +60,7 @@ async function prepareIntent(store: Store, row: IncomingMessage, deps: Conversat
   });
   if (!claim.count) return;
   try {
-    const directCommand = localCommand(row.text) || (!row.mediaId && row.text.startsWith("sr1:"));
+    const directCommand = localCommand(row.text) || (!row.mediaId && (row.text.startsWith("sr1:") || subjectProposalCommand(row.text)));
     const budgetReply = directCommand ? null : await requestBudget(store,row);
     let audioError = false;
     if (!budgetReply && row.mediaId && !row.transcribedAt) {
@@ -134,7 +135,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>personalMemoryActions.has(intent.action)?executePersonalMemory(row.phone,row.phoneNumberId,intent,tx,row):executeNote(row.phone,row.phoneNumberId,intent,tx),
       intent=>intent.action==="agenda_overview"?agendaOverview(row.phone,row.phoneNumberId,tx,intent.agendaPeriod || "week",row.receivedAt,{subject:intent.subject || undefined,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd}):intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx,row.id)
-        : subjectPendingActions.has(intent.action)?executeSubjectPending(row.phone,row.phoneNumberId,intent,tx,row.id):executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
+        : subjectProposalActions.has(intent.action)?executeSubjectProposal(row.phone,row.phoneNumberId,intent,tx,row.id):subjectPendingActions.has(intent.action)?executeSubjectPending(row.phone,row.phoneNumberId,intent,tx,row.id):executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({
         where: { id: row.id }, data: { status: "reply_pending", leaseToken: null, leaseUntil: null, lastError: ["audio_unreadable","request_quota"].includes(row.lastError || "") ? row.lastError : null },

@@ -71,10 +71,17 @@ Cenário fictício:
 7. Em outra conversa, recuperar a situação persistida e a próxima ação. Distinguir
    “não há confirmação registrada” de “não aconteceu”.
 
-Este ciclo ainda não está implementado e validado de ponta a ponta. Não prometer
-registro composto de várias ações com base nos recursos isolados existentes.
+O primeiro registro composto de um campo factual e uma pendência sem prazo foi
+implementado localmente, com proposta e confirmação (SUBJECT-PROPOSALS.md).
+O ciclo amplo ainda não foi validado de ponta a ponta com IA real e WhatsApp.
+Não prometer operações compostas arbitrárias com base nesse incremento limitado.
 
 ## Ordem de implementação
+
+Proposta de informação + nova pendência sem prazo implementada localmente;
+contrato e limites em SUBJECT-PROPOSALS.md. Ainda falta avaliação com IA real,
+publicação coordenada da versão integrada e uso real validado; as fases abaixo
+descrevem a direção, não uma comprovação de prontidão comercial/institucional.
 
 Incremento seguinte implementado localmente em 27/10: SubjectPending separa
 pendências de avisos, com próxima ação, espera, estados e resumo por assunto.

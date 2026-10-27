@@ -15,8 +15,8 @@ export function guardSubjectReference(intent:AIInterpretation,text:string,contex
  const focused=context?.conversationState?.focusedSubject;
  const pronoun=/\b(?:dele|dela|desse cliente|dessa cliente|desse projeto|dessa empresa|com ele|com ela)\b/.test(s);
  const target=explicit.length===1?explicit[0]:explicit.length===0 && pronoun?focused:null;
- if(["create_subject_pending","update_subject_pending","list_subject_pendings"].includes(intent.action) && explicit.length>1){intent.action="conversation";intent.subject=null;intent.reply="De qual cliente ou projeto você quer tratar a pendência?";return;}
- if(["create_subject_pending","update_subject_pending"].includes(intent.action) && explicit.length===1){intent.subject=explicit[0].name;intent.subjectKind=explicit[0].kind==="project"?"project":"client";}
+ if(["propose_subject_update","create_subject_pending","update_subject_pending","list_subject_pendings"].includes(intent.action) && explicit.length>1){intent.action="conversation";intent.subject=null;intent.reply="De qual cliente ou projeto você quer tratar a pendência?";return;}
+ if(["propose_subject_update","create_subject_pending","update_subject_pending"].includes(intent.action) && explicit.length===1){intent.subject=explicit[0].name;intent.subjectKind=explicit[0].kind==="project"?"project":"client";}
  if(intent.action==="list_subject_pendings" && target){intent.subject=target.name;intent.subjectKind=target.kind==="project"?"project":"client";}
  if(target && /\b(?:cliente|projeto)\b/.test(s) && ["subject_overview","agenda_overview","search_facts","list_reminders"].includes(intent.action)){intent.subjectKind=target.kind==="project"?"project":"client";}
  const agendaRead=!/\b(?:nao|nunca)\b/.test(s) && (/^(?:e )?(?:a )?agenda\b/.test(s) || /\b(?:como esta|como ficou|qual e|mostra|mostre|consultar|consulta|ver)\b.*\bagenda\b/.test(s));

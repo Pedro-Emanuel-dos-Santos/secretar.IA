@@ -1,4 +1,5 @@
 export type AIAction =
+  | "propose_subject_update" | "confirm_subject_update" | "discard_subject_update"
   | "create_subject_pending" | "list_subject_pendings" | "update_subject_pending"
   | "remember_personal" | "recall_personal" | "update_personal" | "forget_personal"
   | "agenda_overview"

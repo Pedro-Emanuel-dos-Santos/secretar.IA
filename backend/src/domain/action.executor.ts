@@ -27,6 +27,8 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
   manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo",reference=new Date()): Promise<string> {
   switch (interpretation.action) {
+    case "propose_subject_update": case "confirm_subject_update": case "discard_subject_update":
+      return business ? business(interpretation) : "As propostas de atualização ainda não estão disponíveis aqui.";
     case "create_subject_pending": case "list_subject_pendings": case "update_subject_pending":
       return business ? business(interpretation) : "As pendências por assunto ainda não estão disponíveis aqui.";
     case "agenda_overview":

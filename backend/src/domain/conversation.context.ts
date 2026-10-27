@@ -64,6 +64,13 @@ export async function conversationContext(store: Store, message: IncomingConvers
   for(const row of draftHistory){
     if(row.receivedAt<since)break;
     let intent;try{intent=parseInterpretation(JSON.stringify(row.interpretation));}catch{continue;}
+    if(intent.action==="confirm_subject_update"){
+      if(row.reply?.status!=="provider_accepted" || !row.reply.finishedAt || row.reply.finishedAt>message.receivedAt)break;
+      const applied=await store.event.findFirst({where:{type:"subject_update_proposal",user:{phone:message.phone},AND:[{payload:{path:["phoneNumberId"],equals:message.phoneNumberId}},{payload:{path:["confirmationMessageId"],equals:row.id}},{payload:{path:["status"],equals:"applied"}}]},orderBy:{createdAt:"desc"}});
+      const subjectId=(applied?.payload as {subjectId?:unknown}|null)?.subjectId;
+      if(typeof subjectId==="string")focusedSubject=await store.businessSubject.findFirst({where:{id:subjectId,user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{id:true,name:true,kind:true}});
+      break;
+    }
     if(intent.subject){
       // Recover by exact scoped name, including subjects outside the eight-row
       // context preview. A model-supplied pronoun is never a new identity.
@@ -85,6 +92,7 @@ export async function conversationContext(store: Store, message: IncomingConvers
   for(const row of draftHistory){
     let intent;
     try{intent=row.interpretation ? parseInterpretation(JSON.stringify(row.interpretation)) : null;}catch{continue;}
+    if(["propose_subject_update","confirm_subject_update","discard_subject_update","create_subject_pending","update_subject_pending"].includes(intent?.action || ""))break;
     if(row.reminder || intent?.action==="discard_draft" || ["reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent?.action || "") && intent?.datetime)break;
     if(intent?.draft && ["create_reminder","reschedule_reminder","create_appointment","reschedule_appointment"].includes(intent.action)){
       pendingRequest={action:intent.action,title:intent.title,description:intent.description,draft:intent.draft,

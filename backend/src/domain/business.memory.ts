@@ -6,7 +6,7 @@ import { factProvenance,factOriginSelection } from "./fact.provenance";
 
 export const normalizeName = (s:string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
 const label=(key:string)=>key==="orcamento"?"Orçamento":key.replace(/_/g," ");
-function factKey(s:string) {
+export function factKey(s:string) {
   const key=normalizeName(s).replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
   return ["budget","valor","valor_orcamento","preco","orcamento"].includes(key) ? "orcamento" : key;
 }

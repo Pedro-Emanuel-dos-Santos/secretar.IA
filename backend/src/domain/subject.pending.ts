@@ -9,7 +9,7 @@ const labels:Record<string,string>={pending:"pendente",waiting:"aguardando",comp
 export function pendingLine(row:{title:string;state:string;nextAction:string|null;waitingFor:string|null}){
  return `• ${row.title} — ${labels[row.state] || row.state}${row.waitingFor?`; aguardando ${row.waitingFor}`:""}${row.nextAction?`\n  Próxima ação: ${row.nextAction}`:""}`;
 }
-export async function executeSubjectPending(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId:string){
+export async function executeSubjectPending(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId:string,authorization?:"confirmed_proposal"){
  const scope={user:{phone},phoneNumberId};
  const reading=intent.action==="list_subject_pendings";
  const source=await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId}});
@@ -29,7 +29,7 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
  }
  if(!subject || !mentionsName(source.text,subject.name))return "Diga o nome completo do cliente ou projeto na atualização para eu registrar no assunto certo.";
  const text=normalizeName(source.text);
- if(/[?]|\b(?:nao|nunca|talvez|se)\b/.test(text) || /^(?:como|qual|quando|sera|o que)\b/.test(text))return "Você quer consultar a pendência ou registrar uma alteração? Não alterei os registros.";
+ if(authorization!=="confirmed_proposal" && (/[?]|\b(?:nao|nunca|talvez|se)\b/.test(text) || /^(?:como|qual|quando|sera|o que)\b/.test(text)))return "Você quer consultar a pendência ou registrar uma alteração? Não alterei os registros.";
  if(intent.datetime || /\b(?:avisa|avise|avisar|lembra|lembre|lembrar|notifica|notifique|amanha|hoje|semana|segunda|terca|quarta|quinta|sexta|sabado|domingo)\b|\d{1,2}[/:]\d{1,2}|\d{1,2}h\b/.test(text))return "Esse pedido inclui prazo ou aviso. Para não perder essa parte, diga se quer registrar apenas a pendência sem prazo ou criar um lembrete com dia e hora. Ainda não registrei nem agendei um aviso.";
  if(intent.factKey || intent.factValue)return "Essa mensagem reúne atualização de informação e pendência. Vamos registrar uma de cada vez: qual você quer primeiro?";
  if(intent.waitingFor && !mentionsName(source.text,intent.waitingFor))return "Quem ou o que você está aguardando? Preciso dessa informação explícita para não atribuir a pendência à pessoa errada.";
