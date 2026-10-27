@@ -44,8 +44,8 @@ export async function executeLocalCommand(command: LocalCommand, phone: string, 
   if(command==="week" || command==="next_week" || command==="tomorrow" || command==="day_after_tomorrow" || command==="next_7_days")return agendaOverview(phone,phoneNumberId,tx,command,current?.receivedAt || new Date());
   if(command==="erase_request")return requestContentDeletion(phone,phoneNumberId,tx);
   if(command==="erase_confirm")return current?confirmContentDeletion(phone,phoneNumberId,tx,current):"Envie APAGAR MEUS DADOS para receber as instruções de confirmação.";
-  if(command==="audio_info")return presentAudioDisclosure(phone,phoneNumberId,tx);
-  if(command==="audio_accept" || command==="audio_revoke")return setAudioConsent(phone,phoneNumberId,command==="audio_accept",tx);
+  if(command==="audio_info")return presentAudioDisclosure(phone,phoneNumberId,tx,current?.id);
+  if(command==="audio_accept" || command==="audio_revoke")return setAudioConsent(phone,phoneNumberId,command==="audio_accept",tx,current?.id);
   if(command==="profile" || command==="usage")return executePreferences(phone,phoneNumberId,{action:command==="profile"?"show_preferences":"usage_summary",title:null,description:null,datetime:null,category:null,amount:null,reply:"interno"},tx);
   if (command === "today") return dayOverview(phone,phoneNumberId,tx,current?.receivedAt || new Date());
   if (command === "help") return "Sou a Secretár.IA. Posso ajudar com sua rotina, tarefas e compromissos. MEMORIA PESSOAL explica como guardar preferências, pessoas e objetivos com sua autorização; MINHAS MEMORIAS consulta e DESATIVAR MEMORIA interrompe o uso futuro. Exemplos:\n" +

@@ -2,7 +2,7 @@ require('./register.cjs');
 const {test,after}=require('node:test'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
 const {createPrismaClient}=require('../src/config/database.ts');
 const {executeNote,findNotes}=require('../src/domain/notes.ts');
-const {executePreferences,setAudioConsent}=require('../src/domain/preferences.ts');
+const {executePreferences,setAudioConsent,presentAudioDisclosure}=require('../src/domain/preferences.ts');
 const {persistReminder}=require('../src/domain/reminder.creator.ts');
 const {manageReminders}=require('../src/domain/reminder.management.ts');
 const {dayOverview}=require('../src/domain/day.overview.ts');
@@ -53,6 +53,11 @@ test('consentimento de áudio não pode ser inferido pela IA e é específico do
  const oldProvider=process.env.AUDIO_TRANSCRIPTION_PROVIDER;process.env.AUDIO_TRANSCRIPTION_PROVIDER='local';
  try{
   assert.match(await prefs({audioConsent:true}),/ACEITO AUDIO/);assert.equal((await p.contactPreference.findUniqueOrThrow({where:{phoneNumberId_phone:{phoneNumberId:biz,phone}}})).audioConsent,false);
+  assert.match(await p.$transaction(tx=>setAudioConsent(phone,biz,true,tx)),/ACEITO AUDIO/);
+  assert.equal((await p.contactPreference.findUniqueOrThrow({where:{phoneNumberId_phone:{phoneNumberId:biz,phone}}})).audioConsent,false);
+  const source=await incoming('AUDIO',{status:'completed'});
+  const explanation=await p.$transaction(tx=>presentAudioDisclosure(phone,biz,tx,source.id));
+  await p.replyOutbox.create({data:{messageId:source.id,text:explanation,status:'provider_accepted'}});
   await p.$transaction(tx=>setAudioConsent(phone,biz,true,tx));let preference=await p.contactPreference.findUniqueOrThrow({where:{phoneNumberId_phone:{phoneNumberId:biz,phone}}});assert.equal(preference.audioConsentProvider,'local');
   await p.$transaction(tx=>setAudioConsent(phone,biz,false,tx));preference=await p.contactPreference.findUniqueOrThrow({where:{phoneNumberId_phone:{phoneNumberId:biz,phone}}});assert.equal(preference.audioConsent,false);assert.equal(preference.audioConsentProvider,null);
  }finally{if(oldProvider===undefined)delete process.env.AUDIO_TRANSCRIPTION_PROVIDER;else process.env.AUDIO_TRANSCRIPTION_PROVIDER=oldProvider;}

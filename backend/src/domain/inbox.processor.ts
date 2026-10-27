@@ -132,7 +132,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         return reminder;
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>personalMemoryActions.has(intent.action)?executePersonalMemory(row.phone,row.phoneNumberId,intent,tx,row):executeNote(row.phone,row.phoneNumberId,intent,tx),
       intent=>intent.action==="agenda_overview"?agendaOverview(row.phone,row.phoneNumberId,tx,intent.agendaPeriod || "week",row.receivedAt,{subject:intent.subject || undefined,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd}):intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
-        : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx)
+        : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx,row.id)
         : executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });
       await tx.incomingMessage.update({
@@ -148,29 +148,38 @@ async function prepareAction(store: Store, row: IncomingMessage) {
 
 export async function processInboxBatch(store: Store, deps: ConversationDependencies, phoneNumberId: string, shouldStop=()=>false) {
   const now = new Date();
+  const visitedIds: string[] = [];
+  const blockedPhones: string[] = [];
+  let prepared = 0;
+  // A backlog behind one contact's retry must not fill every global batch.
+  // Bound database work while continuing past blocked conversations.
+  for (let page = 0; page < 5 && visitedIds.length < 100; page++) {
   const rows = await store.incomingMessage.findMany({
-    where: { phoneNumberId, OR: [
+    where: { phoneNumberId, id: { notIn: visitedIds }, phone: { notIn: blockedPhones }, OR: [
       { status: { in: ["received", "interpreted"] }, nextAttemptAt: { lte: now } },
       { status: { in: ["interpreting", "executing"] }, leaseUntil: { lte: now } },
     ] },
     orderBy: [{ receivedAt: "asc" }, { id: "asc" }], take: 20,
   });
-  let prepared = 0;
+  if (!rows.length) break;
   for (const initial of rows) {
     if (shouldStop()) break;
+    visitedIds.push(initial.id);
     // Preserve a contact's conversation order, including during rolling deploys.
     // A later reply must not be interpreted before the previous action commits.
     if (!localCommand(initial.text) && typeof store.incomingMessage.findFirst === "function") {
       const earlier=await store.incomingMessage.findFirst({where:{phoneNumberId,phone:initial.phone,
         status:{in:["received","interpreting","interpreted","executing"]},
         OR:[{receivedAt:{lt:initial.receivedAt}},{receivedAt:initial.receivedAt,id:{lt:initial.id}}]},select:{id:true}});
-      if(earlier)continue;
+      if(earlier){ blockedPhones.push(initial.phone); continue; }
     }
     if (initial.status === "received" || initial.status === "interpreting") await prepareIntent(store, initial, deps);
     const row = await store.incomingMessage.findUnique({ where: { id: initial.id } });
     if (row && (row.status === "interpreted" || (row.status === "executing" && row.leaseUntil && row.leaseUntil <= new Date()))) {
       if (await prepareAction(store, row)) prepared++;
     }
+  }
+  if (shouldStop() || !blockedPhones.length) break;
   }
   return prepared;
 }

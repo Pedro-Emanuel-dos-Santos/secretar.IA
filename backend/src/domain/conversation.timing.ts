@@ -37,6 +37,12 @@ export function guardCorrectionTarget(intent:AIInterpretation,text:string,contex
  const s=text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const appointment=context?.conversationState?.focusedAppointment;
  const focused=context?.conversationState?.focusedReminder;
+ // A proposed correction phrased as a question is not permission to change the
+ // focused item, even when the model guessed a mutating action.
+ if(/^(?:melhor|na verdade)[, ]/.test(s) && /[?]|\b(?:nao|nunca|talvez|se)\b/.test(s) && ["create_reminder","create_appointment","reschedule_reminder","reschedule_appointment"].includes(intent.action)){
+  intent.action="conversation";intent.reminderId=null;intent.appointmentId=null;intent.datetime=null;intent.draft=undefined;
+  intent.reply="Não alterei o agendamento. Você quer confirmar esse novo horário?";return;
+ }
  // A complete day-only correction continues the existing item, even when the
  // model labels it as conversation or creation. Never guess between two items.
  const dayCorrection=/^(?:melhor|na verdade)[, ]+(?:(?:para|pra|fica para|fica pra)\s+)?(?:hoje|amanha|depois de amanha|(?:segunda|terca|quarta|quinta|sexta)(?:-feira)?|sabado|domingo)[.!]*$/.test(s);

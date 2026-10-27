@@ -111,3 +111,53 @@ test("HTTP + PostgreSQL: reentregas geram um lembrete, um job e uma resposta", a
     assert.match(replies[0], /Combinado/);
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
 });
+
+async function pendingReply(providerMessageId, text, offset, recipient=phone) {
+  const message=await prisma.incomingMessage.create({data:{providerMessageId,phoneNumberId:numberId,phone:recipient,text,status:"reply_pending",receivedAt:new Date(Date.now()-10000+offset)}});
+  return prisma.replyOutbox.create({data:{messageId:message.id,text}});
+}
+
+test("PostgreSQL: relays concorrentes preservam ordem sem segurar transação durante HTTP", async () => {
+  await clear();
+  await pendingReply("ordered-first","primeira",0);
+  await pendingReply("ordered-second","segunda",1);
+  await pendingReply("other-contact","outro contato",2,"5599999999998");
+  let release,started;
+  const gate=new Promise(resolve=>release=resolve),firstStarted=new Promise(resolve=>started=resolve);
+  const accepted=[];
+  const send=async(_,text)=>{
+    if(text==="primeira"){started();await gate;}
+    accepted.push(text);return {messages:[{id:"wamid."+text}]};
+  };
+  const first=relayReplies(prisma,send,numberId);
+  try {
+    await Promise.race([firstStarted,new Promise((_,reject)=>setTimeout(()=>reject(Error("primeiro envio não iniciou")),3000))]);
+    // This completes while the first HTTP request is still outstanding.
+    await relayReplies(prisma,send,numberId);
+    assert.deepEqual(accepted,["outro contato"]);
+  } finally {release();await first;}
+  assert.deepEqual(accepted,["outro contato","primeira","segunda"]);
+});
+
+test("PostgreSQL: envio incerto não é repetido e não bloqueia respostas futuras", async () => {
+  await clear();
+  const old=await pendingReply("unknown-old","incerta",0);
+  await prisma.replyOutbox.update({where:{id:old.id},data:{status:"delivery_unknown"}});
+  await prisma.incomingMessage.update({where:{id:old.messageId},data:{status:"reply_unknown"}});
+  await pendingReply("unknown-new","nova resposta",1);
+  const sent=[];
+  await relayReplies(prisma,async(_,text)=>{sent.push(text);return {messages:[{id:"wamid.new"}]};},numberId);
+  assert.deepEqual(sent,["nova resposta"]);
+});
+
+test("PostgreSQL: vinte respostas atrás de envio em curso não bloqueiam outro contato", async () => {
+  await clear();
+  const sending=await pendingReply("sending-first","em envio",0);
+  await prisma.replyOutbox.update({where:{id:sending.id},data:{status:"sending"}});
+  await prisma.incomingMessage.update({where:{id:sending.messageId},data:{status:"reply_sending"}});
+  for(let i=0;i<20;i++)await pendingReply(`waiting-${i}`,`aguardando ${i}`,i+1);
+  await pendingReply("free-contact","outro contato",30,"5599999999998");
+  const sent=[];
+  await relayReplies(prisma,async(_,text)=>{sent.push(text);return {messages:[{id:"wamid.other"}]};},numberId);
+  assert.deepEqual(sent,["outro contato"]);
+});
