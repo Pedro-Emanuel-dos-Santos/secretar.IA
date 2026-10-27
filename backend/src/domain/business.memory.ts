@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type { AIInterpretation } from "../types/ai.types";
 import { findNotes, notesReply } from "./notes";
+import { contactTimezone } from "./preferences";
+import { factProvenance,factOriginSelection } from "./fact.provenance";
 
 export const normalizeName = (s:string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
 const label=(key:string)=>key==="orcamento"?"Orçamento":key.replace(/_/g," ");
@@ -42,11 +44,12 @@ export async function executeFact(phone:string,phoneNumberId:string,intent:AIInt
       const notes=await findNotes(tx,phone,phoneNumberId,name);
       return notes.length ? notesReply(notes) : "Não encontrei esse cliente ou projeto nos seus registros.";
     }
-    const rows=await tx.knowledgeFact.findMany({where:{subjectId:resolved.subject.id,...(key?{key}:{}),...(intent.includeHistory?{}:{supersededAt:null})},orderBy:[{createdAt:"desc"},{revision:"desc"}],take:16});
+    const rows=await tx.knowledgeFact.findMany({where:{subjectId:resolved.subject.id,...(key?{key}:{}),...(intent.includeHistory?{}:{supersededAt:null})},include:{sourceMessage:{select:factOriginSelection}},orderBy:[{createdAt:"desc"},{revision:"desc"}],take:16});
     if(!rows.length)return "Não encontrei essa informação no cadastro de "+resolved.subject.name+".";
+    const timezone=await contactTimezone(tx,phone,phoneNumberId);
     let reply=resolved.subject.name+":\n",shown=0;
     for(const r of rows.slice(0,15)){
-      const line=`• ${label(r.key)}: ${r.value}${intent.includeHistory ? ` (${r.supersededAt?"anterior":"atual"})` : ""}\n`;
+      const line=`• ${label(r.key)}: ${r.value}${intent.includeHistory ? ` (${r.supersededAt?"anterior":"atual"})` : ""}\n  ${factProvenance(r,phone,phoneNumberId,timezone)}\n`;
       if(reply.length+line.length>3500)break;reply+=line;shown++;
     }
     return reply.trim()+(shown<rows.length?"\nHá mais registros; consulte uma informação específica.":"");

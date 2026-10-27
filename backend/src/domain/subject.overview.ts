@@ -6,6 +6,7 @@ import { findNotes } from "./notes";
 import { mentionsName } from "./conversation.references";
 import { reminderScope } from "./reminder.management";
 import { agendaOverview } from "./agenda.overview";
+import { factProvenance,factOriginSelection } from "./fact.provenance";
 
 export async function subjectOverview(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,now=new Date()){
  const name=intent.subject?.trim();
@@ -18,14 +19,14 @@ export async function subjectOverview(phone:string,phoneNumberId:string,intent:A
  if(!result.subject)return "Não encontrei esse cliente ou projeto no cadastro.";
  const subject=result.subject;
  const [facts,appointments,noteCandidates,timezone,tasks]=await Promise.all([
-  tx.knowledgeFact.findMany({where:{subjectId:subject.id,supersededAt:null},orderBy:[{createdAt:"desc"},{id:"desc"}],take:9}),
+  tx.knowledgeFact.findMany({where:{subjectId:subject.id,supersededAt:null},include:{sourceMessage:{select:factOriginSelection}},orderBy:[{createdAt:"desc"},{id:"desc"}],take:9}),
   tx.appointment.findMany({where:{subjectId:subject.id,user:{phone},phoneNumberId,state:"active"},orderBy:[{startsAt:"asc"},{id:"asc"}],take:9}),
   findNotes(tx,phone,phoneNumberId,subject.name),contactTimezone(tx,phone,phoneNumberId),
   tx.reminder.findMany({where:{...reminderScope(phone,phoneNumberId),subjectId:subject.id,appointmentId:null,state:"active"},orderBy:[{remindAt:"asc"},{id:"asc"}],take:9}),
  ]);
  const notes=noteCandidates.filter(note=>mentionsName(note.text,subject.name));
  const lines=[`Registros de ${subject.name}:`];
- if(facts.length){lines.push("Dados atuais:");for(const fact of facts.slice(0,8))lines.push(`• ${fact.key==="orcamento"?"Orçamento":fact.key.replace(/_/g," ")}: ${fact.value}`);}
+ if(facts.length){lines.push("Informações atuais registradas:");for(const fact of facts.slice(0,8))lines.push(`• ${fact.key==="orcamento"?"Orçamento":fact.key.replace(/_/g," ")}: ${fact.value}\n  ${factProvenance(fact,phone,phoneNumberId,timezone)}`);}
  if(appointments.length){lines.push("Compromissos ativos:");for(const appointment of appointments.slice(0,8))lines.push(`• ${appointment.title.slice(0,160)} — ${new Intl.DateTimeFormat("pt-BR",{timeZone:timezone,dateStyle:"short",timeStyle:"short"}).format(appointment.startsAt)}`);}
  if(tasks.length){lines.push("Tarefas pendentes vinculadas:");for(const task of tasks.slice(0,8))lines.push(`• ${task.title.slice(0,160)} — ${new Intl.DateTimeFormat("pt-BR",{timeZone:timezone,dateStyle:"short",timeStyle:"short"}).format(task.remindAt)}${task.taskProgress==="waiting"?` (aguardando${task.waitingFor?" "+task.waitingFor:" resposta"})`:""}`);}
  if(notes.length){lines.push("Anotações que mencionam esse nome:");for(const note of notes.slice(0,3))lines.push(`• ${note.text.slice(0,240)}`);}

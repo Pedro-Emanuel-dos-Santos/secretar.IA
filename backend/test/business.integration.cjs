@@ -16,6 +16,25 @@ const call=async(action,fields={},owner=phone,business=biz)=>{const row=await in
 const fact=async(action,fields={},owner=phone,business=biz)=>{const row=await incoming('fato',owner,business);return p.$transaction(tx=>executeFact(owner,business,intent(action,fields),tx,row.id));};
 after(async()=>{await p.user.deleteMany({where:{phone:{in:[phone,other]}}});await p.incomingMessage.deleteMany({where:{phoneNumberId:{in:[biz,biz+'-other']}}});await p.contactPreference.deleteMany({where:{phoneNumberId:biz}});await p.$disconnect();});
 let id;
+
+test('posição de projeto e histórico apresentam origem sem tratar relato como verificação independente',async()=>{
+ const {subjectOverview}=require('../src/domain/subject.overview.ts');
+ const subject='Projeto Origem '+randomUUID();
+ const sources=[];
+ for(const [date,value] of [['2026-10-25T13:00:00Z','Aguardando documento'],['2026-10-26T14:30:00Z','Aguardando assinatura']]){
+  const source=await incoming('Atualização fictícia '+value);sources.push(source);
+  await p.incomingMessage.update({where:{id:source.id},data:{receivedAt:new Date(date)}});
+  await p.$transaction(tx=>executeFact(phone,biz,intent('save_fact',{subject,subjectKind:'project',factKey:'status',factValue:value}),tx,source.id));
+ }
+ const current=await fact('search_facts',{subject,subjectKind:'project',factKey:'status'});
+ assert.match(current,/Aguardando assinatura/);assert.doesNotMatch(current,/Aguardando documento/);assert.match(current,/Informado por você via WhatsApp em 26\/10\/2026, 11:30/);
+ const history=await fact('search_facts',{subject,subjectKind:'project',factKey:'status',includeHistory:true});
+ assert.match(history,/Aguardando documento \(anterior\)/);assert.match(history,/25\/10\/2026, 10:00/);
+ const overview=await p.$transaction(tx=>subjectOverview(phone,biz,intent('subject_overview',{subject,subjectKind:'project'}),tx));
+ assert.match(overview,/Informações atuais registradas/);assert.match(overview,/26\/10\/2026, 11:30/);assert.doesNotMatch(overview,/Aguardando documento/);
+ assert.match(await fact('search_facts',{subject,subjectKind:'project'},other),/Não encontrei/);
+ assert.match(await fact('search_facts',{subject,subjectKind:'project'},phone,biz+'-other'),/Não encontrei/);
+});
 test('evento às dez mantém horário com avisos separados e idempotência por mensagem',async()=>{
  const row=await incoming('Reunião amanhã às dez, avisar meia hora antes e na hora');
  const data=intent('create_appointment',{title:'Reunião João',datetime:'2099-05-02T10:00:00-03:00',alertMinutes:[30,0]});

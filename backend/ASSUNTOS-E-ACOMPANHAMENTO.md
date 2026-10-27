@@ -32,6 +32,27 @@ autorização institucional. Não renomear tabelas nem trocar a stack só pela v
 
 ## Primeira entrega: atualização de um assunto com continuidade
 
+### Forma de entrega ao primeiro usuário
+
+Pedro esclareceu que quer entregar ao pai uma versão útil para uso cotidiano,
+não um roteiro de testes ou apenas uma demonstração. Os testes são responsabilidade
+do desenvolvimento. A primeira versão de uso deverá integrar cadastro e consulta
+de projetos, atualização com histórico/origem, pendências/próxima ação e agenda.
+Não apresentar o incremento isolado de proveniência como esse produto completo.
+O acesso ao WhatsApp dele só é preparado quando houver número informado e as
+condições da Meta forem verificadas; não enviar mensagens sem combinar finalidade.
+
+Antes de liberar essa versão: validar internamente o ciclo em várias conversas,
+correções e nomes ambíguos, persistência após reinício, isolamento entre Pedro e
+o pai, retomada após falha, prazo não inventado e consulta coerente ao dia seguinte.
+Ele poderá usar exemplos de sua rotina, com dados fictícios ou pessoais adequados;
+acesso e uso institucional de documentos/dados requerem definição própria.
+
+Primeiro incremento em implementação local: consultas de fatos e resumo do assunto
+mostram origem/data no fuso do contato; registros sem origem identificada são
+rotulados como tal. Isso não implementa proposta composta, tarefas sem horário,
+extração documental, confirmação formal ou acompanhamento autônomo.
+
 Cenário fictício:
 
 1. Cadastrar explicitamente o projeto Avenida Beira Rio.

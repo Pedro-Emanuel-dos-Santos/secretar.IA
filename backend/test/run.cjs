@@ -3,6 +3,7 @@ require("./register.cjs");
 require("./audio-consent.test.cjs");
 require("./inbox.fairness.test.cjs");
 require("./review-conversation.test.cjs");
+require("./fact-provenance.test.cjs");
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { validateReminder } = require("../src/domain/reminder.validation.ts");

@@ -9,6 +9,22 @@ criar migração apenas por este plano. A última publicação de código deste 
 fe88705: consulta da reunião no WhatsApp confirmada pelo usuário às 10–11 em 28/10.
 As notas abaixo são históricas; referências antigas de produção não são o estado atual.
 
+## Incremento de origem e histórico — implementação local
+
+Consultas search_facts e subject_overview agora apresentam data/origem dos fatos.
+Só atribuem ao usuário uma mensagem do mesmo contato/conta; legado sem origem
+recebe aviso explícito. Perguntas sobre mudanças de um assunto identificado são
+encaminhadas a search_facts com versões anteriores, não a resposta livre do modelo.
+Isso não é diff semântico, prova documental ou decisão formal. Sem migração.
+Pedro esclareceu que quer o pai usando uma versão integrada no cotidiano, não um
+roteiro de teste. Fechar propostas, pendências sem prazo e próximas ações antes de
+apresentar esse incremento isolado como produto pronto. Número dele não informado.
+Não houve publicação deste incremento; produção continua fe88705.
+Validação: TypeScript atualizado aprovado, 240 unitários na repetição final e
+230 integrações com PostgreSQL local aprovados. Provedores simulados; sem uso
+real por outro usuário. Logs subject-origin-* na workspace. A imagem iniciada
+antes da última alteração de consulta não deve ser usada como release final.
+
 # Retomada da Secretár.IA — 21/10/2026
 
 ## Estado confirmado mais recente
