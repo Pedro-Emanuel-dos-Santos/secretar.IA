@@ -1,5 +1,15 @@
 # Direção do produto
 
+## Prioridade aprovada em 27/10/2026
+
+Evoluir o núcleo pessoal/profissional para **assuntos com continuidade, origem das
+informações, histórico e próximas ações**. O primeiro marco é o ciclo de atualização
+de um projeto e recuperação posterior da situação atual. Plano, lacunas e critérios
+de aceite: [ASSUNTOS-E-ACOMPANHAMENTO.md](ASSUNTOS-E-ACOMPANHAMENTO.md).
+O cenário municipal inspira um piloto fictício; não substitui o produto pessoal
+nem autoriza uso institucional ou integrações. Esta prioridade orienta a próxima
+entrega; as propostas de horizonte abaixo continuam hipóteses.
+
 Secretár.IA ajuda autônomos e pequenos negócios a cumprir o que combinaram,
 lembrar o que importa e acompanhar o trabalho pelo WhatsApp.
 

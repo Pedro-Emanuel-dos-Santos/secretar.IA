@@ -1,5 +1,11 @@
 # Secretár.IA — produto para autônomos e pequenos negócios
 
+> Direção atualizada em 27/10/2026: consultar
+> [ASSUNTOS-E-ACOMPANHAMENTO.md](ASSUNTOS-E-ACOMPANHAMENTO.md) e
+> [PRODUCT-ROADMAP.md](PRODUCT-ROADMAP.md). O próximo marco é acompanhamento por
+> assunto com origem, histórico e próxima ação. As entregas históricas abaixo
+> não comprovam que esse ciclo integrado esteja pronto.
+
 ## Direção escolhida
 
 Assistente de tarefas e prazos do profissional pelo WhatsApp. Exemplos: lembrar de enviar orçamento, retornar uma ligação, comprar material e cumprir um compromisso. O usuário recebe seu lembrete; não enviamos cobrança, publicidade ou contato para terceiros em seu nome.

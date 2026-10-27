@@ -1,3 +1,14 @@
+# Próxima direção aprovada — 27/10/2026
+
+Pedro incorporou a visão de assuntos com continuidade ao desenvolvimento.
+Ler ASSUNTOS-E-ACOMPANHAMENTO.md antes da próxima implementação: primeiro
+proveniência nas consultas, depois atualização proposta, pendências sem prazo e
+resumo por assunto. Aproveitar BusinessSubject/KnowledgeFact e vínculos existentes;
+não confundir esses recursos com gestão municipal pronta. Não alterar produção ou
+criar migração apenas por este plano. A última publicação de código deste ciclo é
+fe88705: consulta da reunião no WhatsApp confirmada pelo usuário às 10–11 em 28/10.
+As notas abaixo são históricas; referências antigas de produção não são o estado atual.
+
 # Retomada da Secretár.IA — 21/10/2026
 
 ## Estado confirmado mais recente
