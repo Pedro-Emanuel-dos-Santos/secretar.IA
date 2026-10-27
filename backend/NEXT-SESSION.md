@@ -8,6 +8,11 @@ aplicada só no banco local de testes. Worker aguarda tabela. Sem push/deploy;
 produção continua fe88705. Não apresentar este incremento como proposta composta
 pronta: próxima etapa é atualização de fato + acompanhamento proposto com
 confirmação vinculada à versão e execução atômica.
+MEU DIA também mostra até três pendências sem prazo com próximas ações, sem
+confundi-las com avisos de hoje. Validação final dessa conexão: TypeScript e47
+integrações afetadas aprovados. Núcleo:243 unitários,240 integrações na suíte
+completa e11 cenários repetidos na revisão. Imagem subject-pending-release-20261027
+foi construída antes do acréscimo em MEU DIA; reconstruir antes de publicar.
 
 Pedro incorporou a visão de assuntos com continuidade ao desenvolvimento.
 Ler ASSUNTOS-E-ACOMPANHAMENTO.md antes da próxima implementação: primeiro

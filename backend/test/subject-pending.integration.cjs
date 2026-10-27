@@ -87,3 +87,17 @@ test('limpeza de conteúdo apaga pendências e auditoria apenas da conta confirm
  const reply=await p.$transaction(tx=>requestContentDeletion(ctx.phone,ctx.account,tx));const token=reply.match(/CONFIRMAR EXCLUSAO ([A-F0-9]{8})/)[1];const m=await source(ctx,'CONFIRMAR EXCLUSAO '+token);
  await p.$transaction(tx=>confirmContentDeletion(ctx.phone,ctx.account,tx,m));assert.equal(await p.subjectPending.count({where:{phoneNumberId:ctx.account,user:{phone:ctx.phone}}}),0);assert.equal(await p.subjectPending.count({where:{phoneNumberId:other.account,user:{phone:ctx.phone}}}),1);
 });
+test('meu dia mostra pendências sem prazo separadas de avisos e não mistura contas',async()=>{
+ const {dayOverview}=require('../src/domain/day.overview.ts');
+ const ctx=await setup();await create(ctx);const other=await setup();await call(other,'create_subject_pending',{title:'SEGREDO OUTRO CONTATO'});
+ const privateCtx={...ctx,account:biz+'other'};privateCtx.subject=await p.businessSubject.create({data:{userId:ctx.subject.userId,phoneNumberId:privateCtx.account,kind:'project',name:ctx.subject.name,normalizedName:ctx.subject.normalizedName}});await call(privateCtx,'create_subject_pending',{title:'SEGREDO OUTRA CONTA'});
+ const overview=await p.$transaction(tx=>dayOverview(ctx.phone,ctx.account,tx));assert.match(overview,/Nenhuma tarefa pendente para hoje/);assert.match(overview,/1 pendência de assunto sem prazo \(sem aviso agendado\)/);assert.match(overview,/Avenida Beira Rio/);assert.match(overview,/Próxima ação: Cobrar retorno/);assert.doesNotMatch(overview,/SEGREDO/);
+ await call(ctx,'update_subject_pending',{search:'Assinatura do contrato',pendingState:'completed'},'Conclui a pendência Assinatura do contrato do projeto Avenida Beira Rio');
+ assert.doesNotMatch(await p.$transaction(tx=>dayOverview(ctx.phone,ctx.account,tx)),/Assinatura do contrato/);
+});
+test('meu dia limita amostra de pendências sem perder contagem ou sugerir prazo',async()=>{
+ const {dayOverview}=require('../src/domain/day.overview.ts');const ctx=await setup();
+ for(let i=0;i<5;i++)await call(ctx,'create_subject_pending',{title:'Pendência '+i,nextAction:'Acompanhar andamento'});
+ const overview=await p.$transaction(tx=>dayOverview(ctx.phone,ctx.account,tx));assert.match(overview,/5 pendências de assuntos sem prazo/);assert.equal((overview.match(/Próxima ação:/g)||[]).length,3);assert.match(overview,/Mostrei três atualizadas recentemente/);
+ assert.equal(await p.reminder.count({where:{user:{phone:ctx.phone}}}),0);
+});

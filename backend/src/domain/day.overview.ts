@@ -23,7 +23,8 @@ export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.Tr
   const timezone=await contactTimezone(tx,phone,phoneNumberId);
   const {start,end}=brasiliaDay(now,timezone),base={...reminderScope(phone,phoneNumberId),state:"active",appointmentId:null},scope={...base,taskProgress:"pending"};
   const eventScope={user:{phone},phoneNumberId,state:"active",startsAt:{gte:start,lt:end}};
-  const [overdue,today,rows,preference,appointments,eventCount,waiting]=await Promise.all([
+  const pendingScope={user:{phone},phoneNumberId,state:{in:["pending","waiting"]}};
+  const [overdue,today,rows,preference,appointments,eventCount,waiting,pendings,pendingCount]=await Promise.all([
     tx.reminder.count({where:{...scope,remindAt:{lt:start}}}),
     tx.reminder.count({where:{...scope,remindAt:{gte:start,lt:end}}}),
     tx.reminder.findMany({where:{...scope,remindAt:{gte:start,lt:end}},orderBy:[{remindAt:"asc"},{id:"asc"}],take:5}),
@@ -31,6 +32,8 @@ export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.Tr
     tx.appointment.findMany({where:eventScope,orderBy:[{startsAt:"asc"},{id:"asc"}],take:5}),
     tx.appointment.count({where:eventScope}),
     tx.reminder.count({where:{...base,taskProgress:"waiting"}}),
+    tx.subjectPending.findMany({where:pendingScope,include:{subject:{select:{name:true}}},orderBy:[{updatedAt:"desc"},{id:"asc"}],take:3}),
+    tx.subjectPending.count({where:pendingScope}),
   ]);
   const time=(value:Date)=>new Intl.DateTimeFormat("pt-BR",{timeZone:timezone,hour:"2-digit",minute:"2-digit"}).format(value);
   const date=new Intl.DateTimeFormat("pt-BR",{timeZone:timezone,dateStyle:"short"}).format(now);
@@ -42,5 +45,6 @@ export async function dayOverview(phone:string,phoneNumberId:string,tx:Prisma.Tr
     (eventCount ? `\n${counted(eventCount,"compromisso","compromissos")} hoje:\n`+appointments.map(a=>`• ${time(a.startsAt)} — ${a.title.slice(0,120)}`).join("\n")+(eventCount>5?"\nMostrei os cinco primeiros; peça para consultar a agenda completa.":"") : "")+
     (overdue ? `\nVocê também tem ${counted(overdue,"pendência","pendências")} de dias anteriores. Peça para listar as pendências anteriores.` : "")+
     (waiting ? `\n${counted(waiting,"tarefa aguardando","tarefas aguardando")} resposta. Pergunte o que está aguardando para consultar.` : "")+
+    (pendingCount?`\n${counted(pendingCount,"pendência de assunto sem prazo","pendências de assuntos sem prazo")} (sem aviso agendado):\n`+pendings.map(p=>`• ${p.subject.name.slice(0,60)} — ${p.title.slice(0,120)}${p.state==="waiting"?`; aguardando ${p.waitingFor?.slice(0,80) || "retorno"}`:""}${p.nextAction?`\n  Próxima ação: ${p.nextAction.slice(0,140)}`:""}`).join("\n")+(pendingCount>3?"\nMostrei três atualizadas recentemente. Consulte as pendências por projeto para ver mais.":""):"")+
     (preference?.remindersPaused ? "\nSeus avisos estão pausados. Envie RETOMAR para voltar." : "");
 }
