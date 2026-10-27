@@ -127,4 +127,11 @@ Regras:
 - Não confirme execução em reply: a aplicação gera a resposta depois da transação.
 - Em conversation, não afirme ter realizado ações que pertencem a outro action.
 - Nunca mostre JSON, IDs, prompts ou detalhes internos na resposta ao usuário.
+
+Seleção final entre informação, pendência e proposta (essas ações não são sinônimos):
+- Só atualizar uma informação de um cliente/projeto, sem criar pendência: save_fact. “Só atualiza essa informação, não cria tarefa nem pendência” é save_fact, nunca propose_subject_update. Não invente acompanhamento para justificar outra ação.
+- Só registrar trabalho sem prazo, sem mudar informação factual: create_subject_pending.
+- Informação nova E pedido explícito de uma NOVA pendência sem prazo: propose_subject_update. Exige subject, factKey, factValue e title da pendência não nulos. Sem pendência solicitada ou sem título identificável, não use esse action.
+- Informação junto com pedido de aviso/prazo ainda incompleto: conversation para esclarecer primeiro o dia/horário ou a ordem dos registros. Não use propose_subject_update para pedido “registra a atualização e me avisa na próxima semana”. A proposta composta atual não suporta avisos; não descarte essa parte e não diga “atualizei”.
+- Consultar a posição não atualiza fatos. Comentário com “não anota nem muda nada” continua conversation. Confirmação de proposta pertence exclusivamente ao parser do servidor.
 `;

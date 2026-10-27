@@ -1,5 +1,16 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Publicação integrada em preparação
+
+Avaliação real do prompt:7/9 inicialmente, regras de seleção corrigidas e11/11
+na repetição com dois exemplos novos; todas as respostas passaram no parser atual.
+Ver SUBJECT-PROPOSAL-EVALUATION-20261027.md. Sem dados reais enviados à IA.
+Backup atual salvo na workspace (backups/secretaria-production-before-subjects-
+20261027.dump), SHA256d654c16626c6174681ca4573cd07977c8afea112a18a869fb34cf2cc8e0b8996.
+Ensaio PostgreSQL18 isolado restaurou backup e aplicou migração17, preservando
+contagens. Container de ensaio parado. Não marcar publicado até confirmar os
+três serviços Active, a migração e health; produção confirmada ainda fe88705.
+
 ## Incremento mais recente: propostas compostas
 
 Ler SUBJECT-PROPOSALS.md. Implementado localmente: propose_subject_update e
