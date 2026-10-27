@@ -49,6 +49,18 @@ test('conflitos ignoram outra pessoa/conta e eventos cancelados',async()=>{
  const phone=owner(),other=owner();await create(other);await create(phone,'2099-06-02T12:00:00Z',60,biz+'other');
  const mine=await create(phone);assert.ok(mine.record);await call(phone,'cancel_appointment',{appointmentId:mine.record.id});assert.ok((await create(phone)).record);
 });
+
+test('consulta após correção relê banco e converte UTC no fuso sem repetir confirmação antiga',async()=>{
+ const phone=owner(),{record}=await create(phone,'2099-06-02T16:00:00Z');
+ await call(phone,'reschedule_appointment',{appointmentId:record.id,datetime:'2099-06-02T13:00:00Z'});
+ const receivedAt=new Date('2099-06-01T15:00:00Z'),text='Como ficou minha reunião de amanhã?';
+ const parsed=await prepareConversation({phone,phoneNumberId:biz,text,receivedAt},{buildContext:m=>conversationContext(p,m),interpret:async()=>intent('conversation',{reply:'Sua reunião está às 13h.'})});
+ assert.equal(parsed.action,'agenda_overview');assert.equal(parsed.agendaPeriod,'tomorrow');
+ const reply=await p.$transaction(tx=>agendaOverview(phone,biz,tx,parsed.agendaPeriod,receivedAt));
+ assert.match(reply,/10:00 até 11:00/);assert.doesNotMatch(reply,/13:00/);
+ const scoped=await call(owner(),'list_appointments',{appointmentId:record.id});assert.doesNotMatch(scoped.reply,/Reunião/);
+ const own=await call(phone,'list_appointments',{appointmentId:record.id});assert.match(own.reply,/10:00/);assert.match(own.reply,/09:30/);
+});
 test('concorrência no mesmo contato não permite dois intervalos sobrepostos',async()=>{
  const phone=owner();await p.user.create({data:{phone}});const result=await Promise.all([create(phone),create(phone)]);assert.equal(result.filter(r=>r.record).length,1);assert.equal(result.filter(r=>/sobrepõe/.test(r.reply)).length,1);
 });

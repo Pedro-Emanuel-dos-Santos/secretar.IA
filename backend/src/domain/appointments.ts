@@ -28,7 +28,7 @@ export async function executeAppointment(phone:string,phoneNumberId:string,inten
   if(intent.action==="list_appointments") {
     let range:Prisma.DateTimeFilter|undefined;
     if(intent.rangeStart || intent.rangeEnd){try{const start=parseTimestamp(intent.rangeStart),end=parseTimestamp(intent.rangeEnd);if(start>=end)throw Error();range={gte:start,lt:end};}catch{return "Qual dia ou período você quer consultar?";}}
-    const rows=await tx.appointment.findMany({where:{...scope,state:"active",startsAt:range},include:{reminders:{where:{state:"active"},select:{remindAt:true}}},orderBy:[{startsAt:"asc"},{id:"asc"}],take:11});
+    const rows=await tx.appointment.findMany({where:{...scope,state:"active",...(intent.appointmentId?{id:intent.appointmentId}:{}),startsAt:range},include:{reminders:{where:{state:"active"},select:{remindAt:true}}},orderBy:[{startsAt:"asc"},{id:"asc"}],take:11});
     return rows.length ? "Seus compromissos:\n"+rows.slice(0,10).map(a=>`• ${a.title.slice(0,160)} — ${display(a.startsAt)}${a.endsAt?" até "+display(a.endsAt):""}; avisos: ${a.reminders.map(r=>display(r.remindAt)).join(", ")||"nenhum"}`).join("\n")+(rows.length>10?"\nMostrei os dez primeiros. Consulte um período menor.":"") : "Você não tem compromissos nesse período.";
   }
   const user=await tx.user.upsert({where:{phone},create:{phone},update:{updatedAt:new Date()}});

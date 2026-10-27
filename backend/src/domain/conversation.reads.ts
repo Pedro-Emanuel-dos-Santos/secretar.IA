@@ -1,6 +1,32 @@
 import type { AIInterpretation } from "../types/ai.types";
 import { matchingSubjects } from "./conversation.references";
+import { detectedAgendaPeriod } from "./agenda.period";
 const normalized=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+
+// A past confirmation is conversation history, not the current schedule.
+export function guardAppointmentLookup(intent:AIInterpretation,text:string,context:any){
+  if(!["conversation","list_appointments"].includes(intent.action))return;
+  const s=normalized(text);
+  if(!/\b(?:reuniao|reunioes|compromisso|compromissos|consulta|consultas)\b/.test(s) ||
+     !/\b(?:como (?:ficou|esta|ficaram|estao)|que horas|qual (?:e )?(?:o )?horario|quando|me (?:mostra|mostre|diga)|tenho|minha agenda)\b/.test(s) ||
+     /\b(?:muda|mude|mudar|altera|altere|alterar|cancela|cancele|cancelar|marca|marque|marcar|agenda|agende|agendar|reagenda|reagende|reagendar|cria|crie|criar|adiciona|adicione|adicionar)\b/.test(s))return;
+  const period=detectedAgendaPeriod(text);
+  if(period==="ambiguous"){
+    intent.action="conversation";intent.reply="Qual dia você quer consultar primeiro?";return;
+  }
+  if(period){
+    intent.action="agenda_overview";intent.agendaPeriod=period;
+    intent.rangeStart=null;intent.rangeEnd=null;intent.subject=null;intent.appointmentId=null;
+  }else{
+    // Do not replace an explicit date or named event with the conversation focus.
+    if(/\b(?:segunda|terca|quarta|quinta|sexta|sabado|domingo|dia|semana|mes)\b|\d/.test(s))return;
+    const focused=context?.conversationState?.focusedAppointment;
+    if(!focused || focused.state!=="active" || !/^(?:como (?:ficou|esta) (?:a |minha |essa |aquela )?(?:reuniao|consulta|compromisso)|(?:que horas|quando) (?:e |ficou |esta )?(?:a |minha |essa |aquela )?(?:reuniao|consulta|compromisso))[?.!]*$/.test(s.trim()))return;
+    intent.action="list_appointments";intent.appointmentId=focused.id;
+    intent.rangeStart=null;intent.rangeEnd=null;
+  }
+  intent.reply="Vou consultar o agendamento atual.";intent.datetime=null;intent.title=null;intent.description=null;
+}
 
 // Ground common factual questions in persisted records even if the model
 // answers directly from a stale conversation. Do not classify open advice.

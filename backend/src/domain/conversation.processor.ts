@@ -5,7 +5,7 @@ import { buttonInterpretation } from "./reminder.buttons";
 import { localCommandIntent } from "./local.commands";
 import { hasMultipleInitialTimes } from "./multiple-times";
 import { guardUnstatedTime, guardCorrectionTarget, explicitClock } from "./conversation.timing";
-import { guardFactLookup } from "./conversation.reads";
+import { guardFactLookup,guardAppointmentLookup } from "./conversation.reads";
 import { guardSubjectReference, mentionsName } from "./conversation.references";
 import type { UsageObserver } from "./ai.usage";
 import { applyTaskSelection } from "./task.selection";
@@ -60,6 +60,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if(memory && Number.isSafeInteger(memory.version))validated.expectedVersion=memory.version;
       }
       guardFactLookup(validated,message.text,context);
+      guardAppointmentLookup(validated,message.text,context);
       guardSubjectReference(validated,message.text,context);
       guardSubjectPeriod(validated,message.text,context);
       if(validated.action==="create_reminder" && validated.subject){

@@ -4,6 +4,23 @@ const {prepareConversation}=require('../src/domain/conversation.processor.ts');
 const {guardAppointmentDuration,statedAppointmentDuration}=require('../src/domain/appointment.duration.ts');
 const appointment={id:'event',title:'Reunião',state:'active',startsAt:'2099-06-02T12:00:00Z',version:4};
 const reminder={id:'task',title:'Ligar',state:'active',remindAt:'2099-06-02T12:00:00Z',scheduleVersion:4};
+
+test('consulta de reunião usa agenda atual apesar de resposta livre antiga da IA',async()=>{
+ for(const text of ['Como ficou minha reunião de amanhã?','Que horas é minha consulta amanhã?','Tenho compromissos hoje?']){
+  const r=await prepareConversation({phone:'5511999990000',phoneNumberId:'a',text,receivedAt:new Date('2099-06-01T15:00:00Z')},{buildContext:async()=>({conversationState:{focusedAppointment:appointment}}),interpret:async()=>({action:'conversation',reply:'Sua reunião está às 13h.'})});
+  assert.equal(r.action,'agenda_overview',text);assert.equal(r.agendaPeriod,text.includes('hoje')?'today':'tomorrow');assert.doesNotMatch(r.reply,/13h/);
+ }
+});
+
+test('consulta sem dia usa somente referência inequívoca e não intercepta alterações ou conselho',()=>{
+ const {guardAppointmentLookup}=require('../src/domain/conversation.reads.ts');
+ const context={conversationState:{focusedAppointment:appointment}};
+ const focused={action:'conversation',reply:'13h'};guardAppointmentLookup(focused,'Como ficou minha reunião?',context);assert.equal(focused.action,'list_appointments');assert.equal(focused.appointmentId,appointment.id);
+ for(const text of ['Como ficou minha reunião com João?','Como ficou minha reunião sexta?','Como ficou minha reunião dia 30?','Como me preparo para minha reunião amanhã?','Muda minha reunião amanhã, que horas tenho livres?']){
+  const i={action:'conversation',reply:'interno'};guardAppointmentLookup(i,text,context);assert.equal(i.action,'conversation',text);
+ }
+ const noFocus={action:'conversation'};guardAppointmentLookup(noFocus,'Como ficou minha reunião?',{});assert.equal(noFocus.action,'conversation');
+});
 test('revisão: pergunta e proposta incerta não reagendam item em foco apesar da classificação da IA',async()=>{
  for(const [focused,action] of [[{focusedAppointment:appointment},'create_appointment'],[{focusedReminder:reminder},'create_reminder']]){
   for(const text of ['Melhor nove e meia?','Na verdade, às dez?','Melhor às dez se der']){
