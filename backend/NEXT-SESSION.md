@@ -2,6 +2,16 @@
 
 ## Publicação concluída — estado mais recente
 
+Teste real posterior passou: projeto Piloto criado com status em análise; mensagem
+composta gerou apenas proposta pending e nenhuma pendência antecipada; usuário
+enviou CONFIRMAR ATUALIZAÇÃO. Proposta applied, campo contrato ainda não foi
+assinado e uma única pendência aguardando Evandro, próxima ação pedir retorno,
+ambos ligados à mensagem de origem. Status inicial preservado. Resposta aceita
+e lida, nenhuma chamada IA na confirmação e nenhum lembrete novo. Logs e prova:
+work/integrated-release-20261027.md e pilot-proposal-applied-20261027.png.
+Consulta livre posterior do projeto ainda pode ser avaliada; não afirmar esse
+último passo como já testado.
+
 Código0d9004f publicado nos três serviços. API27fa8881-7e54-489f-a527-ec56251f4308,
 inbox381bb165-6aa5-4453-94ec-4227b0462b5d e lembretes8969c401-0622-436b-a54a-
 56d856107c19 Active. Migração17 aplicada em produção às17:58:30 BRT; health ready.
