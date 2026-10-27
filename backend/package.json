@@ -32,6 +32,6 @@
     "check:pilot": "node --env-file-if-exists=../.env --env-file-if-exists=.env scripts/check-pilot.cjs"
   },
   "engines": {
-    "node": "24.x"
+    "node": ">=24.22.1 <25"
   }
 }
