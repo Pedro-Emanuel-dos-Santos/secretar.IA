@@ -1,5 +1,14 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Incremento local mais recente: pendências sem prazo
+
+Ler SUBJECT-PENDINGS.md. SubjectPending, ações de criar/listar/atualizar e resumo
+do assunto implementados. Migração aditiva20261027170000_add_subject_pendings
+aplicada só no banco local de testes. Worker aguarda tabela. Sem push/deploy;
+produção continua fe88705. Não apresentar este incremento como proposta composta
+pronta: próxima etapa é atualização de fato + acompanhamento proposto com
+confirmação vinculada à versão e execução atômica.
+
 Pedro incorporou a visão de assuntos com continuidade ao desenvolvimento.
 Ler ASSUNTOS-E-ACOMPANHAMENTO.md antes da próxima implementação: primeiro
 proveniência nas consultas, depois atualização proposta, pendências sem prazo e

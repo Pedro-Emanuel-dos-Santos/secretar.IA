@@ -14,6 +14,7 @@ require("./calendar-export.integration.cjs");
 require("./appointment-duration.integration.cjs");
 require("./appointment-suggestions.integration.cjs");
 require("./business.integration.cjs");
+require("./subject-pending.integration.cjs");
 require("./task-progress.integration.cjs");
 require("./pilot-v2.integration.cjs");
 require("./daily-summary.integration.cjs");

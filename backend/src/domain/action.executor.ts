@@ -27,6 +27,8 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
   manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo",reference=new Date()): Promise<string> {
   switch (interpretation.action) {
+    case "create_subject_pending": case "list_subject_pendings": case "update_subject_pending":
+      return business ? business(interpretation) : "As pendências por assunto ainda não estão disponíveis aqui.";
     case "agenda_overview":
       if(!interpretation.agendaPeriod && !interpretation.rangeStart && !interpretation.rangeEnd)return "Você quer consultar hoje, amanhã, esta semana, a próxima semana ou os próximos sete dias?";
       if(interpretation.taskFilter)return "Você quer a agenda do período ou uma lista de tarefas filtrada por estado?";

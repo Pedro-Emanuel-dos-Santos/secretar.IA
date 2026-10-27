@@ -1,4 +1,5 @@
 export type AIAction =
+  | "create_subject_pending" | "list_subject_pendings" | "update_subject_pending"
   | "remember_personal" | "recall_personal" | "update_personal" | "forget_personal"
   | "agenda_overview"
   | "select_task"
@@ -24,6 +25,8 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  nextAction?:string|null;
+  pendingState?:"pending"|"waiting"|"completed"|"cancelled";
   appointmentSuggestionId?:string;
   appointmentSuggestionIndex?:number;
   memoryId?:string|null;

@@ -76,6 +76,11 @@ registro composto de várias ações com base nos recursos isolados existentes.
 
 ## Ordem de implementação
 
+Incremento seguinte implementado localmente em 27/10: SubjectPending separa
+pendências de avisos, com próxima ação, espera, estados e resumo por assunto.
+Detalhes e limites: SUBJECT-PENDINGS.md. Ainda não é a atualização composta com
+proposta/confirmacão nem o produto integrado liberado ao pai de Pedro.
+
 1. **Proveniência nas consultas:** mostrar quando e de qual entrada veio a
    informação; consultar versão atual para posição atual e versões anteriores
    apenas quando solicitado. Informação recente não substitui prova formal.

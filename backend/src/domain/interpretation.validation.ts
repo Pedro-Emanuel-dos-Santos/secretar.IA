@@ -3,6 +3,7 @@ import { AIInterpretation } from "../types/ai.types";
 const actions = new Set(["create_appointment", "list_appointments", "reschedule_appointment", "cancel_appointment", "set_appointment_alerts", "save_fact", "search_facts","conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
 actions.add("appointment_history");
+for(const action of ["create_subject_pending","list_subject_pendings","update_subject_pending"])actions.add(action);
 actions.add("subject_overview");
 actions.add("mark_waiting");
 actions.add("forget_fact");
@@ -26,6 +27,8 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.nextAction!==undefined && record.nextAction!==null){if(typeof record.nextAction!=="string" || !record.nextAction.trim() || record.nextAction.length>300)throw Error("Próxima ação inválida.");extra.nextAction=record.nextAction.trim();}
+  if(record.pendingState!==undefined && record.pendingState!==null){if(!["pending","waiting","completed","cancelled"].includes(record.pendingState as string))throw Error("Estado de pendência inválido.");extra.pendingState=record.pendingState as AIInterpretation["pendingState"];}
   if(record.appointmentSuggestionId!==undefined){if(typeof record.appointmentSuggestionId!=="string" || record.appointmentSuggestionId.length>100 || !Number.isSafeInteger(record.appointmentSuggestionIndex) || (record.appointmentSuggestionIndex as number)<0 || (record.appointmentSuggestionIndex as number)>2)throw Error("Opção de compromisso inválida.");extra.appointmentSuggestionId=record.appointmentSuggestionId;extra.appointmentSuggestionIndex=record.appointmentSuggestionIndex as number;}
   if(record.durationMinutes!==undefined && record.durationMinutes!==null){if(!Number.isSafeInteger(record.durationMinutes) || (record.durationMinutes as number)<1 || (record.durationMinutes as number)>1440 || !["create_appointment","reschedule_appointment"].includes(record.action as string))throw Error("Duração inválida.");extra.durationMinutes=record.durationMinutes as number;}
   if(record.memoryKind!==undefined && record.memoryKind!==null){if(!["routine","preference","person","goal"].includes(record.memoryKind as string))throw Error("Tipo de memória inválido.");extra.memoryKind=record.memoryKind as AIInterpretation["memoryKind"];}

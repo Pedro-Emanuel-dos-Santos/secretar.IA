@@ -23,6 +23,7 @@ model IncomingMessage {
   reminder          Reminder?
   appointment       Appointment?
   knowledgeFact     KnowledgeFact?
+  subjectPending    SubjectPending?
   interpretation    Json?
   interpretationAttempts Int @default(0)
   executionAttempts Int @default(0)
@@ -90,6 +91,7 @@ model User {
   events Event[]
   appointments Appointment[]
   subjects BusinessSubject[]
+  subjectPendings SubjectPending[]
 }
 
 model Reminder {
@@ -187,7 +189,29 @@ model BusinessSubject {
   facts KnowledgeFact[]
   appointments Appointment[]
   reminders Reminder[]
+  pendings SubjectPending[]
   @@unique([userId, phoneNumberId, kind, normalizedName])
+}
+
+model SubjectPending {
+  id String @id @default(uuid())
+  userId String
+  phoneNumberId String
+  subjectId String
+  title String
+  normalizedTitle String
+  nextAction String?
+  waitingFor String?
+  state String @default("pending")
+  version Int @default(0)
+  sourceMessageId String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  subject BusinessSubject @relation(fields:[subjectId],references:[id],onDelete:Cascade)
+  sourceMessage IncomingMessage @relation(fields:[sourceMessageId],references:[id],onDelete:Restrict)
+  @@index([userId,phoneNumberId,state,updatedAt])
+  @@index([subjectId,normalizedTitle,state])
 }
 
 model KnowledgeFact {
