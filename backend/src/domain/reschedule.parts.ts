@@ -2,6 +2,7 @@ import type { AIInterpretation } from "../types/ai.types";
 import { explicitClock } from "./conversation.timing";
 import { localCalendarParts,localCalendarInstant } from "./recurrence";
 import { parseTimestamp } from "./reminder.validation";
+import { explicitWallClock } from "./explicit.clock";
 const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const weekdays=["domingo","segunda","terca","quarta","quinta","sexta","sabado"];
 function statedDay(text:string){return /\b(?:hoje|amanha|domingo|segunda|terca|quarta|quinta|sexta|sabado)\b|\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\b|\bdia\s+(?:\d{1,2}|primeiro|um|dois|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|vinte|trinta)\b|\b\d{1,2}\s+de\s+\w+\b/.test(text);}
@@ -50,7 +51,7 @@ export function preserveRescheduleParts(intent:AIInterpretation,text:string,cont
  try{
   const old=localCalendarParts(new Date(original),zone);
   let proposed:Date|null=null;
-  if(intent.datetime){try{proposed=parseTimestamp(intent.datetime);}catch{intent.datetime=null;return;}}
+  if(intent.datetime && (day || !clock)){try{proposed=parseTimestamp(intent.datetime);}catch{intent.datetime=null;return;}}
   if(day && !clock){
    const date=simpleDay(s,receivedAt,zone) || (proposed?localCalendarParts(proposed,zone).slice(0,3):null);
    intent.datetime=date?localCalendarInstant([...date,...old.slice(3)],zone).toISOString():null;
@@ -58,7 +59,8 @@ export function preserveRescheduleParts(intent:AIInterpretation,text:string,cont
    const pending=context?.conversationState?.pendingRequest;
    const pendingId=appointment?pending?.appointmentId:pending?.reminderId;
    const date=pending?.action===intent.action && pendingId===target.id && typeof pending?.draft?.date==="string" && /^\d{4}-\d{2}-\d{2}$/.test(pending.draft.date)?pending.draft.date.split("-").map(Number):old.slice(0,3);
-   intent.datetime=proposed?localCalendarInstant([...date,...localCalendarParts(proposed,zone).slice(3)],zone).toISOString():null;
+   const wallClock=explicitWallClock(text);
+   intent.datetime=wallClock?localCalendarInstant([...date,...wallClock],zone).toISOString():null;
   }
   const version=appointment?target.version:target.scheduleVersion;
   if(intent.datetime && Number.isSafeInteger(version))intent.expectedVersion=version;

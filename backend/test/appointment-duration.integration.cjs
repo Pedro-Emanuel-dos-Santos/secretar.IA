@@ -6,6 +6,8 @@ const {processInboxBatch}=require('../src/domain/inbox.processor.ts');
 const {conversationContext}=require('../src/domain/conversation.context.ts');
 const {exportCalendar}=require('../src/domain/calendar.export.ts');
 const {agendaOverview}=require('../src/domain/agenda.overview.ts');
+const {prepareConversation}=require('../src/domain/conversation.processor.ts');
+const {localCalendarParts,localCalendarInstant}=require('../src/domain/recurrence.ts');
 const p=createPrismaClient(require('./integration.database.cjs')),biz='duration-'+randomUUID(),phones=[];
 const intent=(action,fields={})=>({action,title:null,description:null,datetime:null,amount:null,category:null,reply:'interno',...fields});
 const owner=()=>{const phone='5562'+String(Date.now()).slice(-8)+phones.length;phones.push(phone);return phone;};
@@ -29,6 +31,19 @@ test('reagendamento preserva duração e antecedências; conflito mantém agenda
  await call(phone,'reschedule_appointment',{appointmentId:record.id,datetime:'2099-06-03T12:00:00Z'});
  const changed=await p.appointment.findUnique({where:{id:record.id}});assert.equal(changed.endsAt.toISOString(),'2099-06-03T13:00:00.000Z');assert.equal(changed.version,1);
  const active=await p.reminder.findMany({where:{appointmentId:record.id,state:'active'}});assert.deepEqual(active.map(r=>(changed.startsAt-r.remindAt)/60000).sort((a,b)=>a-b),[0,30]);
+});
+
+test('correção real de relógio com offset incorreto preserva compromisso único, duração e avisos',async()=>{
+ const phone=owner(),zone='America/Sao_Paulo',date=localCalendarParts(new Date(Date.now()+2*86400000),zone).slice(0,3);
+ const start=localCalendarInstant([...date,9,0,0],zone),expected=localCalendarInstant([...date,10,0,0],zone),wrong=localCalendarInstant([...date,13,0,0],zone);
+ const {record}=await call(phone,'create_appointment',{title:'Reunião',datetime:start.toISOString(),durationMinutes:60,alertMinutes:[15]});
+ const context={user:{timezone:zone},appointments:[record],conversationState:{focusedAppointment:record}};
+ const interpreted=await prepareConversation({phone,phoneNumberId:biz,text:'Melhor às dez',receivedAt:new Date()},{buildContext:async()=>context,interpret:async()=>intent('create_appointment',{title:'Reunião',datetime:wrong.toISOString()})});
+ assert.equal(interpreted.action,'reschedule_appointment');assert.equal(interpreted.appointmentId,record.id);assert.equal(interpreted.expectedVersion,0);assert.equal(interpreted.datetime,expected.toISOString());
+ await call(phone,interpreted.action,interpreted);
+ const changed=await p.appointment.findUnique({where:{id:record.id}});
+ assert.equal(await p.appointment.count({where:{user:{phone},phoneNumberId:biz}}),1);assert.equal(changed.version,1);assert.equal(changed.startsAt.toISOString(),expected.toISOString());assert.equal(changed.endsAt-changed.startsAt,3600000);
+ const alerts=await p.reminder.findMany({where:{appointmentId:record.id,state:'active'}});assert.equal(alerts.length,1);assert.equal(alerts[0].remindAt.toISOString(),new Date(expected.getTime()-15*60000).toISOString());assert.deepEqual(alerts.map(r=>(changed.startsAt-r.remindAt)/60000),[15]);
 });
 test('conflitos ignoram outra pessoa/conta e eventos cancelados',async()=>{
  const phone=owner(),other=owner();await create(other);await create(phone,'2099-06-02T12:00:00Z',60,biz+'other');

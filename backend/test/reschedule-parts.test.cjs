@@ -16,6 +16,23 @@ test('dia da semana preserva hora do compromisso e mesma semana avança sete dia
  const same=await prepare('Passa para quinta',{},context,new Date('2099-06-04T15:00:00Z'));assert.equal(same.datetime,'2099-06-11T12:30:00.000Z');
 });
 test('somente hora mantém dia antigo mesmo quando o modelo muda o dia',async()=>{const r=await prepare('Melhor às dez',{datetime:'2099-06-09T13:00:00Z'});assert.equal(r.datetime,'2099-06-02T13:00:00.000Z');assert.equal(r.expectedVersion,3);});
+
+test('hora curta usa relógio escrito apesar de offset errado ou ausente da IA',async()=>{
+ for(const datetime of ['2099-06-09T16:00:00Z',null]){
+  for(const [text,expected] of [['Melhor às dez','13:00'],['Melhor nove e meia','12:30'],['10h','13:00'],['10:30','13:30'],['duas e vinte e cinco da tarde','17:25'],['oito da noite','23:00'],['Melhor às meio-dia','15:00'],['às meia-noite','03:00']]){
+   const r=await prepare(text,{datetime});assert.equal(r.datetime,`2099-06-02T${expected}:00.000Z`,text);assert.equal(r.expectedVersion,3);
+  }
+ }
+ const ctx={user:context.user,appointments:[appointment],conversationState:{focusedAppointment:appointment}};
+ const r=await prepare('Melhor às dez',{action:'create_appointment',reminderId:null,appointmentId:null,datetime:'2099-06-09T16:00:00Z'},ctx);
+ assert.equal(r.action,'reschedule_appointment');assert.equal(r.appointmentId,appointment.id);assert.equal(r.datetime,'2099-06-02T13:00:00.000Z');assert.equal(r.expectedVersion,5);
+});
+
+test('relógio explícito inválido, múltiplo ou ambíguo de DST não usa palpite do modelo',async()=>{
+ for(const text of ['Melhor às 25','Melhor 10:75','Melhor às nove ou às dez','Melhor às doze da manhã','Melhor às doze da noite'])assert.equal((await prepare(text,{datetime:'2099-06-02T13:00:00Z'})).datetime,null,text);
+ const ny={user:{timezone:'America/New_York'},reminders:[{...task,remindAt:'2027-11-07T05:00:00Z'}]};
+ assert.equal((await prepare('às uma e meia',{datetime:'2027-11-07T06:30:00Z'},ny)).datetime,null);
+});
 test('correção de criação para compromisso preserva dia e não cria novo evento',async()=>{const r=await prepare('Melhor às dez',{action:'create_appointment',appointmentId:null,reminderId:null,title:'Visita Ana',datetime:'2099-06-09T13:00:00Z'});assert.equal(r.action,'reschedule_appointment');assert.equal(r.appointmentId,'event');assert.equal(r.datetime,'2099-06-02T13:00:00.000Z');});
 test('sem alvo exato não aproveita hora de outra tarefa',async()=>{const r=await prepare('Passa para amanhã',{reminderId:'unknown'});assert.equal(r.datetime,null);});
 test('dia e hora explícitos continuam disponíveis sem substituição de partes',async()=>{const r=await prepare('Passa para amanhã às dez',{datetime:'2099-06-02T13:00:00Z'});assert.equal(r.datetime,'2099-06-02T13:00:00Z');});
