@@ -1,5 +1,20 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Publicação concluída — estado mais recente
+
+Código0d9004f publicado nos três serviços. API27fa8881-7e54-489f-a527-ec56251f4308,
+inbox381bb165-6aa5-4453-94ec-4227b0462b5d e lembretes8969c401-0622-436b-a54a-
+56d856107c19 Active. Migração17 aplicada em produção às17:58:30 BRT; health ready.
+Consulta somente leitura confirmou contagens preservadas e reunião28/10 às10–11
+com aviso09:45 status scheduled. SubjectPending vazio após deploy: avaliação de
+IA não inseriu dados. Worker de entrada iniciou. Último registro operacional:
+work/integrated-release-20261027.md na workspace. As notas de preparação abaixo
+são históricas. Esta atualização documental local não requer outro deploy.
+
+Primeira conversa real em acompanhamento: Pedro confirmou envio de “Anota no
+projeto Piloto: status em análise.” Conferir cadastro, resposta e origem, depois
+testar proposta composta. Não afirmar que o ciclo completo passou antes disso.
+
 ## Publicação integrada em preparação
 
 Avaliação real do prompt:7/9 inicialmente, regras de seleção corrigidas e11/11

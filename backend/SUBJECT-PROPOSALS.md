@@ -1,6 +1,6 @@
 # Propostas de atualização de assunto — 27/10/2026
 
-Implementação local, ainda não publicada. Usa Event e os modelos existentes;
+Publicada em 27/10/2026 no código0d9004f. Usa Event e os modelos existentes;
 não acrescenta migração além de SubjectPending, criada na etapa anterior.
 
 ## Primeiro fluxo composto
@@ -74,4 +74,5 @@ real de IA e WhatsApp continua pendente, distinta das simulações automatizadas
   módulo compilado e cliente Prisma aprovado, Node24.22.1 e usuário1000, sem
   conectar a banco, usar credenciais ou enviar mensagens.
 - Logs subject-proposal-* na workspace. Nenhum push, deploy ou migração de
-  produção realizado nesta entrega. Produção permanece em fe88705.
+  produção realizado na implementação inicial. Depois, a publicação integrada
+  0d9004f foi concluída; ver SUBJECT-PROPOSAL-EVALUATION-20261027.md e NEXT-SESSION.md.

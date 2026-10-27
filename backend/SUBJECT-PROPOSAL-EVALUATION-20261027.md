@@ -45,5 +45,9 @@ Ensaio de restauração concluído em um PostgreSQL18 local sem rede/portas púb
 Após migrar16→17:1 usuário,17 mensagens,1 compromisso,8 lembretes,17 respostas,
 56 eventos,5 usos de IA e8 outboxes de agendamento preservados; fatos/cadastros/
 preferências permaneceram vazios. Nova tabela SubjectPending presente. Banco de
-ensaio parado depois da comparação. Rollout ainda precisa ser confirmado.
+ensaio parado depois da comparação.
+Rollout0d9004f concluído em27/10:três serviços Active, health ready e migração17
+aplicada. Consulta somente leitura confirmou registros anteriores preservados,
+reunião28/10 às10–11 e aviso09:45 agendado. Conversa WhatsApp do novo ciclo ainda
+em acompanhamento; não confundir esse teste pendente com o sucesso da avaliação.
 Nenhuma mudança de callback ou credencial é necessária para este incremento.
