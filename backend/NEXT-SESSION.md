@@ -1,6 +1,49 @@
 # Próxima direção aprovada — 27/10/2026
 
-## Continuidade de pendências — próximo incremento
+## Incremento local posterior: histórico das pendências
+
+Ver SUBJECT-HISTORY.md. search_facts/includeHistory sem campo específico agora
+inclui alterações auditadas de pendências com antes/depois, posição atual e origem.
+Leitura isolada por contato/conta/assunto, sem migração. Quatro testes direcionados
+e TypeScript aprovados. Suíte completa:246 unitários e269 integrações aprovadas;
+quatro testes direcionados repetidos na revisão final. Ainda não publicado;
+produção permanece21648b1 abaixo.
+Conferir resultado completo em work/pending-history-check-20261027.log na workspace.
+
+## Estado atual confirmado — ler primeiro
+
+Código funcional 21648b1 publicado na API, inbox e lembretes; readiness ready.
+Deploys verificados: API fca36c74-c075-49fd-8b23-857adfe44efb,
+inbox 9adbe55d-6f9f-4114-bca0-0229c184b9e5 e
+lembretes ae5da469-68a3-4c47-b3a0-571694a56eda, todos Active.
+Sem nova migração ou alteração de callback/credenciais nesta entrega.
+
+Teste real de Pedro concluído: “No projeto Piloto, o Evandro respondeu;
+agora falta revisar o contrato.” A mesma pendência Acompanhar assinatura do
+contrato passou de waiting/versão0 para pending/versão1, waitingFor nulo e
+nextAction revisar o contrato. Existe uma única pendência no projeto. Auditoria
+preserva Evandro e pedir um retorno ao Evandro como posição anterior; resolução
+interlocutor_response. Resposta provider_accepted/read, sem erro e sem chamada IA.
+Fatos atuais preservados: status em análise; contrato ainda não foi assinado,
+ambos revisão1. Consulta anterior do projeto também foi confirmada por Pedro.
+
+Validação:246 unitários,264 integrações na execução completa,11 integrações
+direcionadas na revisão final, TypeScript e imagem final aprovados. Não somar
+as repetições como testes distintos. Evidência operacional na workspace:
+work/pending-followup-release-20261027.md. Ver PENDING-FOLLOWUPS.md para limites.
+
+Próximo incremento recomendado: consulta conversacional do histórico de um
+projeto, distinguindo posição atual de mudanças anteriores e incluindo a origem.
+Primeiro inspecionar as consultas existentes; não assumir ausência do recurso.
+Não usar o Piloto real para mutações de teste. A frase “Evandro respondeu” não
+comprova assinatura do contrato nem conclusão da pendência.
+
+## Notas históricas — os estados de publicação abaixo foram superados
+
+O bloco acima é a referência atual. As notas abaixo preservam o percurso e não
+devem ser usadas para concluir que os incrementos atuais ainda aguardam deploy.
+
+## Continuidade de pendências — preparação histórica
 
 Implementado retorno “O Evandro respondeu, agora falta revisar o contrato” com
 referência recente confiável ou prefixo explícito “No projeto Piloto,”. Atualiza

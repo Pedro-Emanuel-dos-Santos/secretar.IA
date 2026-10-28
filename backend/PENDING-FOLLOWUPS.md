@@ -1,6 +1,15 @@
 # Continuidade de pendências por retorno — 27/10/2026
 
-Implementação local em validação para publicação. Não acrescenta tabela/migração.
+Publicado e confirmado no WhatsApp em27/10/2026, código21648b1. Não acrescenta
+tabela/migração. API, inbox e lembretes Active; readiness ready.
+
+Teste real com prefixo de projeto: mesma pendência do Piloto, versão0→1,
+waiting→pending, waitingFor nulo, próxima ação revisar o contrato. Auditoria
+preservou a espera pelo Evandro e a próxima ação anteriores. Fatos do projeto
+inalterados, uma única pendência, resposta aceita/lida e nenhuma chamada IA
+para essa mensagem. A confirmação vale para esse cenário, não para linguagem
+natural irrestrita. Registro operacional: work/pending-followup-release-20261027.md
+na workspace de continuidade.
 
 ## Experiência
 
@@ -62,5 +71,5 @@ deve ser somada como onze testes distintos adicionais.
 Suíte unitária completa:246 aprovados. Imagem local
 secretaria-ia:pending-followup-release-20261027 construída e smoke do módulo
 compilado aprovado com prefixo de projeto explícito, Node24.22.1/UID1000, sem
-banco ou mensagem real. Logs pending-followup-* na workspace. Antes de declarar
-publicado, confirmar os três serviços, saúde e teste real com o usuário.
+banco ou mensagem real. Logs pending-followup-* na workspace. Publicação e teste
+real posteriores foram confirmados conforme o registro no início deste documento.

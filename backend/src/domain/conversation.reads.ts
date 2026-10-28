@@ -31,7 +31,7 @@ export function guardAppointmentLookup(intent:AIInterpretation,text:string,conte
 // Ground common factual questions in persisted records even if the model
 // answers directly from a stale conversation. Do not classify open advice.
 export function guardFactLookup(intent:AIInterpretation,text:string,context:any){
-  if(intent.action!=="conversation")return;
+  if(!["conversation","search_facts","subject_overview","list_subject_pendings"].includes(intent.action))return;
   const s=normalized(text);
   const historyQuery=/\b(?:o que mudou|historico|ultimas atualizacoes)\b/.test(s);
   if(historyQuery && !/\b(?:apaga|apague|exclui|exclua|remove|remova|esquece|esqueca)\b/.test(s)){
@@ -39,13 +39,17 @@ export function guardFactLookup(intent:AIInterpretation,text:string,context:any)
     if(!matches.length && /\b(?:dele|dela|desse projeto|nesse projeto|desse cliente|nesse cliente)\b/.test(s) && context?.conversationState?.focusedSubject)matches=[context.conversationState.focusedSubject];
     if(matches.length===1){
       intent.action="search_facts";intent.subject=matches[0].name;intent.subjectKind=matches[0].kind==="project"?"project":"client";
-      intent.includeHistory=true;intent.factKey=null;intent.title=null;intent.description=null;intent.datetime=null;
+      intent.includeHistory=true;
+      intent.factKey=/\b(?:orcamento|valor)\b/.test(s)?"orcamento":/\bprazo\b/.test(s)?"prazo":/\bstatus\b/.test(s)?"status":/\btelefone\b/.test(s)?"telefone":/\bendereco\b/.test(s)?"endereco":null;
+      intent.title=null;intent.description=null;intent.datetime=null;
       return;
     }
     if(matches.length>1 || /\b(?:projeto|cliente)\b/.test(s)){
+      intent.action="conversation";intent.subject=null;intent.factKey=null;
       intent.reply="De qual cliente ou projeto você quer consultar o histórico? Diga o nome completo.";return;
     }
   }
+  if(intent.action!=="conversation")return;
   if(!/\b(?:qual (?:e |era |foi )?(?:o |a )?(?:valor|orcamento|prazo|status|telefone|endereco)|quanto (?:e|era|foi|ficou)|historico (?:do|da)|me (?:mostra|diga) (?:o |a )?(?:valor|orcamento|prazo|status))\b/.test(s))return;
   let subjects=matchingSubjects(text,Array.isArray(context?.subjects)?context.subjects:[]);
   if(!subjects.length && /\b(?:dele|dela|desse cliente|dessa cliente|desse projeto)\b/.test(s) && context?.conversationState?.focusedSubject)subjects=[context.conversationState.focusedSubject];
