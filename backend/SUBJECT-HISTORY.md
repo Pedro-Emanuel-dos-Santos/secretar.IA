@@ -1,6 +1,10 @@
 # Histórico de projetos e pendências — 27/10/2026
 
-Implementação local, ainda não publicada. Estende search_facts com
+Publicado código4401f60 nos três serviços em27/10/2026, todos Active e readiness
+ready. Teste real de histórico confirmado: consulta completed, resposta aceita
+e lida, antes/depois/atual com origem/data, zero chamadas IA e nenhuma mutação;
+pendência versão1 e fatos revisão1 do Piloto preservados.
+Estende search_facts com
 includeHistory=true e sem factKey; usa as rotas de consulta já existentes.
 Perguntas como “O que mudou no projeto Piloto?” recuperam mudanças persistidas
 das pendências, além das versões dos dados factuais. Não alteram registros.

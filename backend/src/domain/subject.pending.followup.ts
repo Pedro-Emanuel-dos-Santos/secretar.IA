@@ -22,7 +22,7 @@ export function pendingResponse(text:string):{person:string;nextAction:string;su
  return {person,nextAction,...(prefix?{subjectName:prefix[2].trim(),subjectKind:normalizeName(prefix[1])==="projeto"?"project" as const:"client" as const}:{})};
 }
 export async function subjectFromPendingAudit(store:Pick<Store,"event"|"businessSubject">,phone:string,phoneNumberId:string,messageId:string,pendingId:string):Promise<Subject|null>{
- const event=await store.event.findFirst({where:{user:{phone},type:"subject_pending_updated",AND:[{payload:{path:["phoneNumberId"],equals:phoneNumberId}},{payload:{path:["sourceMessageId"],equals:messageId}},{payload:{path:["pendingId"],equals:pendingId}}]},orderBy:{createdAt:"desc"}});
+ const event=await store.event.findFirst({where:{user:{phone},type:{in:["subject_pending_updated","subject_pending_focused"]},AND:[{payload:{path:["phoneNumberId"],equals:phoneNumberId}},{payload:{path:["sourceMessageId"],equals:messageId}},{payload:{path:["pendingId"],equals:pendingId}}]},orderBy:{createdAt:"desc"}});
  const subjectId=(event?.payload as {subjectId?:unknown}|null)?.subjectId;
  return typeof subjectId==="string"?store.businessSubject.findFirst({where:{id:subjectId,user:{phone},phoneNumberId},select:{id:true,name:true,kind:true}}):null;
 }

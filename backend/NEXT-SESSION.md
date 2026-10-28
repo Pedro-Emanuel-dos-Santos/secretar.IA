@@ -1,5 +1,32 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Continuidade integrada em validação local
+
+Ver PENDING-CONTINUITY.md. Implementado encadeamento na mesma pendência por
+referência auditada: retomada, espera com pessoa explícita/pronome, troca de
+pessoa, nova próxima ação e conclusão explícita. Sem migração. Sete cenários
+de integração e dois unitários dedicados; conferir resultado final no log
+work/continuation-final-check-20261027.log na workspace.250 unitários/278 integrações
+aprovados; revisão final repetiu sete novos, onze antigos e os250 unitários.
+Produção ainda4401f60 até
+publicar e verificar. Não afirmar novo ciclo confirmado no WhatsApp.
+
+## Publicação mais recente: histórico4401f60
+
+Histórico e consulta direta publicados nos três serviços, todos Active:
+API dc9ce930-0c8c-4ed5-8d93-e74b254d9c7f,
+inbox62f266d9-89a8-4d72-a3f6-19c2916034aa,
+lembretes e1240139-c6a6-46ca-9020-d806951a57d7. Readiness ready após publicação.
+Sem migração, alteração de callback ou credencial. Os estados locais descritos
+abaixo foram superados. Pedro foi convidado a mandar “O que mudou no projeto
+Piloto?”; teste real confirmado: completed sem erro, resposta aceita/lida,
+zero chamadas IA e zero evento de mutação. Texto mostrou antes aguardando
+Evandro/pedir retorno e após/atual pendente/revisar o contrato, com origem/data.
+Pendência versão1 e fatos revisão1 preservados. Próximo incremento: acompanhar
+a mesma pendência após “Já revisei, agora falta ele assinar”, com referência
+inequívoca, versão e auditoria; ainda não implementado.
+Registro na workspace:work/history-release-20261027.md.
+
 ## Incremento local posterior: histórico das pendências
 
 Otimização posterior: consultas completas com nome explícito agora passam por

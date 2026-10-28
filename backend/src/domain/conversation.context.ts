@@ -10,6 +10,7 @@ import { findPersonalMemories,personalMemoryActions } from "./personal.memory";
 import { personalMemoryPolicy } from "./personal.memory.consent";
 import {shownAppointmentSuggestions} from "./appointment.suggestions";
 import {pendingFollowupContext,subjectFromPendingAudit} from "./subject.pending.followup";
+import {pendingContinuation} from "./pending.continuation";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference" | "subjectPending">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -106,11 +107,14 @@ export async function conversationContext(store: Store, message: IncomingConvers
     }
   }
   const pendingFollowup=await pendingFollowupContext(store,message);
+  // A selected timed task has its own identity/version protocol. Do not steal
+  // “pode concluir” from that existing flow to treat it as an untimed pending.
+  const pendingContinuationContext=pendingFollowup || selectedTask?null:await pendingContinuation(store,message);
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
     currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, appointments, recentAlerts, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,pendingContinuation:pendingContinuationContext,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().filter(row=>{
       if(memoryEnabled)return true;

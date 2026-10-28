@@ -44,6 +44,8 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       const context = await deps.buildContext(message);
       const followup=pendingFollowupIntent((context as any)?.conversationState?.pendingFollowup || null);
       if(followup)return followup;
+      const continuation=(context as any)?.conversationState?.pendingContinuation;
+      if(continuation?.intent)return continuation.intent as AIInterpretation;
       const interpretation = await deps.interpret(context,deps.onUsage);
       const validated = parseInterpretation(JSON.stringify(interpretation));
       // Optimistic version checks are attached by our deterministic button parser,

@@ -18,6 +18,7 @@ require("./subject-pending.integration.cjs");
 require("./subject-proposal.integration.cjs");
 require("./subject-pending-followup.integration.cjs");
 require("./subject-pending-history.integration.cjs");
+require("./pending-continuation.integration.cjs");
 require("./task-progress.integration.cjs");
 require("./pilot-v2.integration.cjs");
 require("./daily-summary.integration.cjs");
