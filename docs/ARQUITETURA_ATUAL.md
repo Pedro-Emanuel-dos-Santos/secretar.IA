@@ -1,5 +1,11 @@
 # Auditoria do sistema existente — 28/10/2026
 
+Nota posterior: a auditoria abaixo descreve a baseline indicada. Na branch de
+desenvolvimento, a Missão 03 acrescenta recuperação contextual por conceitos,
+origem de notas e foco de consulta com versão; ver [arquitetura de memória v1](MEMORIA_CONTEXTUAL.md).
+Esse código ainda não está na Railway. Nenhuma nova infraestrutura/migração foi
+introduzida pela M03; a migração aditiva de e920084 continua exigida na publicação.
+
 Referência local: `4d4c56b`, branch `codex/railway-ready-20261020`.
 Etapa de leitura e documentação: nenhuma alteração funcional ou de produção.
 Foram examinados os caminhos ativos de entrada, contexto, IA, execução, envio,

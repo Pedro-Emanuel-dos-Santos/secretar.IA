@@ -21,7 +21,7 @@ export async function verifyReminderTemplate(env:TemplateEnv,fetcher:typeof fetc
  const name=env.WHATSAPP_REMINDER_TEMPLATE_NAME,language=env.WHATSAPP_REMINDER_TEMPLATE_LANGUAGE || "pt_BR",waba=env.WHATSAPP_BUSINESS_ACCOUNT_ID;
  if(env.WHATSAPP_REMINDER_TEMPLATE_APPROVED!=="true" || !name || !/^[a-z0-9_]+$/.test(name) || !waba || !/^\d+$/.test(waba) || !env.WHATSAPP_ACCESS_TOKEN)throw new WhatsAppPreflightError("template_required");
  const base=env.WHATSAPP_API_URL || "https://graph.facebook.com/v23.0";
- const endpoint=new URL(base);
+ let endpoint:URL;try{endpoint=new URL(base);}catch{throw new WhatsAppPreflightError("template_required");}
  if(endpoint.protocol!=="https:" || endpoint.hostname!=="graph.facebook.com" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash)throw new WhatsAppPreflightError("template_required");
  let response:Response;
  try{response=await fetcher(`${base}/${waba}/message_templates?${new URLSearchParams({name,fields:"name,status,language,category,parameter_format,components",limit:"100"})}`,{headers:{Authorization:`Bearer ${env.WHATSAPP_ACCESS_TOKEN}`},signal:AbortSignal.timeout(8000),redirect:"error"});}

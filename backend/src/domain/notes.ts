@@ -23,7 +23,8 @@ export async function findNotes(store:NoteStore,phone:string,phoneNumberId:strin
     return [{id:row.id,text:payload.text,version:Number.isSafeInteger(payload.version)?Number(payload.version):0,createdAt:row.createdAt.toISOString()}];
   }).slice(0,10);
 }
-export async function executeNote(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient) {
+export async function executeNote(phone:string,phoneNumberId:string,intent:AIInterpretation,tx:Prisma.TransactionClient,sourceMessageId?:string) {
+  if(sourceMessageId && !await tx.incomingMessage.findFirst({where:{id:sourceMessageId,phone,phoneNumberId},select:{id:true}}))throw Error("Origem da anotação incompatível.");
   if(intent.action==="search_notes") {
     const notes=await findNotes(tx,phone,phoneNumberId,intent.search?.trim() || "");
     return notesReply(notes);
@@ -47,13 +48,13 @@ export async function executeNote(phone:string,phoneNumberId:string,intent:AIInt
     const text=intent.description?.trim();
     if(!text)return "Qual deve ser o texto completo da anotação corrigida?";
     if(text.length>1500)return "Pode resumir a anotação em até 1.500 caracteres?";
-    await tx.event.update({where:{id},data:{payload:{phoneNumberId,text,searchText:normalized(text),version:version+1}}});
+    await tx.event.update({where:{id},data:{payload:{phoneNumberId,text,searchText:normalized(text),version:version+1,sourceMessageId:sourceMessageId || null,updatedAt:new Date().toISOString()}}});
     return "Anotação corrigida: "+text;
   }
   const text=intent.description?.trim() || intent.title?.trim();
   if(!text)return "O que você quer que eu anote?";
   if(text.length>1500)return "Pode dividir essa anotação em partes menores? Cada uma pode ter até 1.500 caracteres.";
   const user=await tx.user.upsert({where:{phone},create:{phone},update:{}});
-  await tx.event.create({data:{userId:user.id,type:"secretary_note",source:"secretaria",payload:{phoneNumberId,text,searchText:normalized(text),version:0}}});
+  await tx.event.create({data:{userId:user.id,type:"secretary_note",source:"secretaria",payload:{phoneNumberId,text,searchText:normalized(text),version:0,sourceMessageId:sourceMessageId || null,updatedAt:new Date().toISOString()}}});
   return "Anotei: "+text;
 }

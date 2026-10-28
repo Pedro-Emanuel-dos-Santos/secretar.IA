@@ -3,6 +3,7 @@ import { AIInterpretation } from "../types/ai.types";
 const actions = new Set(["create_appointment", "list_appointments", "reschedule_appointment", "cancel_appointment", "set_appointment_alerts", "save_fact", "search_facts","conversation", "create_reminder", "list_reminders", "cancel_reminder", "complete_reminder", "reschedule_reminder", "save_note", "search_notes", "discard_draft", "create_expense", "unknown"]);
 
 actions.add("appointment_history");
+actions.add("recall_context");
 for(const action of ["propose_subject_update","confirm_subject_update","discard_subject_update"])actions.add(action);
 for(const action of ["create_subject_pending","list_subject_pendings","update_subject_pending"])actions.add(action);
 actions.add("subject_overview");

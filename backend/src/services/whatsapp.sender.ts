@@ -12,7 +12,7 @@ export function createWhatsAppSender(store:Store,env:Record<string,string|undefi
   const phoneNumberId=env.WHATSAPP_PHONE_NUMBER_ID,token=env.WHATSAPP_ACCESS_TOKEN;
   if(!phoneNumberId || !token)throw new WhatsAppPreflightError("sender_not_configured");
   const apiUrl=env.WHATSAPP_API_URL || "https://graph.facebook.com/v23.0";
-  const endpoint=new URL(apiUrl);
+  let endpoint:URL;try{endpoint=new URL(apiUrl);}catch{throw new WhatsAppPreflightError("sender_not_configured");}
   if(endpoint.protocol!=="https:" || endpoint.hostname!=="graph.facebook.com" || endpoint.username || endpoint.password || endpoint.search || endpoint.hash)throw new WhatsAppPreflightError("sender_not_configured");
   if(kind==="reminder"){
    const preference=await store.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}});

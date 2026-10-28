@@ -41,3 +41,12 @@ test('origem Meta fixa impede envio de credenciais para endpoint arbitrário',as
  await assert.rejects(verifyReminderTemplate({...env,WHATSAPP_API_URL:'https://example.org'},()=>assert.fail()),WhatsAppPreflightError);
  await assert.rejects(createWhatsAppSender(store(),{...env,WHATSAPP_API_URL:'https://example.org'},()=>assert.fail())('5511999990000','aviso','reminder'),e=>e instanceof WhatsAppPreflightError && e.reason==='sender_not_configured');
 });
+test('revisão M03: URL malformada e falta de permissão são bloqueios conhecidos sem POST',async()=>{
+ await assert.rejects(verifyReminderTemplate({...env,WHATSAPP_API_URL:'invalid url'},()=>assert.fail()),WhatsAppPreflightError);
+ await assert.rejects(createWhatsAppSender(store(),{...env,WHATSAPP_API_URL:'invalid url'},()=>assert.fail())('5511999990000','aviso','reminder'),e=>e instanceof WhatsAppPreflightError && e.reason==='sender_not_configured');
+ await assert.rejects(verifyReminderTemplate(env,async()=>json({error:{code:190}},403)),WhatsAppPreflightError);
+});
+test('revisão M03: aprovação antiga não é usada após template pausado',async()=>{
+ let calls=0;const fetcher=async()=>{calls++;return json({data:[{...template,status:calls===1?'APPROVED':'PAUSED'}]});};
+ await verifyReminderTemplate(env,fetcher);await assert.rejects(verifyReminderTemplate(env,fetcher),WhatsAppPreflightError);assert.equal(calls,2);
+});

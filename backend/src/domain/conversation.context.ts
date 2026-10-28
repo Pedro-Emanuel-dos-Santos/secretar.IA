@@ -12,6 +12,7 @@ import {shownAppointmentSuggestions} from "./appointment.suggestions";
 import {pendingFollowupContext,subjectFromPendingAudit} from "./subject.pending.followup";
 import {pendingContinuation} from "./pending.continuation";
 import {availableAssistantPlan,assistantPlanCommand} from "./assistant.plan";
+import {retrieveContext} from "./context.retrieval";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference" | "subjectPending">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -113,13 +114,18 @@ export async function conversationContext(store: Store, message: IncomingConvers
   // “pode concluir” from that existing flow to treat it as an untimed pending.
   const pendingContinuationContext=pendingFollowup || selectedTask?null:await pendingContinuation(store,message);
   const assistantPlan=assistantPlanCommand(message.text) || draftHistory.some(row=>(row.interpretation as {action?:string}|null)?.action==="assistant_plan")?await availableAssistantPlan(store,message):null;
+  const contextualMemory=await retrieveContext(store,message.phone,message.phoneNumberId,message.text,message.receivedAt);
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
-    currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, subjectPendings, appointments, recentAlerts, habits: [],
+    currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, subjectPendings, appointments, recentAlerts, habits: [],contextualMemory,
     conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,pendingContinuation:pendingContinuationContext,assistantPlan:assistantPlan?{id:assistantPlan.event.id,expired:assistantPlan.expired,steps:assistantPlan.data.request?.planSteps}:null,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().filter(row=>{
+      const storageAction=(row.interpretation as {action?:string}|null)?.action;
+      // Current records replace past storage instructions, including deleted
+      // memories and notes. Never resurrect them from the presentation history.
+      if(personalMemoryActions.has(storageAction || "") || ["save_note","edit_note","search_notes","delete_note"].includes(storageAction || ""))return false;
       if(memoryEnabled)return true;
       if(memoryPolicy.omitHistory || memoryPolicy.hideHistoryBefore && row.receivedAt<=memoryPolicy.hideHistoryBefore)return false;
       const action=(row.interpretation as {action?:string}|null)?.action;

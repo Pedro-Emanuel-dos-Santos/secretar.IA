@@ -1,5 +1,11 @@
 # Roadmap priorizado — 28/10/2026
 
+Progresso M03 na branch de desenvolvimento: revisão de regressões e primeira
+recuperação contextual implementadas, com jornadas locais de vários dias.
+Próximas provas: avaliação separada com modelo real e orçamento autorizado;
+backup/recuperação verificados; publicação coordenada autorizada; jornadas WhatsApp
+e participante. A avaliação não é executada automaticamente ao publicar no GitHub.
+
 Meta: primeiro uso externo acompanhado até **04/11/2026**, sujeito aos critérios
 de entrada. O calendário não transforma capacidades pendentes em prontas.
 

@@ -10,6 +10,9 @@ Auditoria e planejamento de 28/10/2026, após a missão de evolução aprovada p
 - [Plano beta e critérios de entrada](PLANO_BETA.md)
 - [Decisões técnicas e aprovações pendentes](DECISOES_TECNICAS.md)
 - [Entrega local de confiabilidade e IA](ENTREGA_CONFIABILIDADE_20261028.md)
+- [Relatório da Missão 03](MISSAO_03.md)
+- [Memória contextual v1](MEMORIA_CONTEXTUAL.md)
+- [Publicação coordenada e rollback](DEPLOY_BETA_COORDENADO.md)
 
 ## Relatório da primeira etapa
 

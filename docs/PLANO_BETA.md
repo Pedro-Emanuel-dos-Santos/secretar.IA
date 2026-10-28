@@ -1,5 +1,26 @@
 # Beta privado — critérios de entrada e avaliação
 
+## Atualização após Missão 03 — código local
+
+Experimental: recuperação por conceitos em português e vínculos de projeto,
+consulta antiga com origem e correção após consulta entregue/única. Não ativar
+para o participante antes de publicar e provar as jornadas reais. A avaliação
+real separada está em `backend/scripts/evaluate-context-memory.cjs`; sem flag é
+dry-run, com flag requer orçamento estimativo explícito. Nenhuma chamada paga
+foi feita nesta missão. A taxonomia não equivale a embeddings universais.
+
+Além dos percursos abaixo, validar com Pedro: registrar memória consentida,
+aguardar/retomar em outra sessão, consultar por paráfrase, corrigir e excluir,
+pedir ajuda sobre entrevista, distinguir duas entrevistas e negar armazenamento.
+Conferir resposta **e** registro/versão/efeitos. Medir perguntas repetidas,
+recuperações úteis/erradas, ajuda necessária, latência, custo e satisfação diária.
+O conselho deve ajudar sem afirmar execução; nenhuma proatividade nova foi ativada.
+
+Usar [procedimento de deploy e rollback](DEPLOY_BETA_COORDENADO.md). Sem template
+validado fora da janela, recuperação exercitada e isolamento real de participante,
+o conjunto do beta permanece bloqueado. Dados simulados e serviços online não
+substituem essas provas. Meta de 04/11 mantida, sem declaração de prontidão.
+
 Atualizado em 28/10/2026. Complementa `backend/FATHER-PILOT.md`.
 Participante previsto: pai de Pedro; inclusão e mensagens reais ainda não
 autorizadas nesta etapa de auditoria. O objetivo é uso diário útil, com suporte

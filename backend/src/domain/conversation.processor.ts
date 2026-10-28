@@ -19,6 +19,8 @@ import {subjectProposalCommand} from "./subject.proposal";
 import {pendingFollowupIntent} from "./subject.pending.followup";
 import {subjectHistoryLookup} from "./subject.history.lookup";
 import {assistantPlanCommand,explicitPlanCommand,planCommandIntent} from "./assistant.plan";
+import {contextualRecallCommand} from "./context.recall";
+import {guardContextCorrection,guardStorageOptOut} from "./context.guards";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -37,6 +39,8 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   if (button) return button;
   const command = localCommandIntent(message.text);
   if (command) return command;
+  const recall=!message.mediaId && contextualRecallCommand(message.text);
+  if(recall)return recall;
   const acknowledgement=socialAcknowledgement(message.text);
   if(acknowledgement)return acknowledgement;
   const historyLookup=!message.mediaId && subjectHistoryLookup(message.text);
@@ -52,6 +56,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
       if(continuation?.intent)return continuation.intent as AIInterpretation;
       const interpretation = await deps.interpret(context,deps.onUsage);
       const validated = parseInterpretation(JSON.stringify(interpretation));
+      guardStorageOptOut(validated,message.text);
       if(["confirm_assistant_plan","discard_assistant_plan"].includes(validated.action))return {action:"conversation" as const,reply:"Revise o plano proposto antes de confirmar. Ainda não executei essas ações.",title:null,description:null,datetime:null,amount:null,category:null};
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
@@ -69,11 +74,11 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if(task && Number.isSafeInteger(task.scheduleVersion)){validated.expectedVersion=task.scheduleVersion;validated.expectedSubjectId=task.subjectId ?? null;}
       }
       if(["edit_note","delete_note"].includes(validated.action) && validated.noteId){
-        const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId);
+        const note=(context as any)?.memories?.find((n:any)=>n.id===validated.noteId) || (context as any)?.contextualMemory?.items?.find((n:any)=>n.kind==="note" && n.id===validated.noteId);
         if(note && Number.isSafeInteger(note.version))validated.expectedVersion=note.version;
       }
       if(["update_personal","forget_personal"].includes(validated.action) && validated.memoryId){
-        const memory=(context as any)?.personalMemories?.find((m:any)=>m.id===validated.memoryId);
+        const memory=(context as any)?.personalMemories?.find((m:any)=>m.id===validated.memoryId) || (context as any)?.contextualMemory?.items?.find((m:any)=>m.kind==="personal" && m.id===validated.memoryId);
         if(memory && Number.isSafeInteger(memory.version))validated.expectedVersion=memory.version;
       }
       guardFactLookup(validated,message.text,context);
@@ -86,6 +91,7 @@ export async function prepareConversation(message: IncomingConversation, deps: C
         if(!mentionsName(message.text,validated.subject) && !carried)return {action:"conversation" as const,title:null,description:null,datetime:null,amount:null,category:null,reply:"Qual é o nome do cliente ou projeto que devo vincular a essa tarefa?"};
       }
       guardCorrectionTarget(validated,message.text,context);
+      guardContextCorrection(validated,message.text,context);
       guardAppointmentDuration(validated,message.text,context);
       if (["create_reminder","create_appointment"].includes(validated.action)) {
         if(validated.action==="create_appointment" && hasMultipleInitialTimes(message.text)){

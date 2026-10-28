@@ -23,3 +23,7 @@ antes de escolher a próxima entrega. Atualize a evidência quando o comportamen
 
 Backend: `backend/`; continuidade operacional detalhada: `backend/NEXT-SESSION.md`.
 Auditoria inicial: `docs/ARQUITETURA_ATUAL.md`, referência local `4d4c56b`.
+Memória contextual v1: `docs/MEMORIA_CONTEXTUAL.md`. Similaridade permite recuperar
+registros, nunca autoriza escrita. Preservar origem, consentimento, versão e exclusão.
+Publicação/recuperação: `docs/DEPLOY_BETA_COORDENADO.md`; não reativar consumidores
+antigos com estados/actions novos sem conferir o backlog e o plano de compatibilidade.

@@ -21,12 +21,16 @@ export function formatReminderReply(reminder: { title: string; remindAt: Date; s
   if (reminder.status === "blocked_paused") return "Esse aviso não foi enviado porque seus lembretes estavam pausados. Pode reagendá-lo se precisar.";
   if (reminder.status === "missed") return "Esse aviso venceu durante uma indisponibilidade e não foi enviado. Pode reagendá-lo se precisar.";
   if (reminder.status === "provider_rejected") return "O WhatsApp recusou esse aviso. Ele não foi confirmado como enviado; é preciso verificar o motivo antes de tentar novamente.";
+  if(reminder.status==="delivery_retry")return "O envio foi recusado temporariamente. Há uma nova tentativa limitada em preparação; ainda não confirmei a entrega.";
+  if(reminder.status==="retry_exhausted")return "As tentativas de envio desse aviso terminaram sem confirmação. É preciso verificar a falha antes de reagendar.";
+  if(reminder.status==="blocked_configuration")return "O lembrete foi registrado, mas o envio está bloqueado por uma configuração incompleta. A entrega ainda não foi confirmada.";
   return `Combinado, ${date} eu te lembro de ${title}.` + recurrenceSummary(reminder);
 }
 
 export async function executeAction(phone: string, interpretation: AIInterpretation, create: CreateReminder,
   manage?: (intent: AIInterpretation) => Promise<string>, notes?: (intent:AIInterpretation)=>Promise<string>, business?: (intent:AIInterpretation)=>Promise<string>, timeZone="America/Sao_Paulo",reference=new Date()): Promise<string> {
   switch (interpretation.action) {
+    case "recall_context":return business?business(interpretation):"A consulta de contexto ainda não está disponível aqui.";
     case "workspace_overview": return business ? business(interpretation) : "O acompanhamento geral ainda não está disponível aqui.";
     case "propose_subject_update": case "confirm_subject_update": case "discard_subject_update":
       return business ? business(interpretation) : "As propostas de atualização ainda não estão disponíveis aqui.";

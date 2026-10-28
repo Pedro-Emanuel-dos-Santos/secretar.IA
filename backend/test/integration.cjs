@@ -1,4 +1,5 @@
 require("./inbox.integration.cjs");
+require("./context-memory.integration.cjs");
 require("./reliability-beta.integration.cjs");
 require("./durability.integration.cjs");
 require("./replies.integration.cjs");

@@ -95,7 +95,7 @@ export async function executeAssistantPlan(tx:Prisma.TransactionClient,source:So
   const results:string[]=[];
   for(const [index,step] of steps.entries()){
    const child=await tx.incomingMessage.create({data:{id:`plan_step:${event.id}:${index}`,phone:source.phone,phoneNumberId:source.phoneNumberId,providerMessageId:`plan_step:${event.id}:${index}`,text:(await tx.incomingMessage.findUniqueOrThrow({where:{id:data.sourceMessageId}})).text,receivedAt:source.receivedAt,status:"plan_step",interpretation:JSON.parse(JSON.stringify(step))}});
-   if(step.action==="save_note")results.push(await executeNote(source.phone,source.phoneNumberId,step,tx));
+   if(step.action==="save_note")results.push(await executeNote(source.phone,source.phoneNumberId,step,tx,data.sourceMessageId));
    else if(step.action==="create_reminder"){
     const row=await persistReminderInTransaction({phone:source.phone,title:step.title!,description:step.description || undefined,remindAt:step.datetime!,subject:step.subject || undefined,subjectKind:step.subjectKind},tx,{phoneNumberId:source.phoneNumberId,sourceMessageId:child.id});
     results.push(`Lembrete registrado: ${row.title}. Agendamento do envio em confirmação.`);

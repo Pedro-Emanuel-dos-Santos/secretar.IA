@@ -1,4 +1,5 @@
 export type AIAction =
+  | "recall_context"
   | "assistant_plan" | "confirm_assistant_plan" | "discard_assistant_plan"
   | "workspace_overview"
   | "propose_subject_update" | "confirm_subject_update" | "discard_subject_update"

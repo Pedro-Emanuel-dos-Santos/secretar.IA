@@ -2,7 +2,7 @@ import type { PrismaClient,Reminder,Appointment } from "@prisma/client";
 import { reminderScope } from "./reminder.management";
 import { parseInterpretation } from "./interpretation.validation";
 
-type Store=Pick<PrismaClient,"reminder"|"appointment">;
+type Store=Pick<PrismaClient,"reminder"|"appointment"|"event">;
 type FocusHistory={receivedAt:Date;interpretation:unknown;reply:{status:string;finishedAt:Date|null}|null;reminder:{id:string}|null;appointment:{id:string}|null};
 type FocusReminder=Pick<Reminder,"id"|"title"|"remindAt"|"state"|"status"|"scheduleVersion"|"subjectId"|"taskProgress"|"waitingFor">;
 type FocusAppointment=Pick<Appointment,"id"|"title"|"startsAt"|"endsAt"|"state"|"version"|"subjectId"> & {reminders:{id:string;remindAt:Date;appointmentOffsetMinutes:number|null}[]};
@@ -17,6 +17,21 @@ export async function recentConversationFocus(store:Store,phone:string,phoneNumb
   let intent;try{intent=parseInterpretation(JSON.stringify(row.interpretation));}catch{intent=null;}
   if(intent?.action==="conversation")continue;
   if(row.reply?.status!=="provider_accepted" || !row.reply.finishedAt || row.reply.finishedAt>now)return empty;
+  if(intent?.action==="recall_context"){
+   const id=(row as FocusHistory & {id?:string}).id;
+   if(!id)return empty;
+   const event=await store.event.findFirst({where:{id:`context_recall:${id}`,user:{phone},payload:{path:["phoneNumberId"],equals:phoneNumberId}}});
+   const target=(event?.payload as any)?.target;
+   if(target?.kind==="appointment"){
+    const record=await store.appointment.findFirst({where:{id:target.id,user:{phone},phoneNumberId,state:"active",version:target.version},include:{reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}}});
+    return record?{...empty,focusedAppointment:record}:empty;
+   }
+   if(target?.kind==="reminder"){
+    const record=await store.reminder.findFirst({where:{...reminderScope(phone,phoneNumberId),id:target.id,state:"active",scheduleVersion:target.version,appointmentId:null}});
+    return record?{...empty,focusedReminder:record}:empty;
+   }
+   return empty;
+  }
   const appointmentId=row.appointment?.id || intent?.appointmentId;
   if(appointmentId){
    const record=await store.appointment.findFirst({where:{id:appointmentId,user:{phone},phoneNumberId,state:"active"},select:{id:true,title:true,startsAt:true,endsAt:true,state:true,version:true,subjectId:true,reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}}});

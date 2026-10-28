@@ -1,5 +1,10 @@
 # Mapa de capacidades — 28/10/2026
 
+Atualização da Missão 03 (somente desenvolvimento): recuperação por conceitos,
+consulta com origem e continuação de correção têm prova local em PostgreSQL.
+São experimentais para o beta até avaliação com modelo real e WhatsApp. Ver
+[memória v1](MEMORIA_CONTEXTUAL.md) e [relatório da missão](MISSAO_03.md).
+
 Estados: **Funcional e comprovada** = comportamento demonstrado na evidência
 citada, dentro daquele escopo; **Parcial** = parte do objetivo funciona;
 **Implementada sem validação** = código existe, falta a prova indicada;
@@ -20,7 +25,7 @@ Prova local com provedor simulado não equivale a prova no WhatsApp.
 | Proposta: fato + nova pendência | Funcional e comprovada | Piloto confirmado por Pedro e testes atômicos |
 | Proposta: fato + pendência existente | Implementada sem validação | 4d4c56b local, 19 testes de proposta; falta modelo real, publicação e WhatsApp |
 | Retomada após consulta de pendência antiga | Implementada sem validação | Local, testes de continuidade; falta prova externa após publicação |
-| Continuidade natural geral entre dias/assuntos | Parcial | Referências e memória persistem; histórico curto e recuperação lexical não cobrem conversa livre ampla |
+| Continuidade natural geral entre dias/assuntos | Parcial | M03 recupera conceitos e vínculos de registros antigos; foco de consulta entregue permite correção com versão. Semântica geral e qualidade do conselho ainda não comprovadas |
 | Memória pessoal com consentimento/correção/exclusão | Parcial | personal-memory integrações; restrita a AI_MODE=openai e falta uso externo sustentado |
 | Aprender correções como preferência duradoura | Parcial | Atualização explícita existe; aprendizagem automática de preferências não implementada |
 | Planos de várias ações | Parcial | 2–5 criações, transação e avaliação publicada 8/8; não planeja qualquer ferramenta e falta ciclo real confirmado |

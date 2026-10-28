@@ -1,5 +1,18 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
+## Missão 03 — desenvolvimento, sem deploy
+
+Ler ../docs/MISSAO_03.md, MEMORIA_CONTEXTUAL.md e DEPLOY_BETA_COORDENADO.md.
+Branch ativa de trabalho: codex/dev-beta-reliability-20261028. Memória contextual
+usa fontes persistidas atuais e expansão de conceitos PT, sem embeddings/API extra.
+Nova action recall_context. Consulta entregue de resultado único pode estabelecer
+foco com versão para correção; fonte antiga ou similaridade não autorizam escrita.
+Novas notas guardam origem/data. Opt-out impede gravação, exclusão/revogação
+retiram conteúdos da recuperação e instruções antigas do histórico apresentado.
+Nenhuma migração adicional à de e920084. Nenhuma produção/envio/credencial alterados.
+Avaliação real preparada em scripts/evaluate-context-memory.cjs: dry-run por padrão;
+--allow-provider requer --budget-usd explícito e chave atual, sem .env automático.
+
 ## Pacote local de confiabilidade e IA — aprovado para implementação
 
 Pedro aprovou OpenAI principal e implementação local de templates/retentativas,

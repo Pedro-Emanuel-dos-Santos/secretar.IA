@@ -54,6 +54,15 @@ Propor limite financeiro e reação ao atingir o limite antes de ativá-los.
 
 ## D06 — Memória por recuperação, não histórico ilimitado
 
+Atualização M03: implementada primeira versão por conceitos explícitos + busca
+textual sobre fontes atuais, sem embeddings/pgvector, chamadas adicionais ou índice
+derivado que sobreviva à exclusão. Amostra limitada e origem/versão explícitas;
+ver MEMORIA_CONTEXTUAL.md. Generalização semântica ampla permanece pendente.
+Decisão sobre template: nenhuma aprovação positiva é cacheada no beta. Revalidar
+na Meta evita usar status antigo após pausa, troca de credencial ou alteração de
+permissão. Custo/latência extra da consulta deverão ser medidos antes de adotar
+cache por conta/template/idioma/credencial com TTL e invalidação demonstrados.
+
 **Proposta.** Recuperar entidades/assuntos e registros com origem antes de
 aumentar indiscriminadamente contexto. Resumo é material derivado e invalidável,
 nunca substituto irreversível dos registros. Banco vetorial depende de evidência
