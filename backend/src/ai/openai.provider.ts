@@ -15,7 +15,7 @@ export async function openaiChat(input: AIChatInput, suppliedClient?: Pick<OpenA
     })),
     temperature: input.temperature ?? 0.2,
     store:false,
-    max_output_tokens:1600,
+    max_output_tokens:2800,
     ...(input.jsonMode ? {text:{format:{type:"json_object" as const}}} : {}),
   });
 

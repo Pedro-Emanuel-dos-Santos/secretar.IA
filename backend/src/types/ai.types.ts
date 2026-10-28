@@ -1,4 +1,5 @@
 export type AIAction =
+  | "assistant_plan" | "confirm_assistant_plan" | "discard_assistant_plan"
   | "workspace_overview"
   | "propose_subject_update" | "confirm_subject_update" | "discard_subject_update"
   | "create_subject_pending" | "list_subject_pendings" | "update_subject_pending"
@@ -27,6 +28,7 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  planSteps?:AIInterpretation[];
   overviewKind?:"projects"|"clients"|"all"|"attention"|"waiting";
   subjectPendingId?:string;
   nextAction?:string|null;

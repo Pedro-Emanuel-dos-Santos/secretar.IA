@@ -7,6 +7,7 @@ for(const action of ["propose_subject_update","confirm_subject_update","discard_
 for(const action of ["create_subject_pending","list_subject_pendings","update_subject_pending"])actions.add(action);
 actions.add("subject_overview");
 actions.add("workspace_overview");
+for(const action of ["assistant_plan","confirm_assistant_plan","discard_assistant_plan"])actions.add(action);
 actions.add("mark_waiting");
 actions.add("forget_fact");
 actions.add("edit_reminder");
@@ -29,6 +30,18 @@ export function parseInterpretation(content: string): AIInterpretation {
   }
   if (record.amount !== null && (typeof record.amount !== "number" || !Number.isFinite(record.amount))) throw new Error("Valor inválido.");
   const extra: Partial<AIInterpretation> = {};
+  if(record.action==="assistant_plan"){
+    if(!Array.isArray(record.planSteps) || record.planSteps.length<2 || record.planSteps.length>5)throw Error("Um plano precisa de duas a cinco ações.");
+    extra.planSteps=record.planSteps.map((step:any)=>{
+      if(!step || typeof step!=="object" || Array.isArray(step) || !["save_note","create_reminder","create_appointment"].includes(step.action) || step.planSteps)throw Error("Ação não permitida no plano.");
+      if(step.recurrence || step.draft || step.reminderId || step.appointmentId || step.appointmentSuggestionId || step.factKey || step.factValue)throw Error("Esse plano só aceita novas ações avulsas.");
+      if(step.action!=="create_appointment" && (step.durationMinutes!=null || step.alertMinutes!=null))throw Error("Duração e avisos antecipados pertencem ao compromisso.");
+      if(step.action==="save_note" && step.datetime!=null)throw Error("Uma anotação não agenda horário.");
+      const clean:Record<string,unknown>={action:step.action,reply:"interno"};
+      for(const key of ["title","description","datetime","subject","subjectKind","durationMinutes","alertMinutes"])if(step[key]!==undefined)clean[key]=step[key];
+      return parseInterpretation(JSON.stringify(clean));
+    });
+  }else if(record.planSteps!==undefined && record.planSteps!==null)throw Error("Etapas fora de um plano.");
   if(record.overviewKind!==undefined && record.overviewKind!==null){if(!["projects","clients","all","attention","waiting"].includes(record.overviewKind as string))throw Error("Visão de acompanhamento inválida.");extra.overviewKind=record.overviewKind as AIInterpretation["overviewKind"];}
   if(record.subjectPendingId!==undefined){if(typeof record.subjectPendingId!=="string" || !record.subjectPendingId || record.subjectPendingId.length>100)throw Error("Referência de pendência inválida.");extra.subjectPendingId=record.subjectPendingId;}
   if(record.nextAction!==undefined && record.nextAction!==null){if(typeof record.nextAction!=="string" || !record.nextAction.trim() || record.nextAction.length>300)throw Error("Próxima ação inválida.");extra.nextAction=record.nextAction.trim();}

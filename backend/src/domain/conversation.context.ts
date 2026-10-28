@@ -11,6 +11,7 @@ import { personalMemoryPolicy } from "./personal.memory.consent";
 import {shownAppointmentSuggestions} from "./appointment.suggestions";
 import {pendingFollowupContext,subjectFromPendingAudit} from "./subject.pending.followup";
 import {pendingContinuation} from "./pending.continuation";
+import {availableAssistantPlan,assistantPlanCommand} from "./assistant.plan";
 type Store = Pick<PrismaClient, "user" | "reminder" | "incomingMessage" | "event" | "appointment" | "businessSubject" | "contactPreference" | "subjectPending">;
 
 export async function conversationContext(store: Store, message: IncomingConversation) {
@@ -51,11 +52,12 @@ export async function conversationContext(store: Store, message: IncomingConvers
   for(const row of draftHistory){
     try{const intent=parseInterpretation(JSON.stringify(row.interpretation));if(intent.action==="search_notes"){memories=await findNotes(store,message.phone,message.phoneNumberId,intent.search || "");break;}if(["save_note","edit_note","delete_note"].includes(intent.action))break;}catch{}
   }
-  const [appointments,subjects,recentAlerts,preference]=await Promise.all([
+  const [appointments,subjects,recentAlerts,preference,subjectPendings]=await Promise.all([
     store.appointment.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,state:"active"},include:{reminders:{where:{state:"active"},select:{id:true,remindAt:true,appointmentOffsetMinutes:true}}},orderBy:{startsAt:"asc"},take:12}),
     store.businessSubject.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId},select:{id:true,name:true,kind:true,facts:{where:{supersededAt:null},select:{key:true,value:true,revision:true},take:5,orderBy:{createdAt:"desc"}}},orderBy:{updatedAt:"desc"},take:8}),
     store.reminder.findMany({where:{...reminderScope(message.phone,message.phoneNumberId),state:"active",status:"provider_accepted",deliveryStartedAt:{gte:new Date(message.receivedAt.getTime()-7*86400000),lte:message.receivedAt}},select:{id:true,title:true,remindAt:true,deliveryStartedAt:true,deliveryStatus:true,taskProgress:true,waitingFor:true},orderBy:[{deliveryStartedAt:"desc"},{id:"desc"}],take:3}),
     store.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:message.phoneNumberId,phone:message.phone}}}),
+    store.subjectPending.findMany({where:{user:{phone:message.phone},phoneNumberId:message.phoneNumberId,state:{in:["pending","waiting"]}},select:{title:true,state:true,waitingFor:true,nextAction:true,updatedAt:true,subject:{select:{name:true,kind:true}}},orderBy:[{updatedAt:"desc"},{id:"asc"}],take:12}),
   ]);
   let pendingRequest: unknown=null;
   const {focusedReminder,focusedAppointment}=await recentConversationFocus(store,message.phone,message.phoneNumberId,message.receivedAt,draftHistory);
@@ -110,11 +112,12 @@ export async function conversationContext(store: Store, message: IncomingConvers
   // A selected timed task has its own identity/version protocol. Do not steal
   // “pode concluir” from that existing flow to treat it as an untimed pending.
   const pendingContinuationContext=pendingFollowup || selectedTask?null:await pendingContinuation(store,message);
+  const assistantPlan=assistantPlanCommand(message.text) || draftHistory.some(row=>(row.interpretation as {action?:string}|null)?.action==="assistant_plan")?await availableAssistantPlan(store,message):null;
   return {
     now: message.receivedAt.toISOString(), processingAt: new Date().toISOString(), user:{name:preference?.displayName || user?.name || null,timezone:preference?.timezone || user?.timezone || "America/Sao_Paulo"},
     preferences:{onboarded:!!preference?.onboardedAt,businessType:preference?.businessType || null,audioConsent:preference?.audioConsent || false},
-    currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, appointments, recentAlerts, habits: [],
-    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,pendingContinuation:pendingContinuationContext,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
+    currentMessage: message.text, memories, personalMemories:personalMemories.slice(0,10),personalMemoryEnabled:memoryEnabled, subjects, subjectPendings, appointments, recentAlerts, habits: [],
+    conversationState:{pendingRequest,focusedReminder,focusedAppointment,focusedSubject,pendingFollowup,pendingContinuation:pendingContinuationContext,assistantPlan:assistantPlan?{id:assistantPlan.event.id,expired:assistantPlan.expired,steps:assistantPlan.data.request?.planSteps}:null,shownTaskList:taskList,selectedTask,appointmentSuggestions,latestReminderNotice:recentAlerts.find(r=>r.deliveryStatus!=="failed") || null,focusWindowMinutes:30,draftWindowDays:7,notesSearchAvailable:true,factsSearchAvailable:true},
     reminders: reminders.map(r => ({ ...r, title: r.title.slice(0, 160) })),
     lastMessages: recent.reverse().filter(row=>{
       if(memoryEnabled)return true;

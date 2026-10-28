@@ -1,8 +1,12 @@
 # Central de acompanhamento — 28/10/2026
 
-Entrega validada localmente, ainda não publicada. TypeScript,253 testes unitários
+Publicado código3f630cc, três serviços Active e readiness ready. TypeScript,253 testes unitários
 e285 integrações aprovados. Inclui sete cenários de integração e três unitários
 dedicados; não somar esses cenários novamente ao total da suíte.
+Avaliação real de interpretação: sete cenários fictícios passaram no modelo
+gpt-4.1-mini e no parser, sem ações ou mensagens; isso não comprova acurácia geral.
+Prévia de leitura em produção renderizou o Piloto e o painel de atenção. Teste
+real do novo painel no WhatsApp ainda pendente.
 
 ## Experiência integrada
 

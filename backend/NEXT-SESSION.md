@@ -1,4 +1,34 @@
-# Próxima direção aprovada — 27/10/2026
+# Continuidade da Secretár.IA — 28/10/2026
+
+## Novo fluxo: conversa e plano executável — validação local
+
+Ver ASSISTANT-PLANS.md. Nova action assistant_plan com2–5 criações revisáveis:
+anotação, lembrete e compromisso. Confirmação natural contextual pelo servidor,
+revisão integral da proposta, atomicidade com savepoint e idempotência; nenhuma
+ação antes da revisão/aceite. Sem migração/env novo. Memória pessoal continua
+com consentimento próprio; chamadas/mensagens a terceiros não fazem parte.
+TypeScript,256 unitários e295 integrações na suíte completa final aprovados;
+dez cenários integrados dedicados ao plano e contexto. Raciocínio agora recebe
+até12 acompanhamentos atuais, sem itens encerrados/outras contas/pessoas.
+Provider OpenAI permite saída até2800 tokens para JSON de várias etapas.
+Scripts de avaliação somente de interpretação: evaluate-assistant-plan.cjs
+--allow-provider após build no inbox, usando oito entradas fictícias sem ações.
+Ainda não publicado neste registro; produção3f630cc abaixo até checar rollout.
+Logs assistant-plan-release-check-* e assistant-plan-* na workspace. Não declarar Jarvis irrestrito ou teste
+real do plano aprovado antes de comprovar a experiência no WhatsApp.
+
+## Produção mais recente — central3f630cc — 28/10/2026
+
+API a8029058-f850-4062-864d-38c54d6a456b,
+inbox0e5f1f78-ef07-43bf-b5f1-dd539b18cc93 e
+lembretes e1e7f8e8-f86b-4446-8b28-0bdb63261864 Active; readiness ready.
+TypeScript/253 unitários/285 integrações aprovados. Avaliação real fictícia7/7
+no gpt-4.1-mini (56370 entrada/280 saída), sem ações ou WhatsApp. Prévia SQL
+somente leitura renderizou panorama real do Piloto e atenção, sem erro.
+Ainda não há teste do novo painel enviado pelo usuário no WhatsApp. Registros:
+work/workspace-overview-release-20261028.md e imagens workspace-overview-*.
+Ver PRODUCT-DIRECTION.md para direção do produto, sem confundir plano com código.
+As notas locais/de preparação abaixo são históricas.
 
 ## Central de acompanhamento — 28/10/2026 — validação local
 

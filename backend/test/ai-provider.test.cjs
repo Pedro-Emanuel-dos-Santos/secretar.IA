@@ -5,7 +5,7 @@ test('interpretador solicita JSON real, limita saída e não solicita armazename
  let body;
  const client={responses:{create:async input=>{body=input;return{output_text:'{"action":"unknown"}'}}}};
  const result=await openaiChat({messages:[{role:'system',content:'Return JSON'},{role:'user',content:'request'}],jsonMode:true},client);
- assert.deepEqual(body.text,{format:{type:'json_object'}});assert.equal(body.store,false);assert.equal(body.max_output_tokens,1600);
+ assert.deepEqual(body.text,{format:{type:'json_object'}});assert.equal(body.store,false);assert.equal(body.max_output_tokens,2800);
  assert.equal(result.content,'{"action":"unknown"}');
 });
 test('configuração desconhecida não escolhe provedor pago silenciosamente',async()=>{

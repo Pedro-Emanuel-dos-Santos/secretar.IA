@@ -19,6 +19,7 @@ import { executeSubjectProposal,subjectProposalActions,subjectProposalCommand } 
 import { agendaOverview } from "./agenda.overview";
 import { executeAppointment } from "./appointments";
 import { executePreferences,contactTimezone } from "./preferences";
+import {assistantPlanCommand,explicitPlanCommand,availableAssistantPlan,executeAssistantPlan} from "./assistant.plan";
 
 type Store = Pick<PrismaClient, "incomingMessage" | "$transaction"> & Partial<Pick<PrismaClient,"aiUsage">>;
 const leaseMs = 120_000;
@@ -61,7 +62,9 @@ async function prepareIntent(store: Store, row: IncomingMessage, deps: Conversat
   });
   if (!claim.count) return;
   try {
-    const directCommand = localCommand(row.text) || (!row.mediaId && (row.text.startsWith("sr1:") || subjectProposalCommand(row.text)));
+    const planCommand=!row.mediaId && assistantPlanCommand(row.text);
+    const directPlan=planCommand && (explicitPlanCommand(row.text) || await store.$transaction(tx=>availableAssistantPlan(tx,row)));
+    const directCommand = directPlan || localCommand(row.text) || (!row.mediaId && (row.text.startsWith("sr1:") || subjectProposalCommand(row.text)));
     const budgetReply = directCommand ? null : await requestBudget(store,row);
     let audioError = false;
     if (!budgetReply && row.mediaId && !row.transcribedAt) {
@@ -128,6 +131,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
       const preference = !command && ["create_reminder","reschedule_reminder"].includes(interpretation.action)
         ? await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId:row.phoneNumberId,phone:row.phone}}}) : null;
       const reply = command ? await executeLocalCommand(command,row.phone,row.phoneNumberId,tx,row)
+        : ["assistant_plan","confirm_assistant_plan","discard_assistant_plan"].includes(interpretation.action)?await executeAssistantPlan(tx,row,interpretation)
         : preference?.remindersPaused ? "Seus avisos estão pausados. Envie RETOMAR antes de criar ou reagendar lembretes."
         : await executeAction(row.phone, interpretation, async input => {
         const reminder = await persistReminderInTransaction(input, tx, { phoneNumberId: row.phoneNumberId, sourceMessageId: row.id });

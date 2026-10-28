@@ -18,6 +18,7 @@ import {chooseAppointmentSuggestion} from "./appointment.suggestions";
 import {subjectProposalCommand} from "./subject.proposal";
 import {pendingFollowupIntent} from "./subject.pending.followup";
 import {subjectHistoryLookup} from "./subject.history.lookup";
+import {assistantPlanCommand,explicitPlanCommand,planCommandIntent} from "./assistant.plan";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -28,6 +29,8 @@ export type ConversationDependencies = {
 };
 
 export async function prepareConversation(message: IncomingConversation, deps: ConversationDependencies, timeoutMs = 45000) {
+  const planCommand=!message.mediaId && assistantPlanCommand(message.text);
+  if(planCommand && explicitPlanCommand(message.text))return planCommandIntent(planCommand);
   const proposalCommand=!message.mediaId && subjectProposalCommand(message.text);
   if(proposalCommand)return proposalCommand;
   const button = !message.mediaId && buttonInterpretation(message.text, message.receivedAt);
@@ -42,12 +45,14 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   try {
     return await Promise.race([(async () => {
       const context = await deps.buildContext(message);
+      if(planCommand && (context as any)?.conversationState?.assistantPlan)return planCommandIntent(planCommand);
       const followup=pendingFollowupIntent((context as any)?.conversationState?.pendingFollowup || null);
       if(followup)return followup;
       const continuation=(context as any)?.conversationState?.pendingContinuation;
       if(continuation?.intent)return continuation.intent as AIInterpretation;
       const interpretation = await deps.interpret(context,deps.onUsage);
       const validated = parseInterpretation(JSON.stringify(interpretation));
+      if(["confirm_assistant_plan","discard_assistant_plan"].includes(validated.action))return {action:"conversation" as const,reply:"Revise o plano proposto antes de confirmar. Ainda não executei essas ações.",title:null,description:null,datetime:null,amount:null,category:null};
       // Optimistic version checks are attached by our deterministic button parser,
       // not invented by the language model.
       delete validated.expectedVersion;

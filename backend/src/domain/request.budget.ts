@@ -6,7 +6,7 @@ function cap(value:string | undefined, fallback:number, maximum:number) {
   return number;
 }
 export async function requestBudget(store:Pick<PrismaClient,"incomingMessage">,row:IncomingMessage) {
-  const scope={phone:row.phone,phoneNumberId:row.phoneNumberId,receivedAt:{gte:new Date(row.receivedAt.getTime()-24*3600000)},
+  const scope={phone:row.phone,phoneNumberId:row.phoneNumberId,status:{not:"plan_step"},receivedAt:{gte:new Date(row.receivedAt.getTime()-24*3600000)},
     OR:[{receivedAt:{lt:row.receivedAt}},{receivedAt:row.receivedAt,id:{lt:row.id}}]};
   const requests=await store.incomingMessage.count({where:scope});
   if(requests>=cap(process.env.MAX_REQUESTS_PER_USER_PER_DAY,200,10000))return "Você chegou ao limite de pedidos em 24 horas. Ainda pode usar AJUDA, MEU DIA, PARAR e RETOMAR. Tente um novo pedido mais tarde.";
