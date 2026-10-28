@@ -1,5 +1,29 @@
 # Próxima direção aprovada — 27/10/2026
 
+## Central de acompanhamento — 28/10/2026 — validação local
+
+Ver WORKSPACE-OVERVIEW.md e PRODUCT-DIRECTION.md. Implementados panorama de
+projetos/clientes com status, origem e próximas ações; painel de atenção que
+combina agenda/avisos/pendências; retornos agrupados por referência informada.
+Perguntas comuns locais sem IA e rota workspace_overview para outras formulações,
+com resultado produzido pelo executor a partir do banco. Sem migração/env novo.
+Sete integrações e três unitários dedicados passaram. Suíte completa em
+work/workspace-overview-check-20261028.log na workspace. Produção ainda d54f3e3
+até publicar/verificar. Avaliação real fictícia opcional via script
+scripts/evaluate-workspace-overview.cjs --allow-provider após build no inbox,
+sem copiar chaves antigas locais. Não afirmar novo painel em produção até checar.
+
+## Produção mais recente: continuidade integrada d54f3e3
+
+API d6999280-2c37-4d07-8ca3-7492896f7515,
+inbox5d800d53-1c20-486b-be7b-02eb927402e1 e
+lembretes b34c0ac4-8432-4570-a0eb-986f7ced46ab Active; readiness ready.
+Sem migração. Código inclui o ciclo de PENDING-CONTINUITY.md.250 unitários e
+278 integrações aprovados; sete novos cenários, onze antigos e250 unitários
+repetidos na revisão final. Ciclo completo real no WhatsApp ainda não validado.
+Registros:work/continuity-release-20261027.md e continuity-release-active-20261027.png.
+Os estados de preparação abaixo são históricos.
+
 ## Continuidade integrada em validação local
 
 Ver PENDING-CONTINUITY.md. Implementado encadeamento na mesma pendência por

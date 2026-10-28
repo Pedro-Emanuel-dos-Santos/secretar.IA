@@ -1,6 +1,8 @@
 # Continuidade de uma pendência na conversa — 27/10/2026
 
-Entrega validada localmente, em preparação para publicação. Sem migração ou
+Publicado código d54f3e3 nos três serviços, todos Active; readiness ready.
+Ciclo completo validado localmente; ainda sem confirmação desse ciclo real
+inteiro no WhatsApp. Sem migração ou
 nova credencial. TypeScript,250 unitários e278 integrações na suíte completa
 aprovados. Revisão final repetiu os sete cenários novos e onze de retorno,
 mais os250 unitários. Não somar repetições como testes distintos.

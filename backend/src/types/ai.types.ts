@@ -1,4 +1,5 @@
 export type AIAction =
+  | "workspace_overview"
   | "propose_subject_update" | "confirm_subject_update" | "discard_subject_update"
   | "create_subject_pending" | "list_subject_pendings" | "update_subject_pending"
   | "remember_personal" | "recall_personal" | "update_personal" | "forget_personal"
@@ -26,6 +27,7 @@ export type AIAction =
   | "unknown";
 
 export type AIInterpretation = {
+  overviewKind?:"projects"|"clients"|"all"|"attention"|"waiting";
   subjectPendingId?:string;
   nextAction?:string|null;
   pendingState?:"pending"|"waiting"|"completed"|"cancelled";

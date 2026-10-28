@@ -6,10 +6,16 @@ import { requestContentDeletion,confirmContentDeletion } from "./privacy";
 import { agendaOverview } from "./agenda.overview";
 import { memoryDisclosure,setPersonalMemoryConsent } from "./personal.memory.consent";
 import { findPersonalMemories,personalMemoryReply } from "./personal.memory";
+import {portfolioOverview,attentionOverview,waitingOverview} from "./workspace.overview";
 
-export type LocalCommand = "memory_info" | "memory_accept" | "memory_revoke" | "memory_list" | "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "day_after_tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
+export type LocalCommand = "waiting_overview" | "portfolio_projects" | "portfolio_clients" | "portfolio_all" | "attention" | "memory_info" | "memory_accept" | "memory_revoke" | "memory_list" | "help" | "privacy" | "pause" | "resume" | "today" | "week" | "next_week" | "tomorrow" | "day_after_tomorrow" | "next_7_days" | "audio_info" | "audio_accept" | "audio_revoke" | "profile" | "usage" | "erase_request" | "erase_confirm";
 export function localCommand(text: string): LocalCommand | null {
   const value = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[.!?]+$/, "").trim();
+  if(/^(?:meus projetos|painel de projetos|resumo dos (?:meus )?projetos|como (?:estao|andam) (?:os )?meus projetos)$/.test(value))return "portfolio_projects";
+  if(/^(?:meus clientes|painel de clientes|resumo dos (?:meus )?clientes|como (?:estao|andam) (?:os )?meus clientes)$/.test(value))return "portfolio_clients";
+  if(["meus projetos e clientes","panorama dos meus projetos e clientes"].includes(value))return "portfolio_all";
+  if(["quem estou aguardando","o que estou aguardando","quais retornos estou aguardando","retornos pendentes"].includes(value))return "waiting_overview";
+  if(/^(?:o que (?:precisa da minha atencao|eu preciso resolver|preciso resolver)(?: hoje)?|minhas prioridades|meu painel|central de acompanhamento|me da um panorama)$/.test(value))return "attention";
   if(value==="memoria pessoal" || value==="como funciona a memoria")return "memory_info";
   if(value==="aceito memoria")return "memory_accept";
   if(value==="desativar memoria")return "memory_revoke";
@@ -38,6 +44,9 @@ export function localCommandIntent(text: string): AIInterpretation | null {
   return localCommand(text) ? {action:"conversation",title:null,description:null,datetime:null,amount:null,category:null,reply:"Vou conferir seu pedido."} : null;
 }
 export async function executeLocalCommand(command: LocalCommand, phone: string, phoneNumberId: string, tx: Prisma.TransactionClient,current?:{id:string;text:string;receivedAt?:Date}) {
+  if(command==="waiting_overview")return waitingOverview(phone,phoneNumberId,tx);
+  if(command==="portfolio_projects" || command==="portfolio_clients" || command==="portfolio_all")return portfolioOverview(phone,phoneNumberId,tx,command==="portfolio_projects"?"project":command==="portfolio_clients"?"client":undefined);
+  if(command==="attention")return attentionOverview(phone,phoneNumberId,tx,current?.receivedAt || new Date());
   if(command==="memory_info")return memoryDisclosure(phone,phoneNumberId,tx,current?.id);
   if(command==="memory_accept" || command==="memory_revoke")return setPersonalMemoryConsent(phone,phoneNumberId,command==="memory_accept",tx,current?.id);
   if(command==="memory_list")return personalMemoryReply(await findPersonalMemories(tx,phone,phoneNumberId));

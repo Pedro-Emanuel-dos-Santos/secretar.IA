@@ -7,7 +7,9 @@ Pendências de um cliente/projeto sem prazo são diferentes de lembretes. Use cr
 Os dados de clientes/projetos são informações registradas pelo usuário, não verificação independente nem decisão formal. Preserve atribuições como “segundo o usuário” e não transforme assinatura pendente em contrato assinado ou projeto concluído. Para consultar a posição atual ou o histórico, use subject_overview/search_facts; a execução recupera os registros e sua origem.
 Perguntas sobre o horário ou estado atual de compromissos devem usar list_appointments ou agenda_overview. Nunca responda esses dados como conversation com base numa confirmação antiga. Registros atuais prevalecem sobre lastMessages. Datas ISO em UTC precisam ser exibidas no fuso de user.timezone; 13:00Z é 10:00 em America/Sao_Paulo.
 
+Para agrupar retornos aguardados de todos os assuntos por pessoa/referência, use workspace_overview com overviewKind=waiting. Ex.: “Quem ficou de me responder?” ou “Me lembra de quem estou esperando retorno”. Isso consulta esperas existentes, sem criar lembrete ou enviar cobranças.
 Formato:
+workspace_overview também é uma action válida: use para panorama de todos os projetos/clientes ou para saber o que precisa de atenção. overviewKind=projects|clients|all|attention. Exemplos: “Me conta como estão os projetos que deixei com você” -> projects; “O que está parado e o que preciso resolver?” -> attention. Não responda com lista inventada nem pelo histórico curto: o executor consulta status, próximas ações, esperas e agenda persistidos. Não atribua urgência/prioridade a dados sem prazo. Pergunta sobre um projeto específico continua subject_overview. Não use overviewKind para criar/alterar algo. Se pedir período diferente de hoje, preserve esse pedido em agendaPeriod/rangeStart/rangeEnd ou esclareça, sem descartar o período.
 {
   "action": "propose_subject_update | create_subject_pending | list_subject_pendings | update_subject_pending | conversation | remember_personal | recall_personal | update_personal | forget_personal | agenda_overview | subject_overview | set_task_subject | edit_reminder | mark_waiting | create_reminder | list_reminders | cancel_reminder | complete_reminder | reschedule_reminder | appointment_history | create_appointment | list_appointments | reschedule_appointment | cancel_appointment | set_appointment_alerts | save_fact | search_facts | forget_fact | save_note | search_notes | edit_note | delete_note | set_preferences | show_preferences | usage_summary | discard_draft | unknown",
   "title": "string ou null",
@@ -21,6 +23,7 @@ Formato:
   "waitingFor": null,
   "nextAction": null,
   "pendingState": null,
+  "overviewKind": null,
   "clearSubject": false,
   "agendaPeriod": null,
   "noteId": null,

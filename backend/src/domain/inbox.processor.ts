@@ -13,6 +13,7 @@ import { executeNote } from "./notes";
 import { executePersonalMemory,personalMemoryActions } from "./personal.memory";
 import { executeFact } from "./business.memory";
 import { subjectOverview } from "./subject.overview";
+import { executeWorkspaceOverview } from "./workspace.overview";
 import { executeSubjectPending,subjectPendingActions } from "./subject.pending";
 import { executeSubjectProposal,subjectProposalActions,subjectProposalCommand } from "./subject.proposal";
 import { agendaOverview } from "./agenda.overview";
@@ -133,7 +134,7 @@ async function prepareAction(store: Store, row: IncomingMessage) {
         refreshReminder = true;
         return reminder;
       }, intent => manageReminders(row.phone, row.phoneNumberId, intent, tx,row.id), intent=>personalMemoryActions.has(intent.action)?executePersonalMemory(row.phone,row.phoneNumberId,intent,tx,row):executeNote(row.phone,row.phoneNumberId,intent,tx),
-      intent=>intent.action==="agenda_overview"?agendaOverview(row.phone,row.phoneNumberId,tx,intent.agendaPeriod || "week",row.receivedAt,{subject:intent.subject || undefined,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd}):intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
+      intent=>intent.action==="workspace_overview"?executeWorkspaceOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):intent.action==="agenda_overview"?agendaOverview(row.phone,row.phoneNumberId,tx,intent.agendaPeriod || "week",row.receivedAt,{subject:intent.subject || undefined,subjectKind:intent.subjectKind,rangeStart:intent.rangeStart,rangeEnd:intent.rangeEnd}):intent.action==="subject_overview"?subjectOverview(row.phone,row.phoneNumberId,intent,tx,row.receivedAt):["save_fact","search_facts","forget_fact"].includes(intent.action) ? executeFact(row.phone,row.phoneNumberId,intent,tx,row.id)
         : ["set_preferences","show_preferences","usage_summary"].includes(intent.action)?executePreferences(row.phone,row.phoneNumberId,intent,tx,row.id)
         : subjectProposalActions.has(intent.action)?executeSubjectProposal(row.phone,row.phoneNumberId,intent,tx,row.id):subjectPendingActions.has(intent.action)?executeSubjectPending(row.phone,row.phoneNumberId,intent,tx,row.id):executeAppointment(row.phone,row.phoneNumberId,intent,tx,row.id),timezone);
       await tx.replyOutbox.create({ data: { messageId: row.id, text: reply, refreshReminder } });

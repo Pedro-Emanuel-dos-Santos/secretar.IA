@@ -9,6 +9,7 @@ require("./subject-proposal.test.cjs");
 require("./subject-pending-followup.test.cjs");
 require("./subject-history-lookup.test.cjs");
 require("./pending-continuation.test.cjs");
+require("./workspace-overview.test.cjs");
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { validateReminder } = require("../src/domain/reminder.validation.ts");
