@@ -1,0 +1,1792 @@
+{
+  "evaluation": "context-memory",
+  "recordedAt": "2026-10-28T18:40:53.690Z",
+  "baseCommit": "f9db473df94838f9c114efc8b5578bece45c3e43",
+  "branch": "codex/dev-beta-reliability-20261028",
+  "requestedModel": "gpt-4.1-mini",
+  "observedModel": "gpt-4.1-mini-2025-04-14",
+  "modeObserved": "openai",
+  "pricing": {
+    "version": "openai-standard-text-2026-10-28",
+    "source": "https://developers.openai.com/api/docs/models/gpt-4.1-mini",
+    "usdPerMillion": {
+      "input": 0.4,
+      "cachedInput": 0.1,
+      "output": 1.6
+    }
+  },
+  "budgetUsd": 0.1,
+  "providerCalls": 17,
+  "tokens": {
+    "input": 160339,
+    "output": 778,
+    "cached": 0,
+    "total": 161117
+  },
+  "estimatedCostUsd": 0.0653804,
+  "remainingEstimatedBudgetUsd": 0.0346196,
+  "unknownUsage": false,
+  "fixtures": [
+    {
+      "id": "old_employment",
+      "expected": "Consultar memória autorizada de desenvolvimento de software; não inventar emprego.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Você lembra da área em que estou procurando trabalho?",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "fixture-goal",
+              "kind": "personal",
+              "category": "goal",
+              "title": "Carreira",
+              "text": "Busco emprego em desenvolvimento de software.",
+              "recordedAt": "2026-10-10T12:00:00Z",
+              "updatedAt": "2026-10-10T12:00:00Z",
+              "sourceMessageId": "fixture-source",
+              "version": 0
+            }
+          ],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "interview_advice",
+      "expected": "Conselho contextual sobre entrevista técnica de software, sem afirmar execução.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Como posso me preparar para aquela entrevista?",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "fixture-interview",
+              "kind": "appointment",
+              "title": "Entrevista técnica",
+              "text": "Entrevista técnica para desenvolvimento de software.",
+              "startsAt": "2026-10-30T13:00:00Z",
+              "recordedAt": "2026-10-15T12:00:00Z",
+              "updatedAt": "2026-10-15T12:00:00Z",
+              "sourceMessageId": "fixture-source",
+              "version": 0
+            }
+          ],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "ambiguous_interview",
+      "expected": "Perguntar qual entrevista (Alfa ou Beta), sem escolher silenciosamente.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Como posso me preparar para aquela entrevista?",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "a",
+              "kind": "appointment",
+              "title": "Entrevista Alfa",
+              "text": "Entrevista Alfa"
+            },
+            {
+              "id": "b",
+              "kind": "appointment",
+              "title": "Entrevista Beta",
+              "text": "Entrevista Beta"
+            }
+          ],
+          "ambiguous": true,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "current_correction",
+      "expected": "Reunião fixture-meeting, versão 3, 30/10/2026 16h São Paulo (19Z); preservar dia.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Na verdade, mudou para as 16h.",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [
+          {
+            "id": "fixture-meeting",
+            "title": "Reunião",
+            "state": "active",
+            "startsAt": "2026-10-30T17:00:00Z",
+            "endsAt": "2026-10-30T18:00:00Z",
+            "version": 3
+          }
+        ],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": {
+            "id": "fixture-meeting",
+            "title": "Reunião",
+            "state": "active",
+            "startsAt": "2026-10-30T17:00:00Z",
+            "endsAt": "2026-10-30T18:00:00Z",
+            "version": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "correction_without_focus",
+      "expected": "Pedir identificação do registro; não criar nem escolher compromisso sem foco.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Na verdade, mudou para as 16h.",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "multiple_requests",
+      "expected": "Proposta com exatamente save_note (portfólio) e create_reminder (revisar portfólio, 29/10/2026 10h São Paulo=13Z); sem afirmar execução.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Anota que preciso do portfólio e me lembra de revisar o portfólio amanhã às 10h. Quero revisar o conjunto.",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "preference",
+      "expected": "Consultar preferência registrada de reuniões pela manhã, sem alterar preferência.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Qual horário eu prefiro para reuniões?",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "fixture-preference",
+              "kind": "personal",
+              "category": "preference",
+              "title": "Horário de reunião",
+              "text": "Prefiro reuniões pela manhã.",
+              "recordedAt": "2026-10-12T12:00:00Z",
+              "updatedAt": "2026-10-12T12:00:00Z",
+              "sourceMessageId": "fixture-source",
+              "version": 1
+            }
+          ],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    },
+    {
+      "id": "storage_opt_out",
+      "expected": "Conversar sem salvar nota, fato, memória ou plano; respeitar recusa explícita.",
+      "context": {
+        "now": "2026-10-28T12:00:00Z",
+        "user": {
+          "name": "Pessoa fictícia",
+          "timezone": "America/Sao_Paulo"
+        },
+        "currentMessage": "Estou buscando emprego. Não guarde isso como memória ou anotação.",
+        "personalMemoryEnabled": true,
+        "personalMemories": [],
+        "memories": [],
+        "reminders": [],
+        "appointments": [],
+        "subjects": [],
+        "lastMessages": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [],
+          "ambiguous": false,
+          "limited": false
+        },
+        "conversationState": {
+          "focusedAppointment": null
+        }
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "scope": "all eight",
+      "originalRows": [
+        {
+          "type": "scenario",
+          "id": "old_employment",
+          "message": "Você lembra da área em que estou procurando trabalho?",
+          "expected": "Consultar memória autorizada de desenvolvimento de software; não inventar emprego.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.020188,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9325,
+            "cachedInput": 0,
+            "output": 15,
+            "total": 9340
+          },
+          "estimatedCostUsd": 0.003754,
+          "costStatus": "estimated",
+          "latencyMs": 2345,
+          "rawOutput": "{\"action\":\"recall_personal\",\"search\":\"área trabalho\"}",
+          "rawInterpretation": null,
+          "interpretation": null,
+          "guardedModelUsed": false,
+          "passed": false,
+          "error": "interpretation_or_validation_failure",
+          "validationError": "Resposta inválida."
+        },
+        {
+          "type": "scenario",
+          "id": "interview_advice",
+          "message": "Como posso me preparar para aquela entrevista?",
+          "expected": "Conselho contextual sobre entrevista técnica de software, sem afirmar execução.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0202016,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9339,
+            "cachedInput": 0,
+            "output": 60,
+            "total": 9399
+          },
+          "estimatedCostUsd": 0.0038316,
+          "costStatus": "estimated",
+          "latencyMs": 1344,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação com tópicos para estudar, revisão de projetos ou simulação de perguntas? Ou prefere dicas gerais para o dia da entrevista?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação com tópicos para estudar, revisão de projetos ou simulação de perguntas? Ou prefere dicas gerais para o dia da entrevista?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação com tópicos para estudar, revisão de projetos ou simulação de perguntas? Ou prefere dicas gerais para o dia da entrevista?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "ambiguous_interview",
+          "message": "Como posso me preparar para aquela entrevista?",
+          "expected": "Perguntar qual entrevista (Alfa ou Beta), sem escolher silenciosamente.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0201504,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9292,
+            "cachedInput": 0,
+            "output": 36,
+            "total": 9328
+          },
+          "estimatedCostUsd": 0.0037744,
+          "costStatus": "estimated",
+          "latencyMs": 1545,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você mencionou duas entrevistas, a Alfa e a Beta. Para qual delas você quer se preparar? Ou quer dicas gerais para entrevistas?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você mencionou duas entrevistas, a Alfa e a Beta. Para qual delas você quer se preparar? Ou quer dicas gerais para entrevistas?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você mencionou duas entrevistas, a Alfa e a Beta. Para qual delas você quer se preparar? Ou quer dicas gerais para entrevistas?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "current_correction",
+          "message": "Na verdade, mudou para as 16h.",
+          "expected": "Reunião fixture-meeting, versão 3, 30/10/2026 16h São Paulo (19Z); preservar dia.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0201872,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9356,
+            "cachedInput": 0,
+            "output": 46,
+            "total": 9402
+          },
+          "estimatedCostUsd": 0.003816,
+          "costStatus": "estimated",
+          "latencyMs": 1392,
+          "rawOutput": "{\"action\":\"reschedule_appointment\",\"appointmentId\":\"fixture-meeting\",\"datetime\":\"2026-10-30T19:00:00Z\",\"reply\":\"Alterei para as 16h no seu horário.\"}",
+          "rawInterpretation": {
+            "appointmentId": "fixture-meeting",
+            "action": "reschedule_appointment",
+            "title": null,
+            "description": null,
+            "datetime": "2026-10-30T19:00:00Z",
+            "amount": null,
+            "category": null,
+            "reply": "Alterei para as 16h no seu horário."
+          },
+          "interpretation": {
+            "appointmentId": "fixture-meeting",
+            "action": "reschedule_appointment",
+            "title": null,
+            "description": null,
+            "datetime": "2026-10-30T19:00:00.000Z",
+            "amount": null,
+            "category": null,
+            "reply": "Alterei para as 16h no seu horário.",
+            "reminderId": null,
+            "search": null,
+            "expectedVersion": 3
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "correction_without_focus",
+          "message": "Na verdade, mudou para as 16h.",
+          "expected": "Pedir identificação do registro; não criar nem escolher compromisso sem foco.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0200784,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9248,
+            "cachedInput": 0,
+            "output": 34,
+            "total": 9282
+          },
+          "estimatedCostUsd": 0.0037536,
+          "costStatus": "estimated",
+          "latencyMs": 1267,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você pode me dizer a que compromisso ou tarefa você está se referindo para eu atualizar o horário para as 16h?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você pode me dizer a que compromisso ou tarefa você está se referindo para eu atualizar o horário para as 16h?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você pode me dizer a que compromisso ou tarefa você está se referindo para eu atualizar o horário para as 16h?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "multiple_requests",
+          "message": "Anota que preciso do portfólio e me lembra de revisar o portfólio amanhã às 10h. Quero revisar o conjunto.",
+          "expected": "Proposta com exatamente save_note (portfólio) e create_reminder (revisar portfólio, 29/10/2026 10h São Paulo=13Z); sem afirmar execução.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0201104,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9266,
+            "cachedInput": 0,
+            "output": 104,
+            "total": 9370
+          },
+          "estimatedCostUsd": 0.0038728,
+          "costStatus": "estimated",
+          "latencyMs": 2230,
+          "rawOutput": "{\n  \"action\": \"assistant_plan\",\n  \"reply\": \"Preparei uma proposta para você revisar.\",\n  \"planSteps\": [\n    {\n      \"action\": \"save_note\",\n      \"description\": \"Preciso do portfólio.\"\n    },\n    {\n      \"action\": \"create_reminder\",\n      \"title\": \"Revisar o portfólio\",\n      \"datetime\": \"2026-10-29T10:00:00-03:00\"\n    }\n  ]\n}",
+          "rawInterpretation": {
+            "planSteps": [
+              {
+                "action": "save_note",
+                "title": null,
+                "description": "Preciso do portfólio.",
+                "datetime": null,
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              },
+              {
+                "action": "create_reminder",
+                "title": "Revisar o portfólio",
+                "description": null,
+                "datetime": "2026-10-29T10:00:00-03:00",
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              }
+            ],
+            "action": "assistant_plan",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Preparei uma proposta para você revisar."
+          },
+          "interpretation": {
+            "planSteps": [
+              {
+                "action": "save_note",
+                "title": null,
+                "description": "Preciso do portfólio.",
+                "datetime": null,
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              },
+              {
+                "action": "create_reminder",
+                "title": "Revisar o portfólio",
+                "description": null,
+                "datetime": "2026-10-29T10:00:00-03:00",
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              }
+            ],
+            "action": "assistant_plan",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Preparei uma proposta para você revisar."
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "preference",
+          "message": "Qual horário eu prefiro para reuniões?",
+          "expected": "Consultar preferência registrada de reuniões pela manhã, sem alterar preferência.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0201856,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9324,
+            "cachedInput": 0,
+            "output": 32,
+            "total": 9356
+          },
+          "estimatedCostUsd": 0.0037808,
+          "costStatus": "estimated",
+          "latencyMs": 991,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você prefere reuniões pela manhã, certo? Quer que eu ajude a organizar seus compromissos considerando esse horário?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você prefere reuniões pela manhã, certo? Quer que eu ajude a organizar seus compromissos considerando esse horário?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você prefere reuniões pela manhã, certo? Quer que eu ajude a organizar seus compromissos considerando esse horário?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [
+            "action",
+            "lookup_query"
+          ],
+          "issues": [
+            "action",
+            "lookup_query"
+          ],
+          "rawPassed": false,
+          "passed": false
+        },
+        {
+          "type": "scenario",
+          "id": "storage_opt_out",
+          "message": "Estou buscando emprego. Não guarde isso como memória ou anotação.",
+          "expected": "Conversar sem salvar nota, fato, memória ou plano; respeitar recusa explícita.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.020094,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9252,
+            "cachedInput": 0,
+            "output": 41,
+            "total": 9293
+          },
+          "estimatedCostUsd": 0.0037664,
+          "costStatus": "estimated",
+          "latencyMs": 1095,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Entendi que você está buscando emprego. Em que área ou tipo de trabalho você está interessado(a)? Posso ajudar a organizar suas buscas ou preparar algo específico.\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Entendi que você está buscando emprego. Em que área ou tipo de trabalho você está interessado(a)? Posso ajudar a organizar suas buscas ou preparar algo específico."
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Entendi que você está buscando emprego. Em que área ou tipo de trabalho você está interessado(a)? Posso ajudar a organizar suas buscas ou preparar algo específico."
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "summary",
+          "evaluation": "context-memory",
+          "requestedModel": "gpt-4.1-mini",
+          "pricingVersion": "openai-standard-text-2026-10-28",
+          "passed": 6,
+          "total": 8,
+          "providerCalls": 8,
+          "stopped": null,
+          "budgetUsd": 0.1,
+          "priorSpentUsd": 0,
+          "estimatedCostUsd": 0.0303496,
+          "cumulativeEstimatedCostUsd": 0.0303496,
+          "uncertainReservedUsd": 0,
+          "blocked": false,
+          "databaseWrites": 0,
+          "whatsappSends": 0,
+          "note": "Raw model and production interpretation evaluated separately. Estimated text API cost, not invoice. Synthetic supplied context: does not prove retrieval, consent UI, executor or delivery integration."
+        }
+      ],
+      "review": [
+        {
+          "id": "old_employment",
+          "originalAutomatedPassed": false,
+          "reviewedPassed": false,
+          "reviewIssues": [
+            "interpretation_or_validation_failure"
+          ]
+        },
+        {
+          "id": "interview_advice",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": false,
+          "reviewIssues": [
+            "missing_actionable_advice"
+          ]
+        },
+        {
+          "id": "ambiguous_interview",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "current_correction",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": false,
+          "reviewIssues": [
+            "false_execution"
+          ]
+        },
+        {
+          "id": "correction_without_focus",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "multiple_requests",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "preference",
+          "originalAutomatedPassed": false,
+          "reviewedPassed": false,
+          "reviewIssues": [
+            "action",
+            "lookup_query"
+          ]
+        },
+        {
+          "id": "storage_opt_out",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        }
+      ],
+      "reviewedPassed": 4
+    },
+    {
+      "round": 2,
+      "scope": "all eight",
+      "originalRows": [
+        {
+          "type": "scenario",
+          "id": "old_employment",
+          "message": "Você lembra da área em que estou procurando trabalho?",
+          "expected": "Consultar memória autorizada de desenvolvimento de software; não inventar emprego.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206792,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9560,
+            "cachedInput": 0,
+            "output": 28,
+            "total": 9588
+          },
+          "estimatedCostUsd": 0.0038688,
+          "costStatus": "estimated",
+          "latencyMs": 1892,
+          "rawOutput": "{\"action\":\"recall_context\",\"search\":\"área de trabalho\",\"reply\":\"Vou verificar em que área você está procurando trabalho.\"}",
+          "rawInterpretation": {
+            "search": "área de trabalho",
+            "action": "recall_context",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Vou verificar em que área você está procurando trabalho."
+          },
+          "interpretation": {
+            "action": "recall_context",
+            "search": "Você lembra da área em que estou procurando trabalho?",
+            "reply": "Vou consultar o que ficou registrado.",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null
+          },
+          "guardedModelUsed": false,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "interview_advice",
+          "message": "Como posso me preparar para aquela entrevista?",
+          "expected": "Conselho contextual sobre entrevista técnica de software, sem afirmar execução.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206928,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9574,
+            "cachedInput": 0,
+            "output": 48,
+            "total": 9622
+          },
+          "estimatedCostUsd": 0.0039064,
+          "costStatus": "estimated",
+          "latencyMs": 1461,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação, como revisar conceitos, praticar perguntas comuns ou algo específico?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação, como revisar conceitos, praticar perguntas comuns ou algo específico?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Sua entrevista técnica para desenvolvimento de software está marcada para o dia 30. Quer que eu ajude a organizar um plano de preparação, como revisar conceitos, praticar perguntas comuns ou algo específico?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "ambiguous_interview",
+          "message": "Como posso me preparar para aquela entrevista?",
+          "expected": "Perguntar qual entrevista (Alfa ou Beta), sem escolher silenciosamente.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206416,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9527,
+            "cachedInput": 0,
+            "output": 35,
+            "total": 9562
+          },
+          "estimatedCostUsd": 0.0038668,
+          "costStatus": "estimated",
+          "latencyMs": 1112,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "current_correction",
+          "message": "Na verdade, mudou para as 16h.",
+          "expected": "Reunião fixture-meeting, versão 3, 30/10/2026 16h São Paulo (19Z); preservar dia.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206784,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9591,
+            "cachedInput": 0,
+            "output": 48,
+            "total": 9639
+          },
+          "estimatedCostUsd": 0.0039132,
+          "costStatus": "estimated",
+          "latencyMs": 1365,
+          "rawOutput": "{\"action\":\"reschedule_appointment\",\"appointmentId\":\"fixture-meeting\",\"datetime\":\"2026-10-30T19:00:00Z\",\"reply\":\"Vou ajustar a reunião para as 16h no seu horário.\"}",
+          "rawInterpretation": {
+            "appointmentId": "fixture-meeting",
+            "action": "reschedule_appointment",
+            "title": null,
+            "description": null,
+            "datetime": "2026-10-30T19:00:00Z",
+            "amount": null,
+            "category": null,
+            "reply": "Vou ajustar a reunião para as 16h no seu horário."
+          },
+          "interpretation": {
+            "appointmentId": "fixture-meeting",
+            "action": "reschedule_appointment",
+            "title": null,
+            "description": null,
+            "datetime": "2026-10-30T19:00:00.000Z",
+            "amount": null,
+            "category": null,
+            "reply": "Vou ajustar a reunião para as 16h no seu horário.",
+            "reminderId": null,
+            "search": null,
+            "expectedVersion": 3
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "correction_without_focus",
+          "message": "Na verdade, mudou para as 16h.",
+          "expected": "Pedir identificação do registro; não criar nem escolher compromisso sem foco.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0205696,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9483,
+            "cachedInput": 0,
+            "output": 26,
+            "total": 9509
+          },
+          "estimatedCostUsd": 0.0038348,
+          "costStatus": "estimated",
+          "latencyMs": 1354,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "multiple_requests",
+          "message": "Anota que preciso do portfólio e me lembra de revisar o portfólio amanhã às 10h. Quero revisar o conjunto.",
+          "expected": "Proposta com exatamente save_note (portfólio) e create_reminder (revisar portfólio, 29/10/2026 10h São Paulo=13Z); sem afirmar execução.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206016,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9501,
+            "cachedInput": 0,
+            "output": 91,
+            "total": 9592
+          },
+          "estimatedCostUsd": 0.003946,
+          "costStatus": "estimated",
+          "latencyMs": 2170,
+          "rawOutput": "{\"action\":\"assistant_plan\",\"reply\":\"Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h.\",\"planSteps\":[{\"action\":\"save_note\",\"description\":\"Preciso do portfólio e quero revisar o conjunto.\"},{\"action\":\"create_reminder\",\"title\":\"Revisar o portfólio\",\"datetime\":\"2026-10-29T10:00:00-03:00\"}]}",
+          "rawInterpretation": {
+            "planSteps": [
+              {
+                "action": "save_note",
+                "title": null,
+                "description": "Preciso do portfólio e quero revisar o conjunto.",
+                "datetime": null,
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              },
+              {
+                "action": "create_reminder",
+                "title": "Revisar o portfólio",
+                "description": null,
+                "datetime": "2026-10-29T10:00:00-03:00",
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              }
+            ],
+            "action": "assistant_plan",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h."
+          },
+          "interpretation": {
+            "planSteps": [
+              {
+                "action": "save_note",
+                "title": null,
+                "description": "Preciso do portfólio e quero revisar o conjunto.",
+                "datetime": null,
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              },
+              {
+                "action": "create_reminder",
+                "title": "Revisar o portfólio",
+                "description": null,
+                "datetime": "2026-10-29T10:00:00-03:00",
+                "amount": null,
+                "category": null,
+                "reply": "interno"
+              }
+            ],
+            "action": "assistant_plan",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h."
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "preference",
+          "message": "Qual horário eu prefiro para reuniões?",
+          "expected": "Consultar preferência registrada de reuniões pela manhã, sem alterar preferência.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0206768,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9559,
+            "cachedInput": 0,
+            "output": 31,
+            "total": 9590
+          },
+          "estimatedCostUsd": 0.0038732,
+          "costStatus": "estimated",
+          "latencyMs": 2449,
+          "rawOutput": "{\"action\":\"recall_context\",\"search\":\"preferência de horário de reuniões\",\"reply\":\"Vou consultar sua preferência registrada para o horário de reuniões.\"}",
+          "rawInterpretation": {
+            "search": "preferência de horário de reuniões",
+            "action": "recall_context",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Vou consultar sua preferência registrada para o horário de reuniões."
+          },
+          "interpretation": {
+            "search": "preferência de horário de reuniões",
+            "action": "recall_context",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Vou consultar sua preferência registrada para o horário de reuniões."
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "scenario",
+          "id": "storage_opt_out",
+          "message": "Estou buscando emprego. Não guarde isso como memória ou anotação.",
+          "expected": "Conversar sem salvar nota, fato, memória ou plano; respeitar recusa explícita.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0205852,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9487,
+            "cachedInput": 0,
+            "output": 35,
+            "total": 9522
+          },
+          "estimatedCostUsd": 0.0038508,
+          "costStatus": "estimated",
+          "latencyMs": 1043,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "summary",
+          "evaluation": "context-memory",
+          "requestedModel": "gpt-4.1-mini",
+          "pricingVersion": "openai-standard-text-2026-10-28",
+          "passed": 8,
+          "total": 8,
+          "providerCalls": 8,
+          "stopped": null,
+          "budgetUsd": 0.1,
+          "priorSpentUsd": 0.0303496,
+          "estimatedCostUsd": 0.03106,
+          "cumulativeEstimatedCostUsd": 0.0614096,
+          "uncertainReservedUsd": 0,
+          "blocked": false,
+          "databaseWrites": 0,
+          "whatsappSends": 0,
+          "note": "Raw model and production interpretation evaluated separately. Estimated text API cost, not invoice. Synthetic supplied context: does not prove retrieval, consent UI, executor or delivery integration."
+        }
+      ],
+      "review": [
+        {
+          "id": "old_employment",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "interview_advice",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": false,
+          "reviewIssues": [
+            "missing_actionable_advice"
+          ]
+        },
+        {
+          "id": "ambiguous_interview",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "current_correction",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "correction_without_focus",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "multiple_requests",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "preference",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        },
+        {
+          "id": "storage_opt_out",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        }
+      ],
+      "reviewedPassed": 7
+    },
+    {
+      "round": 3,
+      "scope": "interview_advice only",
+      "originalRows": [
+        {
+          "type": "scenario",
+          "id": "interview_advice",
+          "message": "Como posso me preparar para aquela entrevista?",
+          "expected": "Conselho contextual sobre entrevista técnica de software, sem afirmar execução.",
+          "requestedModel": "gpt-4.1-mini",
+          "reservedUpperEstimateUsd": 0.0208636,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "responseStatus": "completed",
+          "tokens": {
+            "input": 9655,
+            "cachedInput": 0,
+            "output": 68,
+            "total": 9723
+          },
+          "estimatedCostUsd": 0.0039708,
+          "costStatus": "estimated",
+          "latencyMs": 1276,
+          "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?\"}",
+          "rawInterpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?"
+          },
+          "interpretation": {
+            "action": "conversation",
+            "title": null,
+            "description": null,
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?"
+          },
+          "guardedModelUsed": true,
+          "rawIssues": [],
+          "issues": [],
+          "rawPassed": true,
+          "passed": true
+        },
+        {
+          "type": "summary",
+          "evaluation": "context-memory",
+          "requestedModel": "gpt-4.1-mini",
+          "pricingVersion": "openai-standard-text-2026-10-28",
+          "passed": 1,
+          "total": 1,
+          "providerCalls": 1,
+          "stopped": null,
+          "budgetUsd": 0.1,
+          "priorSpentUsd": 0.0614096,
+          "estimatedCostUsd": 0.0039708,
+          "cumulativeEstimatedCostUsd": 0.0653804,
+          "uncertainReservedUsd": 0,
+          "blocked": false,
+          "databaseWrites": 0,
+          "whatsappSends": 0,
+          "note": "Raw model and production interpretation evaluated separately. Estimated text API cost, not invoice. Synthetic supplied context: does not prove retrieval, consent UI, executor or delivery integration."
+        }
+      ],
+      "review": [
+        {
+          "id": "interview_advice",
+          "originalAutomatedPassed": true,
+          "reviewedPassed": true,
+          "reviewIssues": []
+        }
+      ],
+      "reviewedPassed": 1
+    }
+  ],
+  "latestResults": [
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "old_employment",
+      "message": "Você lembra da área em que estou procurando trabalho?",
+      "expected": "Consultar memória autorizada de desenvolvimento de software; não inventar emprego.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0206792,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9560,
+        "cachedInput": 0,
+        "output": 28,
+        "total": 9588
+      },
+      "estimatedCostUsd": 0.0038688,
+      "costStatus": "estimated",
+      "latencyMs": 1892,
+      "rawOutput": "{\"action\":\"recall_context\",\"search\":\"área de trabalho\",\"reply\":\"Vou verificar em que área você está procurando trabalho.\"}",
+      "rawInterpretation": {
+        "search": "área de trabalho",
+        "action": "recall_context",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Vou verificar em que área você está procurando trabalho."
+      },
+      "interpretation": {
+        "action": "recall_context",
+        "search": "Você lembra da área em que estou procurando trabalho?",
+        "reply": "Vou consultar o que ficou registrado.",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null
+      },
+      "guardedModelUsed": false,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 3,
+      "type": "scenario",
+      "id": "interview_advice",
+      "message": "Como posso me preparar para aquela entrevista?",
+      "expected": "Conselho contextual sobre entrevista técnica de software, sem afirmar execução.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0208636,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9655,
+        "cachedInput": 0,
+        "output": 68,
+        "total": 9723
+      },
+      "estimatedCostUsd": 0.0039708,
+      "costStatus": "estimated",
+      "latencyMs": 1276,
+      "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?\"}",
+      "rawInterpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?"
+      },
+      "interpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Para a entrevista técnica de desenvolvimento de software na sexta-feira às 10h no seu horário, sugiro revisar os principais conceitos da linguagem que será usada, praticar resolução de problemas e preparar exemplos dos seus projetos anteriores. Quer ajuda para montar um roteiro de estudo ou preparar respostas para perguntas comuns?"
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "ambiguous_interview",
+      "message": "Como posso me preparar para aquela entrevista?",
+      "expected": "Perguntar qual entrevista (Alfa ou Beta), sem escolher silenciosamente.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0206416,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9527,
+        "cachedInput": 0,
+        "output": 35,
+        "total": 9562
+      },
+      "estimatedCostUsd": 0.0038668,
+      "costStatus": "estimated",
+      "latencyMs": 1112,
+      "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?\"}",
+      "rawInterpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?"
+      },
+      "interpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Você tem duas entrevistas registradas: Entrevista Alfa e Entrevista Beta. Para qual delas você quer dicas de preparação?"
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "current_correction",
+      "message": "Na verdade, mudou para as 16h.",
+      "expected": "Reunião fixture-meeting, versão 3, 30/10/2026 16h São Paulo (19Z); preservar dia.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0206784,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9591,
+        "cachedInput": 0,
+        "output": 48,
+        "total": 9639
+      },
+      "estimatedCostUsd": 0.0039132,
+      "costStatus": "estimated",
+      "latencyMs": 1365,
+      "rawOutput": "{\"action\":\"reschedule_appointment\",\"appointmentId\":\"fixture-meeting\",\"datetime\":\"2026-10-30T19:00:00Z\",\"reply\":\"Vou ajustar a reunião para as 16h no seu horário.\"}",
+      "rawInterpretation": {
+        "appointmentId": "fixture-meeting",
+        "action": "reschedule_appointment",
+        "title": null,
+        "description": null,
+        "datetime": "2026-10-30T19:00:00Z",
+        "amount": null,
+        "category": null,
+        "reply": "Vou ajustar a reunião para as 16h no seu horário."
+      },
+      "interpretation": {
+        "appointmentId": "fixture-meeting",
+        "action": "reschedule_appointment",
+        "title": null,
+        "description": null,
+        "datetime": "2026-10-30T19:00:00.000Z",
+        "amount": null,
+        "category": null,
+        "reply": "Vou ajustar a reunião para as 16h no seu horário.",
+        "reminderId": null,
+        "search": null,
+        "expectedVersion": 3
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "correction_without_focus",
+      "message": "Na verdade, mudou para as 16h.",
+      "expected": "Pedir identificação do registro; não criar nem escolher compromisso sem foco.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0205696,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9483,
+        "cachedInput": 0,
+        "output": 26,
+        "total": 9509
+      },
+      "estimatedCostUsd": 0.0038348,
+      "costStatus": "estimated",
+      "latencyMs": 1354,
+      "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?\"}",
+      "rawInterpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?"
+      },
+      "interpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Você pode me dizer qual compromisso ou tarefa você quer mudar para as 16h?"
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "multiple_requests",
+      "message": "Anota que preciso do portfólio e me lembra de revisar o portfólio amanhã às 10h. Quero revisar o conjunto.",
+      "expected": "Proposta com exatamente save_note (portfólio) e create_reminder (revisar portfólio, 29/10/2026 10h São Paulo=13Z); sem afirmar execução.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0206016,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9501,
+        "cachedInput": 0,
+        "output": 91,
+        "total": 9592
+      },
+      "estimatedCostUsd": 0.003946,
+      "costStatus": "estimated",
+      "latencyMs": 2170,
+      "rawOutput": "{\"action\":\"assistant_plan\",\"reply\":\"Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h.\",\"planSteps\":[{\"action\":\"save_note\",\"description\":\"Preciso do portfólio e quero revisar o conjunto.\"},{\"action\":\"create_reminder\",\"title\":\"Revisar o portfólio\",\"datetime\":\"2026-10-29T10:00:00-03:00\"}]}",
+      "rawInterpretation": {
+        "planSteps": [
+          {
+            "action": "save_note",
+            "title": null,
+            "description": "Preciso do portfólio e quero revisar o conjunto.",
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "interno"
+          },
+          {
+            "action": "create_reminder",
+            "title": "Revisar o portfólio",
+            "description": null,
+            "datetime": "2026-10-29T10:00:00-03:00",
+            "amount": null,
+            "category": null,
+            "reply": "interno"
+          }
+        ],
+        "action": "assistant_plan",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h."
+      },
+      "interpretation": {
+        "planSteps": [
+          {
+            "action": "save_note",
+            "title": null,
+            "description": "Preciso do portfólio e quero revisar o conjunto.",
+            "datetime": null,
+            "amount": null,
+            "category": null,
+            "reply": "interno"
+          },
+          {
+            "action": "create_reminder",
+            "title": "Revisar o portfólio",
+            "description": null,
+            "datetime": "2026-10-29T10:00:00-03:00",
+            "amount": null,
+            "category": null,
+            "reply": "interno"
+          }
+        ],
+        "action": "assistant_plan",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Vou anotar sua necessidade e criar o lembrete para revisão do portfólio amanhã às 10h."
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "preference",
+      "message": "Qual horário eu prefiro para reuniões?",
+      "expected": "Consultar preferência registrada de reuniões pela manhã, sem alterar preferência.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0206768,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9559,
+        "cachedInput": 0,
+        "output": 31,
+        "total": 9590
+      },
+      "estimatedCostUsd": 0.0038732,
+      "costStatus": "estimated",
+      "latencyMs": 2449,
+      "rawOutput": "{\"action\":\"recall_context\",\"search\":\"preferência de horário de reuniões\",\"reply\":\"Vou consultar sua preferência registrada para o horário de reuniões.\"}",
+      "rawInterpretation": {
+        "search": "preferência de horário de reuniões",
+        "action": "recall_context",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Vou consultar sua preferência registrada para o horário de reuniões."
+      },
+      "interpretation": {
+        "search": "preferência de horário de reuniões",
+        "action": "recall_context",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Vou consultar sua preferência registrada para o horário de reuniões."
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    },
+    {
+      "round": 2,
+      "type": "scenario",
+      "id": "storage_opt_out",
+      "message": "Estou buscando emprego. Não guarde isso como memória ou anotação.",
+      "expected": "Conversar sem salvar nota, fato, memória ou plano; respeitar recusa explícita.",
+      "requestedModel": "gpt-4.1-mini",
+      "reservedUpperEstimateUsd": 0.0205852,
+      "model": "gpt-4.1-mini-2025-04-14",
+      "responseStatus": "completed",
+      "tokens": {
+        "input": 9487,
+        "cachedInput": 0,
+        "output": 35,
+        "total": 9522
+      },
+      "estimatedCostUsd": 0.0038508,
+      "costStatus": "estimated",
+      "latencyMs": 1043,
+      "rawOutput": "{\"action\":\"conversation\",\"reply\":\"Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?\"}",
+      "rawInterpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?"
+      },
+      "interpretation": {
+        "action": "conversation",
+        "title": null,
+        "description": null,
+        "datetime": null,
+        "amount": null,
+        "category": null,
+        "reply": "Entendi que você está buscando emprego. Quer conversar sobre áreas de interesse, preparar currículo ou algo mais específico para ajudar nessa busca?"
+      },
+      "guardedModelUsed": true,
+      "rawIssues": [],
+      "issues": [],
+      "rawPassed": true,
+      "passed": true,
+      "originalAutomatedPassed": true,
+      "reviewedPassed": true,
+      "reviewIssues": []
+    }
+  ],
+  "latestPassCount": 8,
+  "limitations": [
+    "Two complete rounds and one targeted repeat, not eight new calls under the final prompt.",
+    "Synthetic context was supplied, not retrieved from a real user database.",
+    "Current source bundle executed in ephemeral diagnostic memory using existing OpenAI environment credential; no application files/configuration/database modified.",
+    "No executor, database client, queue, WhatsApp sender, deployment or migration entrypoint invoked.",
+    "max_output_tokens=1200; production provider limit is 2800.",
+    "Single samples per revision are not a statistical reliability benchmark."
+  ],
+  "bundleSha256": {
+    "round1": "1a1ecbc88b86d4444bb036069813804b31b1b2df281b314b3216061da266d569",
+    "round2": "cb6c7d72258f0ab9027e013a09487493ba3941b8d3b23142245b6a391d7d539c",
+    "round3": "ae43f488af83820af8038406427eedf89c840b8ae0e27fd9ccaf002b191b5f4c"
+  },
+  "finalPromptSha256": "bf5718e73079196cf573ac5f965bc404cce528c35a9f2d45a4ee1ab0de1230c4",
+  "tests": {
+    "unit": 285,
+    "integration": 331,
+    "typecheck": "passed",
+    "build": "passed",
+    "integrationDatabase": "local secretaria_inbox_test",
+    "externalProviders": "mocked in unit/integration suites"
+  },
+  "production": {
+    "branch": "codex/railway-ready-20261020",
+    "commit": "a072f63353961ea6da0c5756417967a91248a317",
+    "deploymentsUnchanged": [
+      "6ab19165-f02d-454a-b181-729dd5de3cd7",
+      "1150569b-927b-472d-b64b-94a65e508c32",
+      "614ab584-6b70-4083-81d6-f0fb781dba11"
+    ]
+  }
+}

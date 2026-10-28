@@ -1,5 +1,12 @@
 # Missão 03 — preparação do beta e primeira memória contextual
 
+Etapa posterior autorizada: [avaliação OpenAI e prontidão do beta](AVALIACAO_INTELIGENCIA_BETA_20261028.md).
+17 chamadas fictícias, custo estimado total US$ 0,0653804; oito cenários com aprovação
+mais recente após duas rodadas completas e uma repetição focal. Corrigidos contrato
+do prompt, consulta factual e utilidade do conselho. Sem deploy ou migração remota.
+285 unitários, 331 integrações locais e build aprovados. Evidência bruta preservada;
+resultados não equivalem a prontidão operacional nem a uma rodada final completa.
+
 Concluída localmente em 28/10/2026, sobre e920084, na branch
 `codex/dev-beta-reliability-20261028`. Código publicado só no GitHub para revisão.
 Esta entrega **não declara o beta pronto** e não autoriza deploy por si mesma.

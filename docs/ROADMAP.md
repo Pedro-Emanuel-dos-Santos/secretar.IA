@@ -2,9 +2,11 @@
 
 Progresso M03 na branch de desenvolvimento: revisão de regressões e primeira
 recuperação contextual implementadas, com jornadas locais de vários dias.
-Próximas provas: avaliação separada com modelo real e orçamento autorizado;
-backup/recuperação verificados; publicação coordenada autorizada; jornadas WhatsApp
-e participante. A avaliação não é executada automaticamente ao publicar no GitHub.
+Avaliação separada executada com OpenAI: 17 chamadas fictícias, US$ 0,0653804 de
+US$ 0,10, após correções; ver AVALIACAO_INTELIGENCIA_BETA_20261028.md e suas limitações.
+Próximas provas: backup/recuperação verificados; publicação coordenada autorizada;
+jornadas integradas WhatsApp e participante. Nada disso ocorre automaticamente ao
+publicar no GitHub. Novas avaliações pagas exigem autorização vigente de orçamento.
 
 Meta: primeiro uso externo acompanhado até **04/11/2026**, sujeito aos critérios
 de entrada. O calendário não transforma capacidades pendentes em prontas.

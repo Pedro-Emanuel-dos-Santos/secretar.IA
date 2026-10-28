@@ -1,5 +1,17 @@
 # Beta privado — critérios de entrada e avaliação
 
+## Avaliação controlada OpenAI — 28/10/2026
+
+[Relatório e prontidão](AVALIACAO_INTELIGENCIA_BETA_20261028.md): duas rodadas dos
+oito cenários + uma repetição focal, 17 chamadas, US$ 0,0653804 estimados de um teto
+de US$ 0,10. Oito resultados mais recentes aprovados; sete vêm da rodada 2 e um
+da rodada 3, sem nova rodada completa sob o último ajuste do prompt. Modelo observado:
+gpt-4.1-mini-2025-04-14, modo openai. 285 unitários, 331 integrações e build aprovados.
+Código/evidências apenas na branch de desenvolvimento; nenhum deploy/migração/envio.
+Continuam pendentes recuperação integrada no WhatsApp, template fora da janela,
+backup/restauro, publicação coordenada autorizada e critérios do participante.
+As notas abaixo registram a etapa anterior da M03, antes desta avaliação real.
+
 ## Atualização após Missão 03 — código local
 
 Experimental: recuperação por conceitos em português e vínculos de projeto,

@@ -1,5 +1,26 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
+## Avaliação controlada concluída — sem deploy
+
+Ler ../docs/AVALIACAO_INTELIGENCIA_BETA_20261028.md e evidência JSON vinculada.
+17 chamadas fictícias com gpt-4.1-mini-2025-04-14, custo total US$ 0,0653804 do teto
+US$ 0,10. Não reiniciar orçamento em outra execução. Oito resultados mais recentes
+aprovados após duas rodadas completas e uma repetição focal; não houve terceira
+rodada completa do prompt final. Evidência original e revisão estão separadas.
+Corrigidos enum/contrato de consultas, lookup factual de preferências, confirmação
+antecipada, conflito com planos compostos e conselho que só oferecia ajuda.
+Avaliador registra saída bruta, guardas, tokens, modelo observado, custo e latência;
+--cases permite repetir só o necessário, --spent-usd carrega gastos anteriores.
+285 unitários, 331 integrações locais e build final aprovados. Nenhuma migração,
+alteração de configuração/credencial, envio WhatsApp ou deploy feito nesta etapa.
+Modo/modelo atuais foram confirmados por probe sem expor credenciais; o .env antigo
+não foi usado. Pacote diagnóstico rodou em memória com a credencial existente.
+Produção segue a072f63 na branch codex/railway-ready-20261020. Próximo marco depende
+de backup/restauro, compatibilidade de workers/schema, autorização de deploy e
+jornadas integradas antes de convidar o participante. Não pedir teste manual de
+interpretação a cada correção nem tratar esses oito exemplos como garantia geral.
+As seções abaixo preservam o histórico anterior desta missão.
+
 ## Missão 03 — desenvolvimento, sem deploy
 
 Ler ../docs/MISSAO_03.md, MEMORIA_CONTEXTUAL.md e DEPLOY_BETA_COORDENADO.md.
