@@ -50,9 +50,9 @@ export async function executeSubjectPending(phone:string,phoneNumberId:string,in
  if(authorization!=="confirmed_proposal" && (/[?]|\b(?:nao|nunca|talvez|se)\b/.test(text) || /^(?:como|qual|quando|sera|o que)\b/.test(text)))return "Você quer consultar a pendência ou registrar uma alteração? Não alterei os registros.";
  if(intent.datetime || /\b(?:avisa|avise|avisar|lembra|lembre|lembrar|notifica|notifique|amanha|hoje|semana|segunda|terca|quarta|quinta|sexta|sabado|domingo)\b|\d{1,2}[/:]\d{1,2}|\d{1,2}h\b/.test(text))return "Esse pedido inclui prazo ou aviso. Para não perder essa parte, diga se quer registrar apenas a pendência sem prazo ou criar um lembrete com dia e hora. Ainda não registrei nem agendei um aviso.";
  if(intent.factKey || intent.factValue)return "Essa mensagem reúne atualização de informação e pendência. Vamos registrar uma de cada vez: qual você quer primeiro?";
- if(intent.waitingFor && !continuation && !mentionsName(source.text,intent.waitingFor))return "Quem ou o que você está aguardando? Preciso dessa informação explícita para não atribuir a pendência à pessoa errada.";
+ if(intent.waitingFor && !continuation && authorization!=="confirmed_proposal" && !mentionsName(source.text,intent.waitingFor))return "Quem ou o que você está aguardando? Preciso dessa informação explícita para não atribuir a pendência à pessoa errada.";
  if(intent.waitingFor && intent.pendingState && intent.pendingState!=="waiting")return "Você quer deixar essa pendência aguardando retorno ou usar outro estado? Preciso esclarecer antes de alterar.";
- if(intent.pendingState==="waiting" && !continuation && !/\b(?:aguardando|aguardar|esperando|depende|dependente)\b/.test(text))return "Você quer deixar essa pendência aguardando alguém ou manter como pendente?";
+ if(intent.pendingState==="waiting" && !continuation && authorization!=="confirmed_proposal" && !/\b(?:aguardando|aguardar|esperando|depende|dependente)\b/.test(text))return "Você quer deixar essa pendência aguardando alguém ou manter como pendente?";
  const title=(intent.action==="create_subject_pending"?intent.title:intent.search)?.trim();
  if(!title || title.length>200)return "Qual é o título exato da pendência desse projeto?";
  const key=normalizeName(title);

@@ -17,6 +17,50 @@ async function shown(proposal,status='provider_accepted',finishedAt=new Date()){
 async function command(ctx,text='CONFIRMAR ATUALIZAÇÃO',action='confirm_subject_update',extra={}){const m=await message(ctx,text,extra);const reply=await p.$transaction(tx=>executeSubjectProposal(ctx.phone,ctx.account,intent(action),tx,m.id));return {m,reply};}
 const current=ctx=>p.knowledgeFact.findFirst({where:{subjectId:ctx.subject.id,key:'status',supersededAt:null}});
 const count=ctx=>p.subjectPending.count({where:{user:{phone:ctx.phone},phoneNumberId:ctx.account}});
+
+async function existingProposal(text='No projeto Avenida Beira Rio, registra contrato assinado e conclua Assinatura do contrato',state='completed'){
+ const ctx=await setup(),seed=await propose(ctx);await shown(seed);await command(ctx);
+ const pending=await p.subjectPending.findUnique({where:{sourceMessageId:seed.m.id}});
+ const m=await message(ctx,text),reply=await p.$transaction(tx=>executeSubjectProposal(ctx.phone,biz,{...request(),title:null,search:pending.title,factValue:'Contrato assinado',pendingState:state,waitingFor:null,nextAction:state==='pending'?'Revisar contrato':null},tx,m.id));
+ return {ctx,pending,proposal:{m,reply}};
+}
+test('atualização composta conclui existente sem duplicar e preserva origem e replay',async()=>{
+ const {ctx,pending,proposal}=await existingProposal();assert.match(proposal.reply,/Atualizar pendência existente/);
+ assert.equal((await current(ctx)).value,request().factValue);assert.equal((await p.subjectPending.findUnique({where:{id:pending.id}})).state,'waiting');
+ await shown(proposal);const done=await command(ctx);assert.match(done.reply,/As duas partes/);assert.match(done.reply,/concluída/);
+ const result=await p.subjectPending.findUnique({where:{id:pending.id}});assert.equal(result.state,'completed');assert.equal(result.version,1);assert.equal(result.sourceMessageId,pending.sourceMessageId);assert.equal(result.waitingFor,null);assert.equal(result.nextAction,null);assert.equal(await count(ctx),1);assert.equal((await current(ctx)).value,'Contrato assinado');
+ const event=await p.event.findUnique({where:{id:'subject_proposal:'+proposal.m.id}});assert.equal(event.payload.pendingVersion,1);
+ await p.$transaction(tx=>executeSubjectProposal(ctx.phone,biz,intent('confirm_subject_update'),tx,done.m.id));assert.equal((await current(ctx)).revision,3);
+});
+test('pendência alterada após proposta impede também a atualização factual',async()=>{
+ const {ctx,pending,proposal}=await existingProposal();await shown(proposal);
+ await p.subjectPending.update({where:{id:pending.id},data:{nextAction:'Outra ação',version:{increment:1}}});
+ assert.match((await command(ctx)).reply,/pendência mudou/);assert.equal((await current(ctx)).value,request().factValue);assert.equal((await current(ctx)).revision,2);
+});
+test('conclusão inferida é recusada antes de apresentar proposta',async()=>{
+ const {ctx,pending,proposal}=await existingProposal('No projeto Avenida Beira Rio, registra contrato assinado e atualiza Assinatura do contrato');
+ assert.match(proposal.reply,/Quer também concluir/);assert.equal(await p.event.count({where:{id:'subject_proposal:'+proposal.m.id}}),0);assert.equal((await current(ctx)).value,request().factValue);assert.equal((await p.subjectPending.findUnique({where:{id:pending.id}})).state,'waiting');
+});
+test('negação de conclusão prevalece sobre intenção incorreta do modelo',async()=>{
+ const {ctx,proposal}=await existingProposal('No projeto Avenida Beira Rio, registra contrato assinado, mas não conclua Assinatura do contrato');
+ assert.match(proposal.reply,/restringe/);assert.equal(await p.event.count({where:{id:'subject_proposal:'+proposal.m.id}}),0);assert.equal((await current(ctx)).value,request().factValue);
+});
+test('recusa da atualização da existente desfaz fato via savepoint',async()=>{
+ const {ctx,pending,proposal}=await existingProposal();await shown(proposal);const m=await message(ctx,'CONFIRMAR ATUALIZAÇÃO');
+ const reply=await p.$transaction(tx=>executeSubjectProposal(ctx.phone,biz,intent('confirm_subject_update'),new Proxy(tx,{get(obj,key){return key==='subjectPending'?new Proxy(obj.subjectPending,{get(model,method){return method==='updateMany'?async()=>({count:0}):Reflect.get(model,method);}}):Reflect.get(obj,key);}}),m.id));
+ assert.match(reply,/Não apliquei nenhuma/);assert.equal((await current(ctx)).value,request().factValue);assert.equal((await current(ctx)).revision,2);assert.equal((await p.subjectPending.findUnique({where:{id:pending.id}})).state,'waiting');
+});
+test('atualiza fato e próxima ação preservando espera já registrada',async()=>{
+ const {ctx,pending}=await existingProposal();
+ const m=await message(ctx,'No projeto Avenida Beira Rio, registra contrato recebido e atualiza Assinatura do contrato: próxima ação conferir os anexos');
+ const reply=await p.$transaction(tx=>executeSubjectProposal(ctx.phone,biz,{...request(),title:null,search:pending.title,factValue:'Contrato recebido',pendingState:null,waitingFor:null,nextAction:'Conferir os anexos'},tx,m.id));
+ assert.match(reply,/aguardando Evandro/);await shown({m,reply});assert.match((await command(ctx)).reply,/As duas partes/);
+ const saved=await p.subjectPending.findUnique({where:{id:pending.id}});assert.equal(saved.waitingFor,'Evandro');assert.equal(saved.state,'waiting');assert.equal(saved.nextAction,'Conferir os anexos');
+});
+test('retomada composta atualiza próxima ação e limpa pessoa aguardada',async()=>{
+ const {ctx,pending,proposal}=await existingProposal('No projeto Avenida Beira Rio, registra contrato assinado e retome Assinatura do contrato, próxima ação revisar contrato','pending');await shown(proposal);
+ assert.match((await command(ctx)).reply,/As duas partes/);const result=await p.subjectPending.findUnique({where:{id:pending.id}});assert.equal(result.state,'pending');assert.equal(result.waitingFor,null);assert.equal(result.nextAction,'Revisar contrato');assert.equal(await count(ctx),1);
+});
 after(async()=>{await p.user.deleteMany({where:{phone:{in:phones}}});await p.incomingMessage.deleteMany({where:{phoneNumberId:{in:[biz,biz+'other']}}});await p.contactPreference.deleteMany({where:{phone:{in:phones}}});await p.$disconnect();});
 
 test('proposta não altera fatos ou cria pendência antes de confirmar',async()=>{

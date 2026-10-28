@@ -1,6 +1,42 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
-## Novo fluxo: conversa e plano executável — validação local
+## Melhoria local posterior: retomada após consulta
+
+pending.continuation.ts agora retoma pendência antiga após consulta recente
+entregue de subject_overview/list_subject_pendings, quando há somente uma aberta.
+Consulta filtrada/histórica não cria esse foco. Mudança posterior, ambiguidade,
+outro assunto ou conta recusam a referência; execução preserva expectedVersion.
+TypeScript,257 unitários e9 integrações de continuidade passaram.
+Código local, ainda não publicado.
+
+## Atualização composta de fato e pendência existente
+
+`propose_subject_update` aceita `search` com título exato de uma pendência aberta.
+O servidor resolve o registro no projeto/conta do usuário e guarda id/versão;
+preview apresenta estado, pessoa aguardada e próxima ação resultantes. Confirmação
+revalida fato e pendência e aplica as duas partes na mesma transação/savepoint.
+Recusa de qualquer parte desfaz ambas; sem duplicar pendência ou perder origem.
+Conclusão/cancelamento continuam exigindo pedido explícito no texto original.
+Evento aplicado guarda pendingVersion para continuar a conversa após a alteração.
+Sem migração nem variável nova. Ainda local; não foi enviado à Railway.
+Validação desta etapa: TypeScript, 257 unitários e 305 integrações passaram no
+check-pilot completo com banco local isolado. A suíte de proposta foi ampliada
+com recusa de conclusão negada no texto e repetida separadamente após essa edição.
+Primeira tentativa de integrações falhou por Docker parado; banco reiniciado e
+validação completa concluída. Avaliação com provedor real ainda não executada.
+Script evaluate-subject-proposals agora usa o parser real e 15 cenários fictícios,
+incluindo atualizar existente, preservar espera e não concluir por inferência.
+Regras contraditórias do prompt foram corrigidas. Pessoa já aguardada é preservada
+ao atualizar próxima ação; pessoa nova continua exigindo menção no pedido.
+Ver FATHER-PILOT.md para critérios de liberação e percurso até 04/11.
+
+Meta informada em 28/10: pai de Pedro começar a usar em uma semana (04/11).
+Priorizar publicação e validação de um ciclo completo: registrar projeto,
+atualizar fato e pendência, retomar assunto, consultar histórico e posição do dia.
+Depois validar lembrete real, recuperação de falha e onboarding/consentimento
+do novo usuário. Não considerar testes locais como prova de experiência real.
+
+## Novo fluxo: conversa e plano executável — publicação em 28/10
 
 Ver ASSISTANT-PLANS.md. Nova action assistant_plan com2–5 criações revisáveis:
 anotação, lembrete e compromisso. Confirmação natural contextual pelo servidor,
@@ -13,7 +49,23 @@ até12 acompanhamentos atuais, sem itens encerrados/outras contas/pessoas.
 Provider OpenAI permite saída até2800 tokens para JSON de várias etapas.
 Scripts de avaliação somente de interpretação: evaluate-assistant-plan.cjs
 --allow-provider após build no inbox, usando oito entradas fictícias sem ações.
-Ainda não publicado neste registro; produção3f630cc abaixo até checar rollout.
+Produção a072f63 confirmada Active nos três serviços:
+API6ab19165-f02d-454a-b181-729dd5de3cd7,
+inbox1150569b-927b-472d-b64b-94a65e508c32,
+lembretes614ab584-6b70-4083-81d6-f0fb781dba11. Readiness ready.
+Avaliação final8/8 com gpt-4.1-mini, parser e normalização real dos vínculos;
+70665 tokens de entrada/705 de saída, sem escrita no banco nem WhatsApp.
+As avaliações anteriores encontraram rejeições de formato e vínculo inventado;
+foram corrigidos, não considerar esta amostra uma garantia geral do modelo.
+Correções: metadados opcionais nulos das etapas são omitidos; reply ausente
+somente no plano recebe apresentação padrão, pois o executor renderiza a proposta.
+Validação de ações/avisos continua estrita. Prompt traz JSON mínimo explícito;
+avaliação também rejeita vínculo a projeto que não foi pedido.
+Vínculo de projeto no plano só é mantido se nomeado no pedido ou já presente
+na proposta anterior entregue. Referência a projeto sem nome pede esclarecimento.
+Após ajustes finais, TypeScript,257 unitários e296 integrações passaram
+(11 cenários específicos do plano). Ainda sem teste real
+da proposta confirmada via WhatsApp; não confundir avaliação do modelo com execução.
 Logs assistant-plan-release-check-* e assistant-plan-* na workspace. Não declarar Jarvis irrestrito ou teste
 real do plano aprovado antes de comprovar a experiência no WhatsApp.
 

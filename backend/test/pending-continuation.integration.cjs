@@ -14,6 +14,20 @@ async function setup(){const phone='continue-'+randomUUID();phones.push(phone);c
 const prepare=m=>prepareConversation(m,{buildContext:x=>conversationContext(p,x),interpret:async()=>assert.fail('ciclo seguro não deve chamar IA')});
 async function step(c,text){const m=await msg(c,text),i=await prepare(m);assert.equal(i.action,'update_subject_pending',i.reply);const reply=await p.$transaction(tx=>executeSubjectPending(c.phone,c.account,i,tx,m.id));await accept(m,i,reply);return {m,i,reply,row:await p.subjectPending.findUnique({where:{id:c.pending.id}})};}
 after(async()=>{await p.user.deleteMany({where:{phone:{in:phones}}});await p.incomingMessage.deleteMany({where:{phoneNumberId:{in:[account,account+'other']}}});await p.$disconnect();});
+test('consulta recente retoma pendência antiga única sem precisar repetir criação',async()=>{
+ const c=await setup();await p.incomingMessage.update({where:{id:c.first.id},data:{receivedAt:new Date(Date.now()-3600000)}});
+ const read=await msg(c,'Como está o projeto Piloto?');await accept(read,{...base,action:'subject_overview',subject:'Piloto',subjectKind:'project'},'Contrato aguardando Evandro');
+ const result=await step(c,'Agora vou revisar o contrato');assert.equal(result.row.state,'pending');assert.equal(result.row.nextAction,'revisar o contrato');assert.equal(await p.subjectPending.count({where:{subjectId:c.subject.id}}),1);
+});
+test('retomada por consulta recusa ambiguidade e mudança posterior',async()=>{
+ const c=await setup();await p.incomingMessage.update({where:{id:c.first.id},data:{receivedAt:new Date(Date.now()-3600000)}});
+ const read=await msg(c,'Pendências do Piloto');await accept(read,{...base,action:'list_subject_pendings',subject:'Piloto',subjectKind:'project'},'Contrato aguardando Evandro');
+ await p.subjectPending.update({where:{id:c.pending.id},data:{version:{increment:1},updatedAt:new Date(Date.now()+1000)}});
+ assert.equal((await prepare(await msg(c,'Agora vou revisar o contrato'))).action,'conversation');
+ const second=await msg(c,'Mais uma pendência');await p.$transaction(tx=>executeSubjectPending(c.phone,c.account,{...base,action:'create_subject_pending',subject:'Piloto',subjectKind:'project',title:'Orçamento'},tx,second.id));
+ const again=await msg(c,'Pendências do Piloto');await accept(again,{...base,action:'list_subject_pendings',subject:'Piloto',subjectKind:'project'},'Contrato e Orçamento');
+ assert.equal((await prepare(await msg(c,'Pode concluir essa pendência'))).action,'conversation');
+});
 test('ciclo completo retoma, aguarda por pronome, troca pessoa e conclui a mesma pendência',async()=>{
  const c=await setup();await step(c,'O Evandro respondeu, agora falta revisar o contrato');
  let r=await step(c,'Já revisei, agora falta ele assinar');assert.equal(r.row.waitingFor,'Evandro');assert.equal(r.row.nextAction,'assinar');assert.equal(r.row.state,'waiting');assert.match(r.reply,/aguardando Evandro/);
@@ -62,4 +76,11 @@ test('proposta aplicada também mantém referência, mas proposta não confirmad
  const second=await setup(),unconfirmed=await msg(second,'CONFIRMAR ATUALIZAÇÃO');await accept(unconfirmed,{...base,action:'confirm_subject_update'},'Não apliquei');
  await p.event.create({data:{userId:second.subject.userId,type:'subject_update_proposal',source:'test',payload:{phoneNumberId:account,confirmationMessageId:unconfirmed.id,status:'pending',pendingId:second.pending.id}}});
  assert.equal((await prepare(await msg(second,'Agora vou revisar o contrato'))).action,'conversation');
+});
+
+test('proposta que atualizou pendência conserva a versão aplicada na conversa',async()=>{
+ const c=await setup();await p.subjectPending.update({where:{id:c.pending.id},data:{version:1,state:'pending',waitingFor:null,nextAction:'Revisar anexos'}});
+ const confirmation=await msg(c,'CONFIRMAR ATUALIZAÇÃO');await accept(confirmation,{...base,action:'confirm_subject_update'},'Atualização confirmada');
+ await p.event.create({data:{userId:c.subject.userId,type:'subject_update_proposal',source:'test',payload:{phoneNumberId:account,confirmationMessageId:confirmation.id,status:'applied',pendingId:c.pending.id,pendingVersion:1,request:{waitingFor:null}}}});
+ const result=await step(c,'Agora vou conferir o contrato');assert.equal(result.row.id,c.pending.id);assert.equal(result.row.version,2);assert.equal(result.row.nextAction,'conferir o contrato');assert.equal(await p.subjectPending.count({where:{userId:c.subject.userId}}),1);
 });

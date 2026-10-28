@@ -46,6 +46,13 @@ a proposta, mas não é tratada como prova de execução.
 
 ## Validação necessária
 
+Publicado em produção em28/10/2026, commit a072f63, três serviços Active.
+TypeScript,257 unitários e296 integrações aprovados. Avaliação final com o
+modelo real, parser e normalização:8/8 cenários fictícios, sem executar ações.
+Vínculos a projetos de fundo são removidos sem pedido nominal ou proposta
+anterior revisada; referência ambígua a projeto pede seu nome antes da proposta.
+Ainda falta validar o ciclo completo de plano confirmado pelo WhatsApp.
+
 Testes cobrem proposta sem escrita, aplicação conjunta, rollback na última etapa,
 limites/pausa, confirmação natural, isolamento, expiração, replay, concorrência,
 alteração do fuso, revisão do plano e cota atingida. Scripts de avaliação real
