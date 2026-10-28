@@ -11,13 +11,14 @@ export async function prepareReminderExecution(store:Pick<PrismaClient,"reminder
   reminderId:string, phoneNumberId:string, version:number, now=Date.now(), maxLateMs=maximumLateness()):Promise<Decision> {
   const row = await store.reminder.findUnique({where:{id:reminderId},include:{scheduleOutbox:true}});
   if (!row || row.scheduleOutbox?.phoneNumberId !== phoneNumberId || row.scheduleVersion !== version || row.state !== "active" ||
-      !["pending","scheduled","scheduling_pending","scheduling_failed"].includes(row.status)) return {kind:"skipped"};
+      !["pending","scheduled","scheduling_pending","scheduling_failed","delivery_retry"].includes(row.status)) return {kind:"skipped"};
+  if(row.deliveryRetryAt && row.deliveryRetryAt.getTime()>now)return {kind:"defer",until:row.deliveryRetryAt.getTime()};
   const time = row.remindAt.getTime();
   if (time > now) return {kind:"defer",until:time};
   if (now-time <= maxLateMs) return {kind:"ready"};
   const changed = await store.$transaction(async tx=>{
     const expired = await tx.reminder.updateMany({where:{id:row.id,scheduleVersion:version,state:"active",
-      status:{in:["pending","scheduled","scheduling_pending","scheduling_failed"]}},data:{status:"missed"}});
+      status:{in:["pending","scheduled","scheduling_pending","scheduling_failed","delivery_retry"]}},data:{status:"missed"}});
     if (expired.count) await tx.scheduleOutbox.updateMany({where:{reminderId:row.id,phoneNumberId},data:{status:"expired",leaseToken:null,leaseUntil:null}});
     return expired.count;
   });

@@ -101,7 +101,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     if(newTitle.length>500)return "Pode resumir o título em até 500 caracteres?";
     if(["sending","delivery_unknown"].includes(target.status))return "O envio desse aviso ainda não foi confirmado. Aguarde antes de corrigir o título.";
     if(newTitle===target.title)return "Essa tarefa já está com esse título.";
-    const schedule=["pending","scheduled","scheduling_pending"].includes(target.status);
+    const schedule=["pending","scheduled","scheduling_pending","delivery_retry"].includes(target.status);
     const changed=await tx.reminder.updateMany({where:{...scope,id:target.id,state:"active",scheduleVersion:target.scheduleVersion,status:target.status},data:{title:newTitle,scheduleVersion:{increment:1},...(schedule?{status:"scheduling_pending"}:{})}});
     if(!changed.count)return "Essa tarefa mudou enquanto eu processava. Pode confirmar o que deseja?";
     if(schedule)await tx.scheduleOutbox.upsert({where:{reminderId:target.id},create:{reminderId:target.id,phoneNumberId},update:{status:"pending",attempts:0,nextAttemptAt:new Date(),leaseToken:null,leaseUntil:null,lastError:null}});
@@ -117,7 +117,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
       const preference=await tx.contactPreference.findUnique({where:{phoneNumberId_phone:{phoneNumberId,phone}}});
       if(preference?.remindersPaused)return "Seus avisos estão pausados. Envie RETOMAR antes de agendar o acompanhamento.";
     }
-    const allowed=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected","provider_accepted","awaiting_followup"];
+    const allowed=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected","provider_accepted","awaiting_followup","delivery_retry","retry_exhausted","blocked_configuration"];
     if(!allowed.includes(target.status))return "O envio desse aviso ainda está em andamento ou sem confirmação. Aguarde antes de alterar o acompanhamento.";
     const waitingFor=intent.waitingFor?.trim() || target.waitingFor || null;
     if(waitingFor && waitingFor.length>120)return "Pode resumir quem ou o que você está aguardando?";
@@ -125,14 +125,14 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
       if(!followup && ["awaiting_followup","provider_accepted"].includes(target.status))return `Essa tarefa já está aguardando${waitingFor?" "+waitingFor:" resposta"}. Não há novo aviso agendado.`;
       if(followup?.getTime()===target.remindAt.getTime() && ["pending","scheduled","scheduling_pending"].includes(target.status))return `Essa tarefa já está aguardando${waitingFor?" "+waitingFor:" resposta"}, com aviso em ${displayDate(followup)}. Mantive o agendamento existente.`;
     }
-    const changed=await tx.reminder.updateMany({where:{...scope,id:target.id,state:"active",scheduleVersion:target.scheduleVersion,status:{in:allowed}},data:{taskProgress:"waiting",waitingFor,progressUpdatedAt:new Date(),scheduleVersion:{increment:1},...(followup ? {remindAt:followup,status:"scheduling_pending",providerMessageId:null,deliveryStartedAt:null,deliveryStatus:null,deliveryUpdatedAt:null,deliveryErrorCodes:Prisma.DbNull} : target.status==="provider_accepted"?{}:{status:"awaiting_followup"})}});
+    const changed=await tx.reminder.updateMany({where:{...scope,id:target.id,state:"active",scheduleVersion:target.scheduleVersion,status:{in:allowed}},data:{taskProgress:"waiting",waitingFor,progressUpdatedAt:new Date(),scheduleVersion:{increment:1},...(followup ? {remindAt:followup,status:"scheduling_pending",providerMessageId:null,deliveryStartedAt:null,deliveryAttempts:0,deliveryRetryAt:null,deliveryStatus:null,deliveryUpdatedAt:null,deliveryErrorCodes:Prisma.DbNull} : target.status==="provider_accepted"?{}:{status:"awaiting_followup"})}});
     if(!changed.count)return "Essa tarefa mudou enquanto eu processava. Pode confirmar o que deseja?";
     if(followup)await tx.scheduleOutbox.upsert({where:{reminderId:target.id},create:{reminderId:target.id,phoneNumberId},update:{status:"pending",attempts:0,nextAttemptAt:new Date(),leaseToken:null,leaseUntil:null,lastError:null}});
     else await tx.scheduleOutbox.updateMany({where:{reminderId:target.id},data:{status:"cancelled",leaseToken:null,leaseUntil:null}});
     await tx.event.create({data:{userId:target.userId,type:"task_waiting",source:"secretaria",payload:{reminderId:target.id,phoneNumberId,previousProgress:target.taskProgress,previousWaitingFor:target.waitingFor,waitingFor,previousVersion:target.scheduleVersion,previousRemindAt:target.remindAt.toISOString(),followupAt:followup?.toISOString() || null}}});
     return `Anotei: ${target.title} — aguardando${waitingFor?" "+waitingFor:" resposta"}. `+(followup ? `Novo aviso em ${displayDate(followup)}; o agendamento está sendo confirmado.` : "Os avisos pendentes dessa tarefa foram suspensos. Não agendei um novo aviso.");
   }
-  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected", "awaiting_followup"];
+  const cancellable = ["pending", "scheduled", "scheduling_pending", "scheduling_failed", "blocked_template", "blocked_paused", "missed", "provider_rejected", "awaiting_followup","delivery_retry","retry_exhausted","blocked_configuration"];
   if (intent.cancelSeries) {
     if (intent.action !== "cancel_reminder") return "Posso cancelar os próximos avisos da série. Para adiar ou concluir, escolha um aviso.";
     if (!target.seriesId) return "Esse lembrete não pertence a uma série.";
@@ -155,7 +155,7 @@ export async function manageReminders(phone: string, phoneNumberId: string, inte
     const changed = await tx.reminder.updateMany({
       where: { ...scope, id: target.id, state: "active", scheduleVersion: target.scheduleVersion, status: { in: reschedulable } },
       data: { remindAt: reminderDate, taskProgress: "pending", waitingFor:null, progressUpdatedAt:new Date(), scheduleVersion: { increment: 1 }, status: "scheduling_pending",
-        providerMessageId: null, deliveryStartedAt: null, deliveryStatus: null, deliveryUpdatedAt: null,
+        providerMessageId: null, deliveryStartedAt: null, deliveryStatus: null, deliveryUpdatedAt: null,deliveryAttempts:0,deliveryRetryAt:null,
         deliveryErrorCodes: Prisma.DbNull },
     });
     if (!changed.count) return "Esse lembrete mudou enquanto eu processava. Pode confirmar o que deseja?";

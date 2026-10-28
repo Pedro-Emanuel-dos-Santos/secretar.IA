@@ -114,6 +114,8 @@ model Reminder {
   updatedAt   DateTime @updatedAt
   sourceMessageId   String? @unique
   deliveryStartedAt DateTime?
+    deliveryAttempts Int @default(0)
+    deliveryRetryAt DateTime?
   providerMessageId String?
   scheduleVersion Int @default(0)
   seriesId String?
@@ -149,6 +151,12 @@ model AiUsage {
  cachedInputTokens Int?
  elapsedMs Int?
  outcome String @default("started")
+   routingReason String?
+   fallbackUsed Boolean @default(false)
+   providerAttempts Json?
+   estimatedCostUsd Float?
+   pricingVersion String?
+   costStatus String?
  createdAt DateTime @default(now())
  message IncomingMessage @relation(fields:[messageId],references:[id],onDelete:Cascade)
  @@unique([messageId,attempt])

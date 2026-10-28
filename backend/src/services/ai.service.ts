@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { secretaryPrompt } from "../prompts/secretary.prompt";
 import { AIInterpretation } from "../types/ai.types";
-import { aiRouter } from "../ai/ai-router";
+import { aiRouter,AIRoutingError } from "../ai/ai-router";
 import { parseInterpretation } from "../domain/interpretation.validation";
 import { observeUsage, UsageObserver } from "../domain/ai.usage";
 
@@ -16,6 +16,7 @@ export async function interpretMessage(
   let response:Awaited<ReturnType<typeof aiRouter>>;
   try{response = await router({
     task: "conversation",
+    currentMessage:typeof context?.currentMessage==="string"?context.currentMessage:undefined,
 
     temperature: 0.2,
 
@@ -34,7 +35,7 @@ export async function interpretMessage(
     ],
   });}catch(error){
     const mode=process.env.AI_MODE;
-    await observeUsage(onUsage,{provider:mode==="openai"||mode==="ollama"?mode:"unknown",elapsedMs:Math.max(0,Math.round(performance.now()-started)),outcome:"failed_or_unknown"});
+    await observeUsage(onUsage,error instanceof AIRoutingError?error.usage:{provider:mode==="openai"||mode==="ollama"?mode:"unknown",elapsedMs:Math.max(0,Math.round(performance.now()-started)),outcome:"failed_or_unknown"});
     throw error;
   }
 

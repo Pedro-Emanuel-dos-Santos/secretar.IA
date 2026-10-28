@@ -7,7 +7,15 @@ export type UsageReport = {
   cachedInputTokens?: number;
   elapsedMs?: number;
   outcome: "completed" | "failed_or_unknown";
+  routingReason?: string;
+  fallbackUsed?: boolean;
+  providerAttempts?: ProviderAttempt[];
+  estimatedCostUsd?: number;
+  pricingVersion?: string;
+  costStatus?: string;
 };
+
+export type ProviderAttempt={provider:string;requestedModel:string;model?:string;elapsedMs:number;outcome:"completed"|"failed_or_unknown";inputTokens?:number;outputTokens?:number;cachedInputTokens?:number};
 
 export type UsageObserver = (report: UsageReport) => void | Promise<void>;
 

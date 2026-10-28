@@ -50,7 +50,7 @@ export async function executePreferences(phone:string,phoneNumberId:string,inten
  await tx.user.upsert({where:{phone},create:{phone},update:{updatedAt:new Date()}});
  await tx.contactPreference.upsert({where,create:{phoneNumberId,phone,...data},update:data});
  if(intent.summaryEnabled===false){
-   await tx.reminder.updateMany({where:{user:{phone},kind:"daily_summary",state:"active",scheduleOutbox:{phoneNumberId},status:{in:["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"]}},data:{state:"cancelled",taskProgress:"cancelled",scheduleVersion:{increment:1}}});
+   await tx.reminder.updateMany({where:{user:{phone},kind:"daily_summary",state:"active",scheduleOutbox:{phoneNumberId},status:{in:["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected","delivery_retry","retry_exhausted","blocked_configuration"]}},data:{state:"cancelled",taskProgress:"cancelled",scheduleVersion:{increment:1}}});
    await tx.scheduleOutbox.updateMany({where:{phoneNumberId,reminder:{user:{phone},kind:"daily_summary",state:"cancelled"}},data:{status:"cancelled",leaseToken:null,leaseUntil:null}});
  }
  return "Atualizei seu perfil. "+(intent.timezone?`Vou interpretar novos pedidos no fuso ${intent.timezone}. Avisos já salvos mantêm seus instantes; não reagendei nenhum. `:"")+(intent.summaryEnabled===true?`Resumo diário ativado às ${intent.summaryTime} no seu fuso. O envio depende das regras da janela do WhatsApp.`:intent.summaryEnabled===false?"Resumo diário desativado. Um envio já iniciado ainda pode chegar.":"");

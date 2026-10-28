@@ -12,7 +12,7 @@ import {appointmentAlternatives,slotLabel} from "./appointment.slots";
 import {shownAppointmentSuggestions} from "./appointment.suggestions";
 
 const formatDate=(date:Date,timeZone:string)=>new Intl.DateTimeFormat("pt-BR",{timeZone,dateStyle:"short",timeStyle:"short"}).format(date);
-const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected"];
+const editable=["pending","scheduled","scheduling_pending","scheduling_failed","blocked_template","blocked_paused","missed","provider_rejected","delivery_retry","retry_exhausted","blocked_configuration"];
 async function normalizedMatches(tx:Prisma.TransactionClient,scope:Prisma.AppointmentWhereInput,search:string){
   const words=normalizeName(search).split(/[^a-z0-9]+/).filter(w=>w && !["a","o","as","os","de","da","do","das","dos","com","para","um","uma"].includes(w));
   if(!words.length)return [];

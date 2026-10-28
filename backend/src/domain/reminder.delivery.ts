@@ -1,10 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
 import { WhatsAppPreflightError } from "./whatsapp.policy";
 import type { ReminderControls } from "./reminder.buttons";
-import { WhatsAppSendRejected } from "./whatsapp.errors";
+import { WhatsAppSendRejected,retryableRejection,templateRejection } from "./whatsapp.errors";
 import { titledSubject } from "./reply.language";
 
-type Store = Pick<PrismaClient, "reminder">;
+type Store = Pick<PrismaClient, "reminder"|"$transaction">;
 type Sender = (phone: string, text: string, controls?: ReminderControls) => Promise<unknown>;
 
 export async function deliverReminder(reminderId: string, phoneNumberId: string, store: Store, send: Sender, expectedVersion = 0,
@@ -15,9 +15,11 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
   if (!reminder) return "missing";
   if (reminder.scheduleOutbox && reminder.scheduleOutbox.phoneNumberId !== phoneNumberId) throw new Error("Número comercial incompatível.");
   if ((reminder.scheduleVersion ?? 0) !== expectedVersion) return "stale";
+  if(reminder.state!=="active")return "skipped";
+  if(reminder.deliveryRetryAt && reminder.deliveryRetryAt.getTime()>Date.now())return "deferred";
   const claimed = await store.reminder.updateMany({
-    where: { id: reminderId, scheduleVersion: expectedVersion, state: "active", status: { in: ["pending", "scheduled", "scheduling_pending", "scheduling_failed"] } },
-    data: { status: "sending", deliveryStartedAt: new Date() },
+    where: { id: reminderId, scheduleVersion: expectedVersion, state: "active", status: { in: ["pending", "scheduled", "scheduling_pending", "scheduling_failed","delivery_retry"] } },
+    data: { status: "sending", deliveryStartedAt: new Date(),deliveryAttempts:{increment:1},deliveryRetryAt:null },
   });
   if (!claimed.count) return "skipped";
   try {
@@ -36,11 +38,26 @@ export async function deliverReminder(reminderId: string, phoneNumberId: string,
     }
     return "provider_accepted";
   } catch (error) {
+    const attempts=(reminder.deliveryAttempts || 0)+1;
+    if(retryableRejection(error) && attempts<3 && reminder.scheduleOutbox){
+      const delay=Math.max(30000*2**(attempts-1),error instanceof WhatsAppSendRejected?error.retryAfterMs || 0:0);
+      const retryAt=new Date(Date.now()+delay);
+      // A new version creates a distinct durable queue job. A crash between
+      // commit and publication is recovered by the existing schedule outbox.
+      const queued=await store.$transaction(async tx=>{
+        const changed=await tx.reminder.updateMany({where:{id:reminderId,status:"sending",scheduleVersion:expectedVersion,state:"active"},data:{status:"delivery_retry",deliveryRetryAt:retryAt,scheduleVersion:{increment:1},deliveryStartedAt:null,deliveryErrorCodes:error instanceof WhatsAppSendRejected && error.code!==undefined?[error.code]:[]}});
+        if(!changed.count)return false;
+        const scheduled=await tx.scheduleOutbox.updateMany({where:{reminderId,phoneNumberId},data:{status:"pending",attempts:0,nextAttemptAt:retryAt,leaseToken:null,leaseUntil:null,lastError:error instanceof WhatsAppSendRejected?"send_rejected_retryable":"template_verification_retryable"}});
+        if(!scheduled.count)throw Error("Outbox incompatível ao preparar retentativa.");
+        return true;
+      });
+      return queued?"retry_scheduled":"skipped";
+    }
     await store.reminder.updateMany({
-      where: { id: reminderId, status: "sending" },
+      where: { id: reminderId, status: "sending",scheduleVersion:expectedVersion },
       data: { status: error instanceof WhatsAppPreflightError
-        ? error.reason === "reminders_paused" ? "blocked_paused" : "blocked_template"
-        : error instanceof WhatsAppSendRejected ? "provider_rejected" : "delivery_unknown",
+        ? error.reason === "sender_not_configured"?"blocked_configuration":error.reason === "reminders_paused" ? "blocked_paused" : "blocked_template"
+        : templateRejection(error) ? "blocked_template" : retryableRejection(error) ? "retry_exhausted" : error instanceof WhatsAppSendRejected ? "provider_rejected" : "delivery_unknown",
         ...(error instanceof WhatsAppSendRejected ? {deliveryStatus:"failed",deliveryErrorCodes:error.code === undefined ? [] : [error.code],deliveryUpdatedAt:new Date()} : {}),
       },
     });

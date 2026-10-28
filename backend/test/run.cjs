@@ -1,5 +1,7 @@
 // In-process TypeScript loading avoids tsx/esbuild subprocesses in restricted environments.
 require("./register.cjs");
+require("./ai-routing.test.cjs");
+require("./whatsapp-template.test.cjs");
 require("./audio-consent.test.cjs");
 require("./inbox.fairness.test.cjs");
 require("./review-conversation.test.cjs");

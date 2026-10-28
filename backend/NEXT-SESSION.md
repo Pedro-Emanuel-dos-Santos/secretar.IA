@@ -1,5 +1,13 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
+## Pacote local de confiabilidade e IA — aprovado para implementação
+
+Pedro aprovou OpenAI principal e implementação local de templates/retentativas,
+roteamento e medição. Ver ../docs/ENTREGA_CONFIABILIDADE_20261028.md.
+Há migração aditiva aplicada somente no banco local *_test. Nenhuma mudança de
+produção. WABA é variável nova para verificação real de template; publicação
+coordenada e teste real continuam dependendo de autorização concreta.
+
 ## Auditoria e planejamento após missão de evolução
 
 Consultar ../docs/README.md e ../AGENTS.md. Primeira etapa é documental, sem

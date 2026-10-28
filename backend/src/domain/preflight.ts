@@ -23,9 +23,10 @@ export function deploymentPreflight(env:Record<string,string | undefined>,role:S
     }catch{add("REDIS_URL","URL Redis inválida.")}
   }
   if (role === "inbox") {
-    const mode=env.AI_MODE || "hybrid";
+    const mode=env.AI_MODE || "openai";
     if (!["openai","ollama","hybrid"].includes(mode))add("AI_MODE","Modo de IA desconhecido.");
     if (mode !== "ollama")required("OPENAI_API_KEY");
+    if(mode==="hybrid" && !env.OLLAMA_BASE_URL)add("OLLAMA_BASE_URL","Sem endpoint local explícito, o híbrido usará OpenAI diretamente.","warning");
     if (env.WHATSAPP_AUDIO_ENABLED === "true") {
       required("WHATSAPP_AUDIO_ALLOWED_PHONES");
       const provider=env.AUDIO_TRANSCRIPTION_PROVIDER || "local";
@@ -39,6 +40,7 @@ export function deploymentPreflight(env:Record<string,string | undefined>,role:S
   if(role === "reminders") {
     if(env.WHATSAPP_REMINDER_TEMPLATE_APPROVED === "true") {
       required("WHATSAPP_REMINDER_TEMPLATE_NAME");required("WHATSAPP_REMINDER_TEMPLATE_LANGUAGE");
+      required("WHATSAPP_BUSINESS_ACCOUNT_ID");
     }else add("WHATSAPP_REMINDER_TEMPLATE_APPROVED","Avisos fora da janela de atendimento serão bloqueados sem template aprovado.","warning");
   }
   for(const [key,defaultValue,max] of [["REMINDER_MAX_LATENESS_MINUTES",60,1440],["REMINDER_MAX_ACTIVE_PER_USER",100,5000],["REMINDER_MAX_CREATED_PER_DAY",50,1000],["MAX_REQUESTS_PER_USER_PER_DAY",200,10000],["MAX_AUDIO_PER_USER_PER_DAY",20,500]] as const){

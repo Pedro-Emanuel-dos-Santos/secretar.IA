@@ -89,7 +89,7 @@ async function prepareIntent(store: Store, row: IncomingMessage, deps: Conversat
           return deps.interpret(context,onUsage);
         },
         onUsage:async usage=>{
-          if(store.aiUsage)await store.aiUsage.update({where:{messageId_attempt:{messageId:row.id,attempt:row.interpretationAttempts+1}},data:{...usage,model:usage.model || null,inputTokens:usage.inputTokens ?? null,outputTokens:usage.outputTokens ?? null,cachedInputTokens:usage.cachedInputTokens ?? null,elapsedMs:usage.elapsedMs ?? null}});
+          if(store.aiUsage)await store.aiUsage.update({where:{messageId_attempt:{messageId:row.id,attempt:row.interpretationAttempts+1}},data:{...usage,model:usage.model || null,inputTokens:usage.inputTokens ?? null,outputTokens:usage.outputTokens ?? null,cachedInputTokens:usage.cachedInputTokens ?? null,elapsedMs:usage.elapsedMs ?? null,...(usage.providerAttempts?{providerAttempts:JSON.parse(JSON.stringify(usage.providerAttempts))}:{})}});
           if(deps.onUsage)await deps.onUsage(usage);
         }});
     await store.incomingMessage.updateMany({

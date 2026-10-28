@@ -1,8 +1,8 @@
 import { ReminderControls, reminderButtons } from "./reminder.buttons";
 
 export class WhatsAppPreflightError extends Error {
-  constructor(public readonly reason: "template_required" | "reply_window_closed" | "reminders_paused") {
-    super(reason === "reminders_paused" ? "Avisos pausados pela pessoa." : reason === "template_required" ? "Envio aguarda um modelo de lembrete aprovado." : "A janela de resposta do WhatsApp está fechada.");
+  constructor(public readonly reason: "template_required" | "reply_window_closed" | "reminders_paused" | "sender_not_configured") {
+    super(reason === "sender_not_configured"?"Configuração de envio incompleta.":reason === "reminders_paused" ? "Avisos pausados pela pessoa." : reason === "template_required" ? "Envio aguarda um modelo de lembrete aprovado." : "A janela de resposta do WhatsApp está fechada.");
     this.name = "WhatsAppPreflightError";
   }
 }

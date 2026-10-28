@@ -43,6 +43,8 @@ export async function operationalOverview(store: Store, phoneNumberId: string) {
       uncertainReminders, blockedTemplates: counts(reminders).blocked_template ?? 0, blockedReplies: counts(replies).blocked_window ?? 0,
       pausedReminders: counts(reminders).blocked_paused ?? 0, missedReminders: counts(reminders).missed ?? 0,
       rejectedReminders: counts(reminders).provider_rejected ?? 0, rejectedReplies: counts(replies).provider_rejected ?? 0,
+      retryingReminders:counts(reminders).delivery_retry ?? 0,exhaustedReminderRetries:counts(reminders).retry_exhausted ?? 0,
+      blockedConfiguration:counts(reminders).blocked_configuration ?? 0,
       failedDeliveries: deliveryStates.find(row => row.deliveryStatus === "failed")?._count._all ?? 0 },
   };
 }

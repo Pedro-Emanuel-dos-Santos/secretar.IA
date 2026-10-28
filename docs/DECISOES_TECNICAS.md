@@ -24,7 +24,12 @@ decisão de política e teste de revogação/exclusão/solicitação em andament
 
 ## D04 — Roteamento do beta
 
-**Proposta a revisar com Pedro.** OpenAI principal explícita durante o beta;
+Atualização de 28/10: Pedro aprovou OpenAI principal e implementação local do
+pacote. Roteador agora tem padrão openai e decisão híbrida pela mensagem atual.
+Configuração remota continua sem alteração. Detalhes/evidências em
+[entrega de confiabilidade](ENTREGA_CONFIABILIDADE_20261028.md).
+
+**Aprovada em 28/10 para o beta; implementação local.** OpenAI principal explícita durante o beta;
 não depender do Ollama no computador local. Validar primeiro modo/modelo remotos,
 pois o conector só mostrou nomes de variáveis. Manter Ollama como opção futura
 após endpoint hospedado e avaliação comparável. Não instalar serviço ou contratar
@@ -37,7 +42,11 @@ explícita sobre a tarefa. Não escolher um modelo novo sem avaliação.
 
 ## D05 — Observabilidade incremental
 
-**Proposta para próxima implementação.** Reaproveitar AiUsage. Acrescentar motivo
+Atualização de 28/10: implementada localmente com migração aditiva em AiUsage,
+registro de tentativas/motivo/fallback e estimativa USD versionada. Orçamento
+financeiro e publicação permanecem pendentes; proposta original preservada abaixo.
+
+**Implementada localmente em 28/10.** Reaproveita AiUsage, acrescentando motivo
 de decisão e informação de fallback/tentativas sem prompt, respostas ou segredos.
 Planejar migração aditiva se necessário. Medir duração, provedor/modelo e tokens
 reais; custos estimados exigem tabela oficial vigente e versionada na implementação.

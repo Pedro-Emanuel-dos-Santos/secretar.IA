@@ -12,6 +12,7 @@ export type AIChatInput = {
   temperature?: number;
   jsonMode?: boolean;
   task?: "conversation" | "intent" | "reminder" | "finance" | "agenda";
+  currentMessage?: string;
 };
 
 export type AIChatOutput = {
