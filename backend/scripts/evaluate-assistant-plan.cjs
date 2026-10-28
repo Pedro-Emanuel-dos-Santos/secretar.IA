@@ -2,6 +2,7 @@
 if(!process.argv.includes('--allow-provider')){console.log('Requires --allow-provider. No actions are executed.');process.exit(0);}
 const OpenAI=require('openai'),{secretaryPrompt}=require('../dist/prompts/secretary.prompt'),{parseInterpretation}=require('../dist/domain/interpretation.validation');
 const client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,timeout:28000,maxRetries:0}),model=process.env.OPENAI_MODEL || 'gpt-4.1-mini';
+const {groundPlanSubjects}=require('../dist/domain/assistant.plan');
 const cases=[
  {id:'integrated',text:'Organiza isso para mim: anota que o relatório precisa dos anexos, me lembra de ligar para João amanhã às 10h e marca uma hora para revisar o relatório amanhã às 14h.',actions:['assistant_plan'],steps:['save_note','create_reminder','create_appointment']},
  {id:'two_reminders',text:'Me lembra de levar o caderno amanhã às 8h e de pagar a internet amanhã às 18h. Quero revisar o conjunto antes de executar.',actions:['assistant_plan'],steps:['create_reminder','create_reminder']},
@@ -15,7 +16,8 @@ const cases=[
 async function main(){let passed=0,inputTokens=0,outputTokens=0;console.log(JSON.stringify({evaluation:'assistant-plan',model,total:cases.length,databaseWrites:0,whatsappSends:0}));for(const item of cases){try{
  const context={now:'2026-10-28T12:00:00Z',user:{name:'Pessoa fictícia',timezone:'America/Sao_Paulo'},currentMessage:item.text,subjects:[{id:'fictional-project',name:'Praça Central',kind:'project'}],appointments:[],reminders:[],memories:[],personalMemories:[],personalMemoryEnabled:false,lastMessages:[],conversationState:{pendingRequest:null,focusedSubject:null,assistantPlan:null}};
  const response=await client.responses.create({model,input:[{role:'system',content:secretaryPrompt},{role:'user',content:JSON.stringify(context)}],temperature:0.2,max_output_tokens:2800,store:false,text:{format:{type:'json_object'}}});inputTokens+=response.usage?.input_tokens || 0;outputTokens+=response.usage?.output_tokens || 0;
- const value=parseInterpretation(response.output_text),steps=value.planSteps?.map(s=>s.action),issues=[];
+ const value=parseInterpretation(response.output_text);if(value.planSteps)value.planSteps=groundPlanSubjects(value.planSteps,item.text);
+ const steps=value.planSteps?.map(s=>s.action),issues=[];
  if(!item.actions.includes(value.action))issues.push('action');
  if(item.steps && (!steps || JSON.stringify([...steps].sort())!==JSON.stringify([...item.steps].sort())))issues.push('steps');
  if(item.steps && value.planSteps?.some(s=>s.subject || s.subjectKind))issues.push('unrequested_project_link');

@@ -11,6 +11,16 @@ import { TaskSubjectError } from "./task.subject";
 
 type Source={id:string;phone:string;phoneNumberId:string;text:string;receivedAt:Date;mediaId?:string|null};
 const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim().replace(/[.!]+$/,"").trim();
+// Background subjects are not instructions to file every new action there.
+// Retain only a named link or a link already presented in the current proposal.
+export function groundPlanSubjects(steps:AIInterpretation[],text:string,previousSubjects:string[]=[]){
+ const words=(s:string)=>normalize(s).replace(/[^\p{L}\p{N}]+/gu," ").trim();
+ const source=` ${words(text)} `,previous=new Set(previousSubjects.map(words));
+ return steps.map(step=>{
+  if(step.subject && (source.includes(` ${words(step.subject)} `) || previous.has(words(step.subject))))return {...step};
+  const {subject,subjectKind,...unlinked}=step;return unlinked;
+ });
+}
 export function assistantPlanCommand(text:string):"confirm_assistant_plan"|"discard_assistant_plan"|null{
  const s=normalize(text);
  if(/^(?:confirmar plano|confirma o plano|pode executar o plano|sim|bora|manda bala|pode seguir|(?:(?:sim|beleza|legal|show|certo|combinado|ok),?\s+)?(?:pode fazer|pode executar|faz isso(?: pra mim)?)(?:,? por favor)?)$/.test(s))return "confirm_assistant_plan";
@@ -58,7 +68,11 @@ export async function executeAssistantPlan(tx:Prisma.TransactionClient,source:So
  if(intent.action==="assistant_plan"){
   const existing=await tx.event.findUnique({where:{id:`assistant_plan:${source.id}`}});
   if(existing){const data=existing.payload as any;return data.status==="proposed"?preview(parseInterpretation(JSON.stringify(data.request)).planSteps!,await contactTimezone(tx,source.phone,source.phoneNumberId),data.request.description):"Esse plano já foi encerrado. Podemos preparar outro.";}
-  const request=parseInterpretation(JSON.stringify(intent)),steps=request.planSteps!;
+  const request=parseInterpretation(JSON.stringify(intent));
+  const previous=await availableAssistantPlan(tx,source);
+  request.planSteps=groundPlanSubjects(request.planSteps!,source.text,previous && !previous.expired?(previous.data.request.planSteps || []).map((s:AIInterpretation)=>s.subject).filter(Boolean):[]);
+  if(/\b(projeto|cliente|assunto)\b/i.test(source.text) && intent.planSteps!.some((s,i)=>s.subject && !request.planSteps![i].subject))return "Antes de montar o plano, qual é o nome do projeto ou cliente ao qual essas ações pertencem?";
+  const steps=request.planSteps;
   const invalid=validateSteps(steps,source.phone);if(invalid)return invalid;
   const timezone=await contactTimezone(tx,source.phone,source.phoneNumberId),text=preview(steps,timezone,request.description);if(text.length>3600)return "Esse plano ficou longo para revisar com clareza. Vamos organizá-lo em partes menores.";
   await tx.event.create({data:{id:`assistant_plan:${source.id}`,userId:user.id,type:"assistant_plan",source:"secretaria",payload:JSON.parse(JSON.stringify({phoneNumberId:source.phoneNumberId,sourceMessageId:source.id,status:"proposed",timezone,expiresAt:new Date(Date.now()+15*60000).toISOString(),request}))}});

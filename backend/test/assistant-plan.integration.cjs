@@ -15,6 +15,14 @@ async function propose(c,value=steps){const m=await message(c),reply=await p.$tr
 async function command(c,text='pode fazer',extra={}){const m=await message(c,text,extra),reply=await p.$transaction(tx=>executeAssistantPlan(tx,m,planCommandIntent(text==='descartar plano'?'discard_assistant_plan':'confirm_assistant_plan')));return {m,reply};}
 const counts=async c=>({notes:await p.event.count({where:{user:{phone:c.phone},type:'secretary_note'}}),reminders:await p.reminder.count({where:{user:{phone:c.phone}}}),appointments:await p.appointment.count({where:{user:{phone:c.phone}}}),children:await p.incomingMessage.count({where:{phone:c.phone,status:'plan_step'}})});
 after(async()=>{await p.user.deleteMany({where:{phone:{in:phones}}});await p.incomingMessage.deleteMany({where:{phoneNumberId:{in:[account,account+'other']}}});await p.contactPreference.deleteMany({where:{phone:{in:phones}}});await p.$disconnect();});
+test('plano não herda projeto do contexto e esclarece vínculo sem nome',async()=>{
+ const c=await setup(),value=steps.map(s=>({...s,subject:'Praça Central',subjectKind:'project'}));
+ const proposal=await propose(c,value),event=await p.event.findUnique({where:{id:'assistant_plan:'+proposal.m.id}});
+ assert.ok(event.payload.request.planSteps.every(s=>!s.subject && !s.subjectKind));
+ const other=await setup(),m=await message(other,'Anota isso nesse projeto e me lembra amanhã às 10h');
+ const reply=await p.$transaction(tx=>executeAssistantPlan(tx,m,plan(value)));assert.match(reply,/qual é o nome/);
+ assert.equal(await p.event.count({where:{id:'assistant_plan:'+m.id}}),0);
+});
 test('plano apenas propõe; confirmação aplica anotação, lembrete e compromisso juntos',async()=>{
  const c=await setup(),proposed=await propose(c);assert.match(proposed.reply,/Posso organizar assim/);assert.match(proposed.reply,/Ainda não executei/);assert.deepEqual(await counts(c),{notes:0,reminders:0,appointments:0,children:0});
  assert.match(proposed.reply,/Minha sugestão é separar/);

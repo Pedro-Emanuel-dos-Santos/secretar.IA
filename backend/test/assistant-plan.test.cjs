@@ -2,8 +2,16 @@ require('./register.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {parseInterpretation}=require('../src/domain/interpretation.validation.ts');
 const {assistantPlanCommand}=require('../src/domain/assistant.plan.ts');
+const {groundPlanSubjects}=require('../src/domain/assistant.plan.ts');
 const {prepareConversation}=require('../src/domain/conversation.processor.ts');
 const note={action:'save_note',description:'Guardar o que combinamos'},reminder={action:'create_reminder',title:'Ligar',datetime:'2099-06-01T13:00:00Z'};
+test('vínculo de plano vem do pedido ou proposta anterior, nunca só de projetos no contexto',()=>{
+ const steps=[{...note,subject:'Praça Central',subjectKind:'project'},reminder];
+ assert.equal(groundPlanSubjects(steps,'Anota o relatório e me lembra de ligar')[0].subject,undefined);
+ assert.equal(groundPlanSubjects(steps,'No projeto Praça Central, anota e me lembra')[0].subject,'Praça Central');
+ assert.equal(groundPlanSubjects(steps,'Troca só o horário',['Praça Central'])[0].subject,'Praça Central');
+ assert.equal(groundPlanSubjects(steps,'Praça Centralizada')[0].subject,undefined);
+});
 test('plano aceita conjunto limitado de criações e recusa operações destrutivas ou aninhadas',()=>{
  const parse=steps=>parseInterpretation(JSON.stringify({action:'assistant_plan',reply:'Uma proposta',planSteps:steps}));
  assert.equal(parse([note,reminder]).planSteps.length,2);
