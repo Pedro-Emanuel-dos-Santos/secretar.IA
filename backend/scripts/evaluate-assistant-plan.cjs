@@ -18,6 +18,7 @@ async function main(){let passed=0,inputTokens=0,outputTokens=0;console.log(JSON
  const value=parseInterpretation(response.output_text),steps=value.planSteps?.map(s=>s.action),issues=[];
  if(!item.actions.includes(value.action))issues.push('action');
  if(item.steps && (!steps || JSON.stringify([...steps].sort())!==JSON.stringify([...item.steps].sort())))issues.push('steps');
+ if(item.steps && value.planSteps?.some(s=>s.subject || s.subjectKind))issues.push('unrequested_project_link');
  if(item.id==='integrated'){
   const reminder=value.planSteps?.find(s=>s.action==='create_reminder'),appointment=value.planSteps?.find(s=>s.action==='create_appointment');
   if(!reminder?.datetime || Date.parse(reminder.datetime)!==Date.parse('2026-10-29T13:00:00Z'))issues.push('reminder_time');

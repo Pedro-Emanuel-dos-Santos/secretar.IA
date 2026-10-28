@@ -24,6 +24,9 @@ export function parseInterpretation(content: string): AIInterpretation {
   // value: executors still require the arguments needed by each action.
   const record:Record<string,unknown> = {title:null,description:null,datetime:null,category:null,amount:null,...value as Record<string,unknown>};
   if (typeof record.action !== "string" || !actions.has(record.action)) throw new Error("Ação inválida.");
+  // Plan replies are rendered from validated steps by the server, never from
+  // model prose. Missing presentation text must not discard a valid proposal.
+  if(record.action==="assistant_plan" && (record.reply==null || record.reply===""))record.reply="Vou apresentar o plano para você revisar.";
   if (typeof record.reply !== "string" || !record.reply.trim() || record.reply.length > 2000) throw new Error("Resposta inválida.");
   for (const key of ["title", "description", "datetime", "category"] as const) {
     if (record[key] !== null && typeof record[key] !== "string") throw new Error("Campo inválido.");
