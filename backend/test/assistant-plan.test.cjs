@@ -7,6 +7,7 @@ const note={action:'save_note',description:'Guardar o que combinamos'},reminder=
 test('plano aceita conjunto limitado de criações e recusa operações destrutivas ou aninhadas',()=>{
  const parse=steps=>parseInterpretation(JSON.stringify({action:'assistant_plan',reply:'Uma proposta',planSteps:steps}));
  assert.equal(parse([note,reminder]).planSteps.length,2);
+ const nullable=parseInterpretation(JSON.stringify({action:'assistant_plan',reply:'Proposta',alertMinutes:null,planSteps:[{...note,alertMinutes:null},{...reminder,alertMinutes:null}]}));assert.equal(nullable.planSteps[1].alertMinutes,undefined);
  for(const steps of [[note],Array(6).fill(note),[note,{action:'delete_note'}],[note,{action:'assistant_plan',planSteps:[note,reminder]}],[note,{...reminder,recurrence:{frequency:'daily',count:3}}],[note,{...reminder,alertMinutes:[15]}],[{...note,datetime:'2099-06-01T13:00:00Z'},reminder]])assert.throws(()=>parse(steps));
  assert.equal(parseInterpretation(JSON.stringify({action:'conversation',reply:'Vamos pensar juntos',planSteps:null})).action,'conversation');
 });

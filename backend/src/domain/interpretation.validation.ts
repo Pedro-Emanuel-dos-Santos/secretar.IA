@@ -38,7 +38,7 @@ export function parseInterpretation(content: string): AIInterpretation {
       if(step.action!=="create_appointment" && (step.durationMinutes!=null || step.alertMinutes!=null))throw Error("Duração e avisos antecipados pertencem ao compromisso.");
       if(step.action==="save_note" && step.datetime!=null)throw Error("Uma anotação não agenda horário.");
       const clean:Record<string,unknown>={action:step.action,reply:"interno"};
-      for(const key of ["title","description","datetime","subject","subjectKind","durationMinutes","alertMinutes"])if(step[key]!==undefined)clean[key]=step[key];
+      for(const key of ["title","description","datetime","subject","subjectKind","durationMinutes","alertMinutes"])if(step[key]!==undefined && (step[key]!==null || ["title","description","datetime"].includes(key)))clean[key]=step[key];
       return parseInterpretation(JSON.stringify(clean));
     });
   }else if(record.planSteps!==undefined && record.planSteps!==null)throw Error("Etapas fora de um plano.");
@@ -69,7 +69,7 @@ export function parseInterpretation(content: string): AIInterpretation {
     if(typeof record.waitingFor!=="string" || !record.waitingFor.trim() || record.waitingFor.length>120)throw Error("Responsável inválido.");
     extra.waitingFor=record.waitingFor.trim();
   }
-  if(record.alertMinutes!==undefined){
+  if(record.alertMinutes!==undefined && !(record.action==="assistant_plan" && record.alertMinutes===null)){
     if(!Array.isArray(record.alertMinutes)||record.alertMinutes.length<1||record.alertMinutes.length>3||record.alertMinutes.some(n=>!Number.isSafeInteger(n)||n<0||n>10080)||new Set(record.alertMinutes).size!==record.alertMinutes.length)throw Error("Avisos inválidos.");
     extra.alertMinutes=record.alertMinutes;
   }
