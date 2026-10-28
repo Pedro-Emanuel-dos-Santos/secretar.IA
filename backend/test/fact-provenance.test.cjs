@@ -9,8 +9,10 @@ test('pergunta de mudanças recupera versões do assunto em vez de responder do 
   const i=await prepareConversation({phone:'5511999990000',phoneNumberId:'account',text,receivedAt:new Date()},deps);
   assert.equal(i.action,'search_facts');assert.equal(i.subject,project.name);assert.equal(i.subjectKind,'project');assert.equal(i.includeHistory,true);assert.equal(i.factKey,null);
  }
- const ambiguous=await prepareConversation({phone:'5511999990000',phoneNumberId:'account',text:'O que mudou no projeto desconhecido?',receivedAt:new Date()},deps);
- assert.equal(ambiguous.action,'conversation');assert.match(ambiguous.reply,/nome completo/);assert.doesNotMatch(ambiguous.reply,/assinado/);
+ const unknown=await prepareConversation({phone:'5511999990000',phoneNumberId:'account',text:'O que mudou no projeto desconhecido?',receivedAt:new Date()},deps);
+ // An explicit name now goes to the scoped executor, including names outside
+ // the small context sample. It still must never answer from model prose.
+ assert.equal(unknown.action,'search_facts');assert.equal(unknown.subject,'desconhecido');assert.doesNotMatch(unknown.reply,/assinado/);
 });
 test('origem usa data da mensagem no fuso do contato sem expor telefone ou texto',()=>{
  const fact={createdAt:new Date('2026-10-27T20:00:00Z'),sourceMessage:{receivedAt:new Date('2026-10-26T13:00:00Z'),phone:'5511999990000',phoneNumberId:'account'}};

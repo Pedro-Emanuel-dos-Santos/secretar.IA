@@ -2,6 +2,13 @@
 
 ## Incremento local posterior: histórico das pendências
 
+Otimização posterior: consultas completas com nome explícito agora passam por
+subject.history.lookup.ts antes de buildContext/interpret. Executor continua
+verificando nome exato e conta/contato. Não usa o atalho para pedidos compostos,
+negações, pronome ou campo específico.248 unitários e cinco integrações afetadas
+aprovados, incluindo inbox sem IA, ausência de mutação e outra conta. TypeScript
+aprovado. O estado de publicação permanece local; não confundir com21648b1.
+
 Ver SUBJECT-HISTORY.md. search_facts/includeHistory sem campo específico agora
 inclui alterações auditadas de pendências com antes/depois, posição atual e origem.
 Leitura isolada por contato/conta/assunto, sem migração. Quatro testes direcionados

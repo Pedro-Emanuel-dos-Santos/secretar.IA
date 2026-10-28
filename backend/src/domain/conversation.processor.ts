@@ -17,6 +17,7 @@ import {guardAppointmentDuration} from "./appointment.duration";
 import {chooseAppointmentSuggestion} from "./appointment.suggestions";
 import {subjectProposalCommand} from "./subject.proposal";
 import {pendingFollowupIntent} from "./subject.pending.followup";
+import {subjectHistoryLookup} from "./subject.history.lookup";
 
 export type IncomingConversation = { phone: string; text: string; receivedAt: Date; phoneNumberId: string; mediaId?: string | null };
 export type ConversationDependencies = {
@@ -35,6 +36,8 @@ export async function prepareConversation(message: IncomingConversation, deps: C
   if (command) return command;
   const acknowledgement=socialAcknowledgement(message.text);
   if(acknowledgement)return acknowledgement;
+  const historyLookup=!message.mediaId && subjectHistoryLookup(message.text);
+  if(historyLookup)return historyLookup;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([(async () => {

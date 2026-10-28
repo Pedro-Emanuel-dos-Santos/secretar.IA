@@ -5,6 +5,13 @@ includeHistory=true e sem factKey; usa as rotas de consulta já existentes.
 Perguntas como “O que mudou no projeto Piloto?” recuperam mudanças persistidas
 das pendências, além das versões dos dados factuais. Não alteram registros.
 
+Consultas completas com nome explícito, como “O que mudou no projeto Piloto?”
+ou “Histórico do cliente João”, são resolvidas antes da IA e da montagem de
+contexto. O executor confere nome exato e escopo no banco, mesmo fora da amostra
+de assuntos do contexto. Nome inexistente não seleciona outro projeto.
+Pedidos compostos, negações, pronome ou histórico de um campo específico
+continuam no fluxo normal. Esta otimização não cobre linguagem irrestrita.
+
 Cada alteração mostra título, posição anterior, posição após aquela alteração,
 situação atual e origem/data da mensagem. Concluir uma pendência posteriormente
 não faz a posição intermediária parecer atual. O relato continua atribuído ao
@@ -24,9 +31,12 @@ o conteúdo do histórico vem do banco, não de uma resposta livre do modelo.
 
 Testes direcionados: antes/depois versus conclusão posterior, isolamento entre
 contatos/contas, consulta por campo, ambiguidade entre assuntos e origem alheia.
-TypeScript,246 unitários e269 integrações na suíte completa aprovados; os quatro
+ TypeScript,246 unitários e269 integrações na suíte completa inicial aprovados; os quatro
 testes direcionados passaram na revisão final. Não somar repetições como testes
 distintos adicionais.
+Após a otimização de consulta direta:248 unitários e cinco integrações afetadas
+aprovados, incluindo inbox sem IA, nenhum efeito na pendência e outra conta.
+TypeScript aprovado; não foi repetida a suíte completa de integração nesta etapa.
 Ver test/subject-pending-history.integration.cjs. Sem migração, callback ou
 credencial nova. Exige publicação e teste real antes de declarar disponível
 no WhatsApp.
