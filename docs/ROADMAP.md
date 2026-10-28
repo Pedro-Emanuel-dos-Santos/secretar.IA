@@ -1,0 +1,38 @@
+# Roadmap priorizado — 28/10/2026
+
+Meta: primeiro uso externo acompanhado até **04/11/2026**, sujeito aos critérios
+de entrada. O calendário não transforma capacidades pendentes em prontas.
+
+| Prioridade | Problema e entrega | Evidência para avançar |
+|---|---|---|
+| 1 — Entrega diária | Verificar template, nome, parâmetros e aprovação reais; tratar avisos bloqueados e testar fora da janela | Um lembrete realmente recebido depois da janela, com estado final correto; sem configurar template ou enviar sem autorização |
+| 2 — IA previsível | Confirmar modo/modelo efetivos; corrigir seleção por JSON inteiro; medição de motivo/tentativas/latência e proposta de custo | Mesmos pedidos sob contextos diferentes preservam decisão; queda/fallback não duplicam ação; consentimento preservado |
+| 3 — Continuidade útil | Recuperar assunto e posição persistida ao retomar depois; publicar fluxo composto local somente após avaliação | Jornadas entre sessões corrigem fato + pendência, não duplicam, citam origem e não usam resumo obsoleto |
+| 4 — Qualidade integrada | Avaliação com provedor real e testes de vários pedidos, correções, ambiguidade, perguntas e falhas | Resultados por jornada e limitações; nenhum falso “feito”, gravação parcial ou acesso cruzado nos casos de liberação |
+| 5 — Beta operável | Acesso do participante, consentimentos, controles de pausa/exclusão, suporte e gates de publicação | Participante independente realiza os percursos; operação identifica falhas e recuperação é exercitada |
+
+## Sequência até 04/11
+
+- 28/10: auditoria, lacunas e decisões documentadas; nenhuma mudança de produção.
+- 29–30/10: implementar pacote de IA/observabilidade após revisão do plano;
+  avaliar os fluxos locais e resolver dependência de template em paralelo às
+  decisões de configuração. Não prometer aprovação externa da Meta nesse prazo.
+- 31/10–01/11: publicação autorizada, teste integrado WhatsApp com Pedro e ensaio
+  de recuperação; corrigir bloqueios antes de adicionar funcionalidades.
+- 02–03/11: percursos externos acompanhados, consentimentos e verificação de dados
+  separados; só adicionar participante e enviar mensagens com autorização.
+- 04/11: liberar uso acompanhado se critérios passarem; caso contrário informar
+  bloqueio concreto e manter o escopo que estiver comprovado.
+
+## Depois do beta
+
+Medir repetição de perguntas, sucesso sem ajuda, relevância de sugestões, entrega,
+latência, custo e confiança. Evoluir recuperação/memória e proatividade opt-in;
+depois Google Agenda. Equipes, papéis e integrações municipais são um produto
+compartilhado mais amplo; dependem de demanda, acesso e viabilidade.
+
+## Estado da etapa atual
+
+Auditoria e proposta concluídas documentalmente. Não implementar todas as ideias
+de uma vez. Não usar “cinco serviços online” ou contagem de testes como substituto
+dos critérios do [plano beta](PLANO_BETA.md).

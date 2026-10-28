@@ -1,5 +1,18 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
+## Auditoria e planejamento após missão de evolução
+
+Consultar ../docs/README.md e ../AGENTS.md. Primeira etapa é documental, sem
+alteração funcional ou de produção. Inventário Railway: cinco serviços online;
+conector redige valores de AI_MODE/OPENAI_MODEL, portanto configuração efetiva
+não confirmada. Não há serviço/variáveis de endpoint Ollama evidenciados.
+Reprodução com provedores falsos demonstrou roteamento híbrido por tamanho do
+contexto JSON inteiro. Worker não lista WHATSAPP_REMINDER_TEMPLATE_NAME:
+entrega fora da janela é bloqueio do beta até configuração/validação autorizadas.
+Próximo pacote proposto: decisão de rota e observabilidade, preservando memória
+consentida e execução atual; precisa de revisão da proposta arquitetural.
+Não confundir auditoria com aprovação para publicar ou adicionar participante.
+
 ## Melhoria local posterior: retomada após consulta
 
 pending.continuation.ts agora retoma pendência antiga após consulta recente
