@@ -1,4 +1,21 @@
-# Continuidade da Secretár.IA — 28/10/2026
+# Continuidade da Secretár.IA — 29/10/2026
+
+## Backup externo Hobby e template — preparação, sem ativação
+
+Ler ../docs/BACKUP_EXTERNO_BETA.md e TEMPLATE_META_BETA_CHECKLIST.md.
+Pedro ainda não configurou R2 e quer alertas WhatsApp independentes da aplicação.
+Rotina separada em backup/: pg_dump com snapshot/manifesto comum; Redis via
+replicação --rdb (sem SAVE), age, adaptador R2, readback/hash/commit final e
+heartbeat Healthchecks. RDB cobre instância inteira e fork precisa de headroom.
+Padrão só plan; captura real bloqueada sem autorização específica futura.
+Não ler .env antigo. Identidade privada fora da Railway. Retenção proposta 30d,
+lock 7d, cron 6h, restauração isolada; nada configurado/aplicado remotamente.
+Healthchecks WhatsApp nativo consultado US$20/mês, não contratado. Credenciais
+restritas, TLS/ACL, R2 real, lock/lifecycle, monitor e recurso executor pendentes.
+Template JSON mantém corpo anteriormente proposto, explicita POSITIONAL e exemplo
+do parâmetro completo; aprovação Meta não consultada nesta entrega.
+NO-GO real permanece: capturar/recuperar dados reais, publicar, enviar WhatsApp e
+alterar configurações continuam sem autorização. Testes fictícios não levantam gate.
 
 ## Missão 04 — prontidão operacional, sem deploy
 

@@ -1,0 +1,11 @@
+{
+  "format": "secretaria-backup-retention-proposal-v1",
+  "applied": false,
+  "prefix": "v1/",
+  "storageClass": "Standard",
+  "expireAfterDays": 30,
+  "bucketLockForDays": 7,
+  "abortIncompleteMultipartAfterDays": 1,
+  "runnerMayDeleteObjects": false,
+  "note": "Declarative review document, not a Cloudflare API payload. Apply and verify the native policies separately after authorization."
+}

@@ -1,0 +1,16 @@
+{
+  "Rules": [
+    {
+      "ID": "secretaria-expire-after-30-days",
+      "Status": "Enabled",
+      "Filter": {"Prefix": "v1/"},
+      "Expiration": {"Days": 30}
+    },
+    {
+      "ID": "secretaria-abort-incomplete-multipart",
+      "Status": "Enabled",
+      "Filter": {"Prefix": "v1/"},
+      "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 1}
+    }
+  ]
+}

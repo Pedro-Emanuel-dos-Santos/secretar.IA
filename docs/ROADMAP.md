@@ -1,5 +1,11 @@
 # Roadmap priorizado — 28/10/2026
 
+Atualização 29/10: backup externo no Hobby em preparação local, conforme
+[procedimento](BACKUP_EXTERNO_BETA.md) e [checklist Meta](TEMPLATE_META_BETA_CHECKLIST.md).
+R2 ainda não configurado; alertas WhatsApp independentes escolhidos, contratação
+pendente. Nenhuma captura real, template submetido ou configuração remota feita.
+Prova local não remove os dois bloqueios externos abaixo.
+
 Missão 04: [prontidão operacional](MISSAO_04_GO_NO_GO.md), 291 unitários,
 333 integrações, jornadas com Redis real e dois checkpoints OpenAI. Corrigidos
 isolamento entre contas, histórico de nota excluída e ambiguidade do aviso próprio.
