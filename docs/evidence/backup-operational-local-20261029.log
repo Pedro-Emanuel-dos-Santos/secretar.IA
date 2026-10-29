@@ -1,0 +1,50 @@
+tests-1  | test_01_capture_while_writes_continue (test_backup.BackupTests.test_01_capture_while_writes_continue) ... ok
+tests-1  | test_02_restore_matches_snapshot_not_current_database (test_backup.BackupTests.test_02_restore_matches_snapshot_not_current_database) ... ok
+tests-1  | test_03_corrupt_cipher_and_wrong_identity_rejected (test_backup.BackupTests.test_03_corrupt_cipher_and_wrong_identity_rejected) ... ok
+tests-1  | test_04_partial_upload_and_readback_corruption_do_not_commit (test_backup.BackupTests.test_04_partial_upload_and_readback_corruption_do_not_commit) ... ok
+tests-1  | test_05_corrupt_postgres_rolls_back_all_tables (test_backup.BackupTests.test_05_corrupt_postgres_rolls_back_all_tables) ... ok
+tests-1  | test_06_archive_traversal_links_and_duplicate_members_rejected (test_backup.BackupTests.test_06_archive_traversal_links_and_duplicate_members_rejected) ... ok
+tests-1  | test_07_no_real_capture_without_authorization (test_backup.BackupTests.test_07_no_real_capture_without_authorization) ... ok
+tests-1  | test_08_dry_plan_requires_no_credentials_or_network (test_backup.BackupTests.test_08_dry_plan_requires_no_credentials_or_network) ... ok
+tests-1  | test_09_restore_refuses_remote_or_unsafe_target (test_backup.BackupTests.test_09_restore_refuses_remote_or_unsafe_target) ... ok
+tests-1  | test_10_immutable_local_objects_and_safe_keys (test_backup.BackupTests.test_10_immutable_local_objects_and_safe_keys) ... ok
+tests-1  | test_11_watchdog_detects_job_absence_independently (test_backup.BackupTests.test_11_watchdog_detects_job_absence_independently) ... ok
+tests-1  | test_12_monitor_protocol_no_logs_no_redirects (test_backup.BackupTests.test_12_monitor_protocol_no_logs_no_redirects) ... ok
+tests-1  | test_13_monitor_unavailable_does_not_report_success (test_backup.BackupTests.test_13_monitor_unavailable_does_not_report_success) ... ok
+tests-1  | test_14_busy_redis_does_not_force_snapshot (test_backup.BackupTests.test_14_busy_redis_does_not_force_snapshot) ... ok
+tests-1  | test_15_r2_adapter_scopes_and_keeps_credentials_out_of_arguments (test_backup.BackupTests.test_15_r2_adapter_scopes_and_keeps_credentials_out_of_arguments) ... ok
+tests-1  | test_16_tools_are_available_without_cloud (test_backup.BackupTests.test_16_tools_are_available_without_cloud) ... ok
+tests-1  | test_corrupt_journal_blocks_unsafe_automatic_recovery (test_executor.ExecutorTests.test_corrupt_journal_blocks_unsafe_automatic_recovery) ... ok
+tests-1  | test_credential_deadline_warns_and_blocks_without_rotating (test_executor.ExecutorTests.test_credential_deadline_warns_and_blocks_without_rotating) ... ok
+tests-1  | {"event": "backup_started", "runId": "2e484d41-7c9d-4d80-8ed1-2bee6879f6b6", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_failed", "runId": "2e484d41-7c9d-4d80-8ed1-2bee6879f6b6", "code": "backup_deadline_exceeded", "storageVerified": false}
+tests-1  | test_deadline_terminates_child_and_fails (test_executor.ExecutorTests.test_deadline_terminates_child_and_fails) ... ok
+tests-1  | test_failed_cleanup_remains_pending_and_refuses_links (test_executor.ExecutorTests.test_failed_cleanup_remains_pending_and_refuses_links) ... ok
+tests-1  | {"event": "backup_started", "runId": "6f494ce2-1202-4b91-a365-6684bc22a70c", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_failed", "runId": "6f494ce2-1202-4b91-a365-6684bc22a70c", "code": "fixture_readback_failed", "storageVerified": false}
+tests-1  | test_failure_never_becomes_success_and_unlocks (test_executor.ExecutorTests.test_failure_never_becomes_success_and_unlocks) ... ok
+tests-1  | test_file_lock_and_postgres_lock_prevent_overlap (test_executor.ExecutorTests.test_file_lock_and_postgres_lock_prevent_overlap) ... ok
+tests-1  | {"event": "backup_started", "runId": "06ad0545-fae7-4b42-a365-8ca135e6bca2", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_failed", "runId": "06ad0545-fae7-4b42-a365-8ca135e6bca2", "code": "backup_lease_lost", "storageVerified": false}
+tests-1  | test_lost_lease_aborts_before_publication (test_executor.ExecutorTests.test_lost_lease_aborts_before_publication) ... ok
+tests-1  | {"event": "backup_started", "runId": "6dacbd85-f328-4eb3-bcd4-591818acdc0f", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_verified_monitor_failed", "runId": "6dacbd85-f328-4eb3-bcd4-591818acdc0f", "code": "monitor_unreachable_or_rejected", "storageVerified": true}
+tests-1  | test_monitor_failure_preserves_storage_evidence_without_overall_success (test_executor.ExecutorTests.test_monitor_failure_preserves_storage_evidence_without_overall_success) ... ok
+tests-1  | test_overlap_does_not_ping_monitor_or_run_capture (test_executor.ExecutorTests.test_overlap_does_not_ping_monitor_or_run_capture) ... ok
+tests-1  | test_r2_fix_keeps_head_object_enabled_and_requires_no_new_permission (test_executor.ExecutorTests.test_r2_fix_keeps_head_object_enabled_and_requires_no_new_permission) ... ok
+tests-1  | {"event": "backup_started", "runId": "04f306d4-c102-4db7-a9b2-7041f17ca2ad", "recoveredInterruptedRuns": 1, "cleanedInterruptedScratch": 1, "warning": null}
+tests-1  | {"event": "backup_succeeded", "runId": "04f306d4-c102-4db7-a9b2-7041f17ca2ad", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "bytes": 17}
+tests-1  | test_sigkill_releases_database_lock_and_next_run_marks_stale_state (test_executor.ExecutorTests.test_sigkill_releases_database_lock_and_next_run_marks_stale_state) ... ok
+tests-1  | test_sigterm_records_interruption_and_stops_child (test_executor.ExecutorTests.test_sigterm_records_interruption_and_stops_child) ... ok
+tests-1  | {"event": "backup_started", "runId": "0d8b5c2a-1347-4e84-ad17-d1df876359fa", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_succeeded", "runId": "0d8b5c2a-1347-4e84-ad17-d1df876359fa", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "bytes": 17}
+tests-1  | test_success_journal_follows_verified_notification (test_executor.ExecutorTests.test_success_journal_follows_verified_notification) ... ok
+tests-1  | test_unknown_monitor_check_body_is_not_success (test_executor.ExecutorTests.test_unknown_monitor_check_body_is_not_success) ... ok
+tests-1  | {"event": "backup_started", "runId": "fc1b01b2-3f2c-4877-9063-7c7c42b528ac", "recoveredInterruptedRuns": 0, "cleanedInterruptedScratch": 0, "warning": null}
+tests-1  | {"event": "backup_failed", "runId": "fc1b01b2-3f2c-4877-9063-7c7c42b528ac", "code": "capture_success_not_verified", "storageVerified": false}
+tests-1  | test_unverified_operation_cannot_claim_success (test_executor.ExecutorTests.test_unverified_operation_cannot_claim_success) ... ok
+tests-1  |
+tests-1  | ----------------------------------------------------------------------
+tests-1  | Ran 31 tests in 13.230s
+tests-1  |
+tests-1  | OK

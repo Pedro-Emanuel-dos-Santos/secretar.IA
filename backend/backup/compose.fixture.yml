@@ -18,7 +18,7 @@ services:
     networks: [fixtures]
   tests:
     build: .
-    entrypoint: ["python3", "-m", "unittest", "-v", "test_backup"]
+    entrypoint: ["python3", "-m", "unittest", "-v", "test_backup", "test_executor"]
     environment:
       BACKUP_MODE: fixture
       PGHOST: pg-test

@@ -1,5 +1,20 @@
 # Continuidade da Secretár.IA — 29/10/2026
 
+## Integração operacional do backup — entregue em dev, sem ativação
+
+Ler ../docs/RESULTADO_OPERACAO_BACKUPS_20261029.md e OPERACAO_BACKUPS_20261029.md.
+Compatibilidade rclone incorporada: Store NO_HEAD=true, GET/SHA e COMMITTED/GET/SHA
+obrigatórios. Executor single-shot com flock + advisory lock PG, journal/fsync,
+limite25min, sinais, perda de lease e limpeza segura de scratch abandonado.
+31 testes locais e E2E completo de fontes Docker fictícias até R2 e restauração
+passaram (3tabelas, 8chaves persistentes, age portátil, outbound false).
+Monitor gratuito por e-mail e executor6h somente preparados, não criados.
+Identidade age REAL ainda precisa de duas cópias fora do Windows/Railway;
+teste portátil não comprova mídia física externa. Renovação R2 planejada para
+24/11, expiração28/11; nenhum token rotacionado nesta etapa. Custo ilustrativo
+~US$0,80/mês com bundles50MB, não medição/limite. Não ativar/alterar Railway,
+capturar dados reais, migrar ou publicar aplicação sem autorização específica.
+
 ## Backup externo Hobby e template — preparação, sem ativação
 
 Resultado MAIS RECENTE (29/10, após Pedro ativar R2): bucket

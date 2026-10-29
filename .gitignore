@@ -6,6 +6,7 @@
 *.rdb
 *.tar.age
 *.agekey
+*-identity.age
 **/backup-private/
 **/backup-artifacts/
 **/__pycache__/

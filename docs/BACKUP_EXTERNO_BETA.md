@@ -1,5 +1,10 @@
 # Backup externo do beta — preparação em 29/10/2026
 
+Última evolução: [integração operacional](RESULTADO_OPERACAO_BACKUPS_20261029.md)
+com rclone corrigido, executor/travas/journal, 31 testes e E2E fictício no R2 até
+restauração. Os diagnósticos históricos de configuração abaixo devem ser lidos
+com essa atualização. Produção e exportação real continuam não autorizadas.
+
 **Situação: implementação local em avaliação, ativação real NÃO autorizada.**
 Manter Railway Hobby. Nenhum dado real foi lido, capturado ou exportado nesta
 entrega. Nenhum cron, template Meta, serviço/variável Railway ou deploy alterado.

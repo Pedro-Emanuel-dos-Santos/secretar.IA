@@ -1,0 +1,17 @@
+{
+  "format": "secretaria-backup-monitor-plan-v1",
+  "applied": false,
+  "provider": "Healthchecks.io Hobbyist",
+  "estimatedMonthlySubscriptionUsd": 0,
+  "channel": "external email; recipient must be confirmed and verified",
+  "checkName": "secretaria-backup-6h",
+  "cron": "0 */6 * * *",
+  "timezone": "UTC",
+  "graceSeconds": 1800,
+  "events": {"start": "/start", "failure": "/fail", "success": "only after complete object AND COMMITTED readback/SHA-256"},
+  "detect": ["explicit failure", "runtime exceeding grace", "missed scheduled success"],
+  "body": "empty; no records, credentials or raw logs",
+  "hostOutsideRailway": true,
+  "requiresValidation": ["verified email recipient", "failure notification received", "missed-run notification received", "recovery notification received"],
+  "realEmailSent": false
+}

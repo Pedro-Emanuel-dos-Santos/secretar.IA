@@ -1,0 +1,19 @@
+{
+  "format": "secretaria-backup-deployment-plan-v1",
+  "applied": false,
+  "provider": "Railway Hobby; separate cron service, pending approval",
+  "rootDirectory": "/backend/backup",
+  "dockerfile": "Dockerfile",
+  "replicas": 1,
+  "schedule": "0 */6 * * *",
+  "timezone": "UTC",
+  "restartOnFailure": false,
+  "command": ["python3", "/opt/backup/backup.py", "capture", "--authorize-real-data"],
+  "maximumRuntimeSeconds": 1500,
+  "persistentStateMount": "/state",
+  "ephemeralScratch": "/scratch",
+  "environment": {"TMPDIR": "/scratch", "BACKUP_STATE_DIR": "/state"},
+  "singleton": ["one scheduler and replica", "flock in persistent state volume", "PostgreSQL session advisory lock 731929/1"],
+  "productionExportAuthorized": false,
+  "note": "Review document, not a Railway API payload. Do not provision or activate until specifically authorized."
+}

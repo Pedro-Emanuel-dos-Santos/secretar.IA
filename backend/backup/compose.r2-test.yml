@@ -1,0 +1,16 @@
+# Apply only with compose.fixture.yml. This grants egress ONLY to the test runner.
+# Database services remain on the internal fixture network without host ports.
+services:
+  tests:
+    entrypoint: ["python3", "-m", "unittest", "-v", "test_r2_e2e"]
+    environment:
+      BACKUP_ALLOW_FIXTURE_R2: "yes"
+      BACKUP_R2_ENDPOINT: ${BACKUP_R2_ENDPOINT:?current authorized endpoint required}
+      BACKUP_R2_BUCKET: ${BACKUP_R2_BUCKET:?authorized fixture bucket required}
+      BACKUP_R2_ACCESS_KEY_ID: ${BACKUP_R2_ACCESS_KEY_ID:?current key required}
+      BACKUP_R2_SECRET_ACCESS_KEY: ${BACKUP_R2_SECRET_ACCESS_KEY:?current secret required}
+      BACKUP_R2_CREDENTIAL_EXPIRES_ON: "2026-11-28"
+    volumes: ["${BACKUP_TEST_EVIDENCE_DIR:?outside-repo evidence directory required}:/evidence"]
+    networks: [fixtures, r2-egress]
+networks:
+  r2-egress: {}

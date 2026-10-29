@@ -1,0 +1,49 @@
+{
+  "fixtureOnly": true,
+  "realDatabaseAccess": false,
+  "remotePoliciesChanged": false,
+  "credentialRotated": false,
+  "bucket": "secretaria-ia-backups",
+  "runId": "70340761-1bed-480d-a4d4-dac5e4413be9",
+  "artifactSha256": "ac32c6f43c19ce7673f5cd948663e58f1c1d07aad56eddde456f98e8d2a2d725",
+  "encryptedBytes": 20680,
+  "sourceTables": {
+    "public.fixture_pair": {
+      "rows": 1,
+      "sha256": "2d21ec6d7f9aefc8053a1df31676bcfa6dfc6a7cd2994ec81215cce4a802c48f"
+    },
+    "public.fixture_people": {
+      "rows": 1,
+      "sha256": "e9e6a4b307be67caa2b105e2a319f15ff8424a6a7e28e0c9c21c5538ec928e04"
+    },
+    "public.fixture_reminders": {
+      "rows": 1,
+      "sha256": "4496f40ac996de3ab82ca8baddab0b26588846861c614f8fbd2318cadc062c14"
+    }
+  },
+  "redisLogicalManifest": {
+    "0": {
+      "expiringKeysObserved": 1,
+      "persistentKeys": 7,
+      "sha256": "e01610556240477e38621ffd7da29bdd6c0a46035dbd476291d701f4d1a049f4"
+    },
+    "15": {
+      "expiringKeysObserved": 0,
+      "persistentKeys": 1,
+      "sha256": "7ed8f246b2bfd1965a7a3b8626ed5a587d4ee3188659aec63247f2d4829c2144"
+    }
+  },
+  "committedMarkerReadbackMatches": true,
+  "independentAgeCopyWorks": true,
+  "originalFixtureIdentityRemovedBeforeCloudCapture": true,
+  "recovery": {
+    "postgresRowsAndHashesMatch": true,
+    "redisPersistentValuesMatch": true,
+    "expiringRedisKeysNotCompared": true,
+    "outboundAllowed": false
+  },
+  "executorState": "succeeded",
+  "monitorTransport": "local double; no real email sent",
+  "protectedArtifactsRemainUntilRetention": true,
+  "passed": true
+}

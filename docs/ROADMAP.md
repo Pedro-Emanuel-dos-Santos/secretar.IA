@@ -1,5 +1,11 @@
 # Roadmap priorizado — 28/10/2026
 
+Integração operacional do backup em dev (29/10): compatibilidade R2 corrigida,
+executor único e planos de e-mail/identidade/renovação preparados. 31 testes locais
+e E2E de bancos fictícios → R2 → restauração passaram. Ver
+[resultado](RESULTADO_OPERACAO_BACKUPS_20261029.md). Nenhum serviço/cron real ativado;
+captura real recuperável e demais gates continuam pendentes.
+
 Atualização 29/10: backup externo no Hobby em preparação local, conforme
 [procedimento](BACKUP_EXTERNO_BETA.md) e [checklist Meta](TEMPLATE_META_BETA_CHECKLIST.md).
 Política inicial 6h/30d/7d aprovada, sujeita à compatibilidade real do R2. E-mail

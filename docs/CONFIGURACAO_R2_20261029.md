@@ -1,5 +1,11 @@
 # Cloudflare R2 — bucket privado configurado e validado
 
+Atualização operacional posterior: ajuste do rclone incorporado e E2E completo
+de bancos Docker fictícios até R2 e restauração comprovado. Ver
+[entrega operacional](RESULTADO_OPERACAO_BACKUPS_20261029.md). Os trechos abaixo
+descrevem o momento da configuração inicial; o requisito de ajuste de código foi
+resolvido em dev. Cron, dados reais, e-mail real e deploy continuam não ativados.
+
 ## Resultado final após ativação pelo usuário — 29/10/2026
 
 Pedro ativou pessoalmente a assinatura R2 e autorizou retomar a configuração.
