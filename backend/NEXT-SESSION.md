@@ -2,6 +2,13 @@
 
 ## Backup externo Hobby e template — preparação, sem ativação
 
+Última verificação Cloudflare (29/10): sessão autenticada acessível, R2 NÃO
+habilitado; painel exige Add R2 subscription, US$0 agora + uso adicional e renovação
+automática. Parado antes de aceitar compromisso financeiro. Nenhum bucket/chave
+criado; disponibilidade do nome não confirmada. Ler
+../docs/CONFIGURACAO_R2_20261029.md. Aguardar decisão/ativação do usuário antes de
+retomar. Credenciais não foram lidas nem guardadas; produção permanece intacta.
+
 Ler ../docs/BACKUP_EXTERNO_BETA.md e TEMPLATE_META_BETA_CHECKLIST.md.
 Pedro preparará R2 e submeterá o template Meta. Decisão atual: alertas por e-mail
 externo independente da aplicação, sem contratar Healthchecks Business.

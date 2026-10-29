@@ -12,6 +12,12 @@ da aplicação; não contratar Healthchecks Business. Pedro preparará R2 e subm
 o template Meta. Não há autorização de exportação real, deploy ou serviços pagos.
 Manter a branch estável, sem outra implementação grande enquanto isso.
 
+Verificação posterior de 29/10: acesso autenticado Cloudflare disponível, mas R2
+redireciona para ativação de assinatura US$0 agora + uso adicional, renovação
+automática. Operação parada antes de aceitar, conforme limite financeiro de Pedro.
+Bucket/nome, políticas reais, credenciais e teste R2 ainda não confirmados.
+Ver [resultado da configuração](CONFIGURACAO_R2_20261029.md).
+
 ## Decisão de captura e disponibilidade, verificada antes da implementação
 
 PostgreSQL: `pg_dump` custom, sem owner/ACL, com snapshot exportado de uma
