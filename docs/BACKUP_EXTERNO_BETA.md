@@ -2,8 +2,10 @@
 
 **Situação: implementação local em avaliação, ativação real NÃO autorizada.**
 Manter Railway Hobby. Nenhum dado real foi lido, capturado ou exportado nesta
-entrega. Nenhum bucket, plano, cron, credencial, template ou serviço remoto foi
-criado/alterado. A existência deste código não resolve o NO-GO da Missão 04.
+entrega. Nenhum cron, template Meta, serviço/variável Railway ou deploy alterado.
+Bucket, políticas e credencial R2 foram configurados depois, sob autorização
+específica, e testados só com fixtures; ver resultado mais recente abaixo.
+A existência deste código ou bucket não resolve o NO-GO da Missão 04.
 
 Decisão posterior de Pedro em 29/10: política inicial APROVADA de captura a cada
 6 horas, retenção de 30 dias e proteção contra exclusão de 7 dias, condicionada à
@@ -17,6 +19,14 @@ redireciona para ativação de assinatura US$0 agora + uso adicional, renovaçã
 automática. Operação parada antes de aceitar, conforme limite financeiro de Pedro.
 Bucket/nome, políticas reais, credenciais e teste R2 ainda não confirmados.
 Ver [resultado da configuração](CONFIGURACAO_R2_20261029.md).
+
+Atualização após ativação por Pedro: bucket `secretaria-ia-backups` criado privado,
+Standard/ENAM, sem domínio/r2.dev; lifecycle 30d e lock 7d em `v1/` aplicados e
+verificados. Token restrito ao bucket, até 28/11, guardado cifrado fora do repo.
+Fixtures AES/age passaram upload, GET/hash/decrypt, exclusão descartável e bloqueio
+de exclusão/sobrescrita protegidas. Probe do adaptador exigiu `NO_HEAD=true` no
+ambiente do rclone; o código default NÃO mudou e esse ajuste ainda é gate de
+integração. Nenhuma captura real, cron, variável Railway ou deploy autorizado.
 
 ## Decisão de captura e disponibilidade, verificada antes da implementação
 
@@ -40,8 +50,8 @@ escopo; caso contrário, parar. PG e Redis não têm snapshot atômico entre si.
 | Recurso | Evidência disponível | Pendência |
 |---|---|---|
 | Postgres/Redis Railway | Somente metadados: serviços existentes e nomes de variáveis; sem proxies TCP públicos | Credenciais específicas, TLS/CA, privilégios e capacidade não validados |
-| Credenciais locais da rotina | Nenhuma variável BACKUP/R2/AGE disponível | Não reutilizar `.env` anterior à rotação |
-| Cloudflare R2 | Pedro confirmou que não configurou | Conta, bucket privado, política e token restrito |
+| Credenciais locais da rotina | R2 cifrada fora do repo; sem injeção permanente no runtime | Roles PG/Redis e identidade age real pendentes; não reutilizar `.env` anterior à rotação |
+| Cloudflare R2 | Ativo; bucket privado/políticas/token restrito verificados com fixtures | Ajuste de compatibilidade do rclone, executor e injeção segura pendentes |
 | Criptografia | Somente chaves efêmeras fictícias nos testes | Identidade real fora da Railway e duas cópias privadas recuperáveis |
 | Agendamento | Só proposta, sem cron criado | Executor separado, na rede privada, uma única instância |
 | Alertas | Pedro escolheu e-mail externo independente da aplicação | Conta/canal gratuito, destinatário e teste autorizado; nenhum Business contratado |

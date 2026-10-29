@@ -2,7 +2,21 @@
 
 ## Backup externo Hobby e template — preparação, sem ativação
 
-Última verificação Cloudflare (29/10): sessão autenticada acessível, R2 NÃO
+Resultado MAIS RECENTE (29/10, após Pedro ativar R2): bucket
+secretaria-ia-backups criado privado, Standard/ENAM; sem domínio e r2.dev.
+Lifecycle 30d/lock 7d/multipart abort 1d em v1/ ativos. Token Object Read & Write
+restrito ao bucket, até 28/11, rotacionado por Pedro e guardado cifrado fora do
+repo; não imprimir/commitar. Fixtures reais no R2 passaram hash/decrypt, delete
+descartável e recusa409 de delete/overwrite protegidos. Prefixo validation/ vazio;
+fixtures protegidos pequenos aguardam retenção. Ler resultado final em
+../docs/CONFIGURACAO_R2_20261029.md e três JSONs de evidência.
+Código NÃO mudou: rclone default PUT200 depois HEAD501; probe passou com
+RCLONE_CONFIG_BACKUP_NO_HEAD=true no ambiente do Store e SHA256/readback obrigatório.
+Store ainda não propaga essa opção: ajuste pequeno futuro, não afirmar automação
+pronta. Executor, cron6h, e-mail, identidade age real, roles/ACL/TLS/capacidade,
+captura real e restauração continuam pendentes/sem autorização de produção.
+
+Histórico anterior à ativação Cloudflare (superado): sessão acessível, R2 NÃO
 habilitado; painel exige Add R2 subscription, US$0 agora + uso adicional e renovação
 automática. Parado antes de aceitar compromisso financeiro. Nenhum bucket/chave
 criado; disponibilidade do nome não confirmada. Ler

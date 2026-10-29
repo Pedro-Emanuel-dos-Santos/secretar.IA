@@ -1,0 +1,19 @@
+{
+  "bucket": "secretaria-ia-backups",
+  "capturedAt": "2026-10-29T14:18:02.242Z",
+  "metadataOnly": true,
+  "scope": "two exact known fixture paths plus disposable validation prefix; no whole-bucket listing",
+  "knownFixtureObjects": [
+    {
+      "key": "v1/a3d78aaf-8311-4c34-9017-da01b27e2b1f/bundle-fixture.enc",
+      "bytes": 308
+    },
+    {
+      "key": "v1/970c3350-28f5-4eeb-b8ab-95f6a576b13b/bundle.tar.age",
+      "bytes": 345
+    }
+  ],
+  "knownEncryptedBytes": 653,
+  "wholeBucketInventoryPerformed": false,
+  "disposableValidationPrefixEmpty": true
+}

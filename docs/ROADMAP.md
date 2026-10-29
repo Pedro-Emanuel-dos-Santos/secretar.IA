@@ -8,6 +8,11 @@ submeterá o template. Sem exportação real, deploy, serviços pagos ou nova
 implementação grande; branch estável. Nenhuma configuração remota feita pelo agente.
 Prova local não remove os dois bloqueios externos abaixo.
 
+R2 posteriormente ativado por Pedro e configurado: bucket privado, 30d/7d em v1/,
+token restrito cifrado e fixtures R2 verificados. Ver CONFIGURACAO_R2_20261029.md.
+Captura real/restauração continuam ausentes; cliente rclone exige ajuste pontual
+antes de integrar. Nenhuma automação ou publicação foi ativada.
+
 Missão 04: [prontidão operacional](MISSAO_04_GO_NO_GO.md), 291 unitários,
 333 integrações, jornadas com Redis real e dois checkpoints OpenAI. Corrigidos
 isolamento entre contas, histórico de nota excluída e ambiguidade do aviso próprio.

@@ -1,0 +1,32 @@
+{
+  "fixtureOnly": true,
+  "realDatabaseAccess": false,
+  "bucket": "secretaria-ia-backups",
+  "runId": "970c3350-28f5-4eeb-b8ab-95f6a576b13b",
+  "protectedObject": "v1/970c3350-28f5-4eeb-b8ab-95f6a576b13b/bundle.tar.age",
+  "disposableObject": "validation/970c3350-28f5-4eeb-b8ab-95f6a576b13b/fixture.json.age",
+  "capturedAt": "2026-10-29T14:15:11.428534+00:00",
+  "paidServicesCreated": false,
+  "rcloneCompatibilityProbe": {
+    "noHead": true,
+    "noHeadObject": false,
+    "fullReadbackSha256Required": true
+  },
+  "encryption": "age",
+  "encryptedBytes": 345,
+  "sha256": "feb716a07f161026d5ff5e92b3afbeeacdc2b27422fdb2dc12fcb60ea59d3525",
+  "disposableUpload": true,
+  "disposableReadbackIntegrity": true,
+  "decryptionMatchesFixture": true,
+  "disposableDeletionVerified": true,
+  "actualBackupStoreUpload": true,
+  "actualBackupStoreReadbackIntegrity": true,
+  "protectedDeletionDenied": true,
+  "protectedOverwriteDenied": true,
+  "protectedObjectUnchangedAfterAttempts": true,
+  "anonymousS3Status": 400,
+  "anonymousS3AccessDenied": true,
+  "protectedFixtureRemains": true,
+  "protectedFixtureAutoExpiryPolicyDays": 30,
+  "passed": true
+}
