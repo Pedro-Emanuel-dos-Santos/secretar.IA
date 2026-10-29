@@ -181,6 +181,7 @@ export async function processInboxBatch(store: Store, deps: ConversationDependen
       if(earlier){ blockedPhones.push(initial.phone); continue; }
     }
     if (initial.status === "received" || initial.status === "interpreting") await prepareIntent(store, initial, deps);
+    if (shouldStop()) break;
     const row = await store.incomingMessage.findUnique({ where: { id: initial.id } });
     if (row && (row.status === "interpreted" || (row.status === "executing" && row.leaseUntil && row.leaseUntil <= new Date()))) {
       if (await prepareAction(store, row)) prepared++;

@@ -1,0 +1,27 @@
+ Container secretaria-shutdown-review-test-tests-run-05008f941739 Creating
+ Container secretaria-shutdown-review-test-tests-run-05008f941739 Created
+✔ actual entrypoint idle drain server.js SIGTERM (248.326676ms)
+✔ actual entrypoint idle drain server.js SIGINT (299.407975ms)
+✔ actual entrypoint idle drain inbox-worker.js SIGTERM (350.137558ms)
+✔ actual entrypoint idle drain inbox-worker.js SIGINT (332.646071ms)
+✔ actual entrypoint idle drain queue/reminder.worker.js SIGTERM (324.370798ms)
+✔ actual entrypoint idle drain queue/reminder.worker.js SIGINT (353.808924ms)
+✔ unchanged production code never reclaims uncertain/accepted reminders or replies after rollback (568.865402ms)
+✔ API SIGTERM drains persisted webhook; disconnected=false (4587.973581ms)
+✔ API SIGTERM drains persisted webhook; disconnected=true (509.178116ms)
+✔ inbox SIGINT stops between interpretation and action; restart creates once (1052.413463ms)
+✔ SIGKILL before inbox commit rolls back action; expired lease recovers without duplication (1390.578914ms)
+✔ reminder interruption graceful does not duplicate accepted effect (657.366553ms)
+✔ reminder interruption SIGKILL does not duplicate accepted effect (1064.13434ms)
+✔ reminder interruption deadline does not duplicate accepted effect (1229.66501ms)
+✔ actual entrypoint rejects unverified Railway grace: server.js (67.199515ms)
+✔ actual entrypoint rejects unverified Railway grace: inbox-worker.js (29.051885ms)
+✔ actual entrypoint rejects unverified Railway grace: queue/reminder.worker.js (31.532352ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11069.104354

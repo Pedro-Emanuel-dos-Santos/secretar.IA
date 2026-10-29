@@ -25,13 +25,14 @@ function summaryText(overview:string) {
   return head+suffix;
 }
 
-export async function relayDailySummaries(store:PrismaClient,phoneNumberId:string,now=new Date()) {
-  if(!phoneNumberId || !Number.isFinite(now.getTime()))return 0;
+export async function relayDailySummaries(store:PrismaClient,phoneNumberId:string,now=new Date(),shouldStop=()=>false) {
+  if(shouldStop() || !phoneNumberId || !Number.isFinite(now.getTime()))return 0;
   const cursor=cursors.get(phoneNumberId);
   const preferences=await store.contactPreference.findMany({where:{phoneNumberId,summaryEnabled:true,remindersPaused:false,...(cursor?{phone:{gt:cursor}}:{})},orderBy:{phone:"asc"},take:50});
   if(preferences.length===50)cursors.set(phoneNumberId,preferences[49].phone);else cursors.delete(phoneNumberId);
   let created=0,failed=0;
   for(const preference of preferences){
+    if(shouldStop())break;
     if(!dueDate(preference.summaryTime,preference.timezone,now))continue;
     try{
       const inserted=await store.$transaction(async tx=>{

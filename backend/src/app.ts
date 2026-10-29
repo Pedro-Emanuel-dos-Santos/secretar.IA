@@ -1,3 +1,4 @@
+import { httpDrain } from "./runtime/http.drain";
 import express from "express";
 import cors from "cors";
 
@@ -11,23 +12,27 @@ import {createCalendarRouter} from "./http/calendar.handlers";
 
 export const app = express();
 
+app.use(httpDrain.reject);
 app.use(cors());
 app.use("/", webhookRoutes);
 app.use(express.json());
 
 app.get("/health/live", (_, res) => res.json({ status: "alive" }));
-app.get("/health/ready", async (_, res) => {
+app.get("/health/ready", httpDrain.handler(async (_, res) => {
   if(app.locals.shuttingDown)return res.status(503).json({status:"unavailable"});
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
-      Promise.all([prisma.$queryRaw`SELECT 1`, reminderQueue.getJobCounts("waiting")]),
+      httpDrain.work.run(async () => {
+        const results = await Promise.allSettled([prisma.$queryRaw`SELECT 1`, reminderQueue.getJobCounts("waiting")]);
+        if (results.some(result => result.status === "rejected")) throw new Error("dependency_unavailable");
+      }),
       new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("timeout")), 2000); }),
     ]);
     return res.json({ status: "ready" });
   } catch { return res.status(503).json({ status: "unavailable" }); }
   finally { if (timer) clearTimeout(timer); }
-});
+}));
 
 /*
 |--------------------------------------------------------------------------

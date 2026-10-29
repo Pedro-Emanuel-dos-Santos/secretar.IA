@@ -1,0 +1,38 @@
+name: secretaria-shutdown-review-test
+services:
+  pg-test:
+    image: postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    environment:
+      POSTGRES_USER: secretaria_test
+      POSTGRES_PASSWORD: fictional_test_only
+      POSTGRES_DB: secretaria_shutdown_review_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secretaria_test -d secretaria_shutdown_review_test"]
+      interval: 1s
+      retries: 60
+    networks: [fixtures]
+  redis-test:
+    image: redis:8.2.10@sha256:e5f23377739f95a2f530b9c99f93accb4f634577f09d00a7d8e0638f2fdf69e0
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
+    networks: [fixtures]
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.shutdown-test
+    image: secretaria-shutdown-review-tests:20261029
+    environment:
+      NODE_ENV: test
+      DOTENV_CONFIG_QUIET: "true"
+      DATABASE_URL: postgresql://secretaria_test:fictional_test_only@127.0.0.1:5432/secretaria_shutdown_review_test
+      INBOX_TEST_DATABASE_URL: postgresql://secretaria_test:fictional_test_only@127.0.0.1:5432/secretaria_shutdown_review_test
+      REDIS_URL: redis://redis-test:6379/0
+      SHUTDOWN_TEST_REDIS_URL: redis://redis-test:6379/0
+      WHATSAPP_PHONE_NUMBER_ID: fictional_shutdown_account
+      AI_MODE: openai
+    depends_on:
+      pg-test: {condition: service_healthy}
+      redis-test: {condition: service_started}
+    network_mode: service:pg-test
+networks:
+  fixtures:
+    internal: true

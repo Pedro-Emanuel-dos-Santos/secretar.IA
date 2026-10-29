@@ -1,3 +1,4 @@
+import { httpDrain } from "../runtime/http.drain";
 import express, { Request, Response, Router } from "express";
 import { verifyChallenge, verifySignature } from "../domain/webhook.security";
 import { InboxWriter, InvalidWebhookError, receiveMessages } from "../domain/inbox.receiver";
@@ -13,7 +14,7 @@ export function createWebhookRouter(inbox: InboxWriter, configuration: () => Con
     return challenge === null ? res.sendStatus(403) : res.status(200).type("text/plain").send(challenge);
   });
   // This router must be mounted before express.json(): HMAC uses the exact bytes.
-  router.post("/webhook", express.raw({ type: "application/json", limit: "1mb", inflate: false }), async (req: Request, res: Response) => {
+  router.post("/webhook", express.raw({ type: "application/json", limit: "1mb", inflate: false }), httpDrain.handler(async (req: Request, res: Response) => {
     const config = configuration();
     if (!config.appSecret || !config.phoneNumberId) return res.sendStatus(503);
     if (!Buffer.isBuffer(req.body) || !verifySignature(req.body, req.headers["x-hub-signature-256"], config.appSecret)) return res.sendStatus(401);
@@ -28,6 +29,6 @@ export function createWebhookRouter(inbox: InboxWriter, configuration: () => Con
       console.error("Webhook não persistido; aguardando reentrega do provedor.");
       return res.sendStatus(503);
     }
-  });
+  }));
   return router;
 }

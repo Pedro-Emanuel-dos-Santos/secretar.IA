@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-29T21:00:18.857Z",
+  "branch": "codex/dev-shutdown-only-20261029",
+  "base": "a072f63353961ea6da0c5756417967a91248a317",
+  "derived": "507eb02c9937d7220e2e166f5a036f3dfe3792b3",
+  "productionModified": false,
+  "realDataRead": false,
+  "realMessagesSent": false,
+  "remoteMigrations": false,
+  "backupOrTlsChanged": false,
+  "build": "passed: npm run build inside isolated image",
+  "tests": {
+    "unit": {
+      "tests": 267,
+      "passed": 267,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node test/run.cjs"
+    },
+    "integration": {
+      "tests": 296,
+      "passed": 296,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node test/integration.cjs"
+    },
+    "interruptionAndRollback": {
+      "tests": 17,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --test test/shutdown.integration.cjs test/entrypoint-shutdown.integration.cjs test/rollback-contract.integration.cjs"
+    }
+  },
+  "unchangedContractSha256": {
+    "backend/package.json": "b8b912bce13796d2d4a3ad664a15062e3eb527a57a37fe7f48d56351e79a5f7e",
+    "backend/package-lock.json": "210d60680d2b6eedc0cf872b9ba4f2c68a393d95d6ee26a31427360a0394d7cd",
+    "backend/src/domain/reminder.delivery.ts": "0fc559f8b14a5bb9458f07689a90a68f1502ddf95d6b8073998ddcb4ba1d39f3",
+    "backend/src/domain/reply.relay.ts": "c61839dfa17fdf798863b9cc755829a61bba1fdfacb2003415959ce9950cb000",
+    "backend/src/domain/schedule.relay.ts": "bfc6679fc6a711142af94e7dcea5fa7b5198e48f42d611b9374743ef933a43ba",
+    "backend/src/domain/reminder.execution.ts": "ecd8520db329f28fb0e04c813646919730d197a2a3bf5ab2d8fcc9046a34c37d",
+    "backend/src/domain/whatsapp.policy.ts": "ad76f290bb4b39a7c366dce5ef9b408d79ee5cff1237c7a14e98abc02ba0a504",
+    "backend/src/domain/delivery.receipts.ts": "b89be927e39c8a224891130ff459ad42567c63717c8a6e8be8f596a13ccbae53",
+    "backend/src/services/whatsapp.service.ts": "a3217f53cdc694e7f66ce80daee065bc3326a2e16d62bcfbf233c706487bf8b7"
+  },
+  "sourceSha256": {
+    "backend/src/runtime/lifecycle.ts": "e0afe1dc6d4a676993e52e57effd11958ee18f8181e1e4babf811a822941a8c3",
+    "backend/src/runtime/http.drain.ts": "2b516e529242941a83e9b277404296a4343514c77f18892a001539de12ef5187",
+    "backend/src/app.ts": "cc82d03c13fadaa70e321002df5c694f0522e0f64824d71f6ba3a6cd07d5ac1c",
+    "backend/src/server.ts": "5886d1742daf66ec2a9648076d0e27b2d0e066d088c7acfef4072cfa773e439b",
+    "backend/src/inbox-worker.ts": "f3716661d91afc688d0d36c4a50c8aefc1bdb68a607282ca9b0abd57618e0634",
+    "backend/src/queue/reminder.worker.ts": "77f4a22b9eff474a47229398f19cb06d8e9b486aec276444c1d20ef6e1c5df80",
+    "backend/src/queue/reminder.processor.ts": "def0b15d7ab69a2c3d815760bc02f0c35c0be1d279f0744f9f97c8095d88a0e9",
+    "backend/src/domain/inbox.processor.ts": "c8ac7e621d1690d7cfde2e30f742bcd0798ac04129dfb62ac933a08a24126cc2",
+    "backend/src/domain/daily-summary.ts": "c5a640b0fe583bafe90ed42e5edf7672f94b31ba325af07597ae597d40008af9",
+    "backend/src/http/operations.handlers.ts": "0215598dbc1f7e42f68ec0cb089e239ac2d242c1269027fa5e9dd68d37d50b64",
+    "backend/src/http/calendar.handlers.ts": "c53a8f6cd3443ad7550677d00fdf3cd46a272b4ec70bac46117a9234760a4b5b",
+    "backend/src/http/reminder.handlers.ts": "365b0511092c66807be492078a92e0ebeb1c615ab347a2ca14085cba55154846",
+    "backend/src/http/webhook.handlers.ts": "49734ccf47f5608461c17a2d7fc23d85a0307764a56ab7bff839434e613f69b9"
+  },
+  "hashNormalization": "LF",
+  "total": 580,
+  "schemaMigrationsCount": 17,
+  "prismaSchemaSha256": "5d1d486c2cfd5c96a2a39990c3db9432ceb42e43ae11e433ae1663df52aa8cdc",
+  "preDeployMigrationCommandRemovedInCandidate": true
+}

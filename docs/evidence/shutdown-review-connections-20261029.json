@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-29T20:55:06.276Z",
+  "targetBranch": "codex/dev-shutdown-only-20261029",
+  "plannedAction": "push only this branch; no PR",
+  "productionChanged": false,
+  "projectsAndEnvironmentsVerified": [
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environments": [
+        {
+          "id": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+          "name": "production"
+        }
+      ]
+    },
+    {
+      "project": "6130c979-8297-488e-a7ee-74c93f2f5c4c",
+      "environments": [
+        {
+          "id": "2aa3d9dd-abd0-4b39-bfe3-ecc146269c1c",
+          "name": "production"
+        }
+      ]
+    },
+    {
+      "project": "24aa497b-0f75-44d4-93df-c53544786454",
+      "environments": [
+        {
+          "id": "e51d2c82-4a3e-4ee8-ae26-b502fe2bc890",
+          "name": "production"
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "secretaria-lembretes",
+      "source": {
+        "image": null,
+        "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+        "branch": "codex/railway-ready-20261020"
+      },
+      "latestDeploymentId": "614ab584-6b70-4083-81d6-f0fb781dba11",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "Redis",
+      "source": {
+        "image": "redis:8.2",
+        "repo": null,
+        "branch": null
+      },
+      "latestDeploymentId": "1fe764e0-e8a5-49ba-ab08-009bd70ed1bc",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "Postgres",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+        "repo": null,
+        "branch": null
+      },
+      "latestDeploymentId": "666043b3-69f0-4119-8c90-a61e0d9118a9",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "secretaria-inbox",
+      "source": {
+        "image": null,
+        "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+        "branch": "codex/railway-ready-20261020"
+      },
+      "latestDeploymentId": "1150569b-927b-472d-b64b-94a65e508c32",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "secretar.IA",
+      "source": {
+        "image": null,
+        "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+        "branch": "codex/railway-ready-20261020"
+      },
+      "latestDeploymentId": "6ab19165-f02d-454a-b181-729dd5de3cd7",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "name": "secretaria-backup",
+      "source": {
+        "image": null,
+        "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+        "branch": "codex/dev-beta-reliability-20261028"
+      },
+      "latestDeploymentId": "5572500e-32bc-46ae-a16c-017872e062ba",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "6130c979-8297-488e-a7ee-74c93f2f5c4c",
+      "environment": "2aa3d9dd-abd0-4b39-bfe3-ecc146269c1c",
+      "name": "Postgres",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+        "repo": null,
+        "branch": null
+      },
+      "latestDeploymentId": "e89b962e-d054-44a5-9641-cdcbf5c61543",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "24aa497b-0f75-44d4-93df-c53544786454",
+      "environment": "e51d2c82-4a3e-4ee8-ae26-b502fe2bc890",
+      "name": "Postgres",
+      "source": {
+        "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+        "repo": null,
+        "branch": null
+      },
+      "latestDeploymentId": "43e9f024-eaf8-4f34-9699-0c276644e390",
+      "status": "SUCCESS"
+    },
+    {
+      "project": "24aa497b-0f75-44d4-93df-c53544786454",
+      "environment": "e51d2c82-4a3e-4ee8-ae26-b502fe2bc890",
+      "name": "gestao-associativa",
+      "source": {
+        "image": null,
+        "repo": "Pedro-Emanuel-dos-Santos/gestao-associativa",
+        "branch": "main"
+      },
+      "latestDeploymentId": "3fb39265-ba43-44ce-9599-bf1c71bea678",
+      "status": "SUCCESS"
+    }
+  ],
+  "targetConnected": false,
+  "existingDevBranchConnectedToBackup": true,
+  "remoteDefaultAndOriginalDevGithubDirectoryAbsent": true,
+  "openPullRequests": 0,
+  "note": "Backup is pinned to 9a4e2c8 but original dev source remains connected. No reliance on pin or watch paths as autodeploy lock. New branch must be rechecked before push."
+}

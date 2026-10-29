@@ -1,3 +1,4 @@
+import { httpDrain } from "../runtime/http.drain";
 import type { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import { createAdminGuard } from "./admin.guard";
@@ -7,11 +8,11 @@ type Store = Pick<PrismaClient, "incomingMessage" | "replyOutbox" | "scheduleOut
 export function createOperationsRouter(store: Store, config: { adminToken(): string | undefined; phoneNumberId(): string | undefined }) {
   const router = Router();
   router.use(createAdminGuard(config.adminToken));
-  router.get("/", async (_, res) => {
+  router.get("/", httpDrain.handler(async (_, res) => {
     const phoneNumberId = config.phoneNumberId();
     if (!phoneNumberId) return res.sendStatus(503);
     try { return res.json(await operationalOverview(store, phoneNumberId)); }
     catch { return res.status(503).json({ error: "Não foi possível consultar a operação." }); }
-  });
+  }));
   return router;
 }

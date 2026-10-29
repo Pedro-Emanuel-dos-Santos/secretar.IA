@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-29T21:00:37.936Z",
+  "targetBranch": "codex/dev-shutdown-only-20261029",
+  "targetConnected": false,
+  "existingRemoteBranch": false,
+  "observations": [
+    {
+      "project": "5ae6cd0c-9e1b-46df-9916-8b18d77244a9",
+      "environment": "db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "staged": null,
+      "services": [
+        {
+          "id": "bda8a90a-6859-4706-90e8-84a601d1b8ec",
+          "name": "secretaria-backup",
+          "source": {
+            "image": null,
+            "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+            "branch": "codex/dev-beta-reliability-20261028"
+          },
+          "latestDeploymentId": "5572500e-32bc-46ae-a16c-017872e062ba",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "203a169e-775d-4e42-a58b-24ad622cb509",
+          "name": "secretar.IA",
+          "source": {
+            "image": null,
+            "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+            "branch": "codex/railway-ready-20261020"
+          },
+          "latestDeploymentId": "6ab19165-f02d-454a-b181-729dd5de3cd7",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "ecb0291c-7ede-4855-a6bd-19994de74741",
+          "name": "Postgres",
+          "source": {
+            "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+            "repo": null,
+            "branch": null
+          },
+          "latestDeploymentId": "666043b3-69f0-4119-8c90-a61e0d9118a9",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "7b01e036-79e8-4726-9eba-2256c99823ee",
+          "name": "secretaria-inbox",
+          "source": {
+            "image": null,
+            "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+            "branch": "codex/railway-ready-20261020"
+          },
+          "latestDeploymentId": "1150569b-927b-472d-b64b-94a65e508c32",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "d4c05e96-98ca-4122-aef5-a9d1a2ab45fe",
+          "name": "Redis",
+          "source": {
+            "image": "redis:8.2",
+            "repo": null,
+            "branch": null
+          },
+          "latestDeploymentId": "1fe764e0-e8a5-49ba-ab08-009bd70ed1bc",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "452000bf-fae6-45c2-a8f5-2022ec08de8b",
+          "name": "secretaria-lembretes",
+          "source": {
+            "image": null,
+            "repo": "Pedro-Emanuel-dos-Santos/secretar.IA",
+            "branch": "codex/railway-ready-20261020"
+          },
+          "latestDeploymentId": "614ab584-6b70-4083-81d6-f0fb781dba11",
+          "status": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "project": "6130c979-8297-488e-a7ee-74c93f2f5c4c",
+      "environment": "2aa3d9dd-abd0-4b39-bfe3-ecc146269c1c",
+      "staged": null,
+      "services": [
+        {
+          "id": "19bcaea2-a84f-4a68-a020-e697dad83d9b",
+          "name": "Postgres",
+          "source": {
+            "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+            "repo": null,
+            "branch": null
+          },
+          "latestDeploymentId": "e89b962e-d054-44a5-9641-cdcbf5c61543",
+          "status": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "project": "24aa497b-0f75-44d4-93df-c53544786454",
+      "environment": "e51d2c82-4a3e-4ee8-ae26-b502fe2bc890",
+      "staged": null,
+      "services": [
+        {
+          "id": "086528f3-33ac-4d08-8976-82f4b144d4a8",
+          "name": "gestao-associativa",
+          "source": {
+            "image": null,
+            "repo": "Pedro-Emanuel-dos-Santos/gestao-associativa",
+            "branch": "main"
+          },
+          "latestDeploymentId": "3fb39265-ba43-44ce-9599-bf1c71bea678",
+          "status": "SUCCESS"
+        },
+        {
+          "id": "1e557971-9aa5-4f95-820e-6dd1432bcd86",
+          "name": "Postgres",
+          "source": {
+            "image": "ghcr.io/railwayapp-templates/postgres-ssl:18",
+            "repo": null,
+            "branch": null
+          },
+          "latestDeploymentId": "43e9f024-eaf8-4f34-9699-0c276644e390",
+          "status": "SUCCESS"
+        }
+      ]
+    }
+  ]
+}
