@@ -2,6 +2,7 @@
 require("./register.cjs");
 require("./context-memory.test.cjs");
 require("./context-memory-evaluation.test.cjs");
+require("./beta-checkpoint.test.cjs");
 require("./ai-routing.test.cjs");
 require("./whatsapp-template.test.cjs");
 require("./audio-consent.test.cjs");

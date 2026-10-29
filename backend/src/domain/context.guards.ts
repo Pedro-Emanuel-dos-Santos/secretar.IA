@@ -14,7 +14,12 @@ export function guardContextCorrection(intent:AIInterpretation,text:string,conte
  if(!/^na verdade\b/.test(s) || context?.conversationState?.pendingRequest || !["create_reminder","create_appointment","reschedule_reminder","reschedule_appointment"].includes(intent.action))return;
  const state=context?.conversationState;
  const focused=[state?.focusedReminder,state?.focusedAppointment].filter(r=>r?.state==="active");
- const named=[...(context?.appointments || []),...(context?.reminders || [])].filter(r=>r?.title && mentionsName(text,r.title));
+ // An appointment and its own notification are one conversational target.
+ // Keep independent tasks with the same title ambiguous; only collapse links
+ // proven by the current appointment's reminder IDs, never by title similarity.
+ const appointments=Array.isArray(context?.appointments)?context.appointments:[];
+ const childAlerts=new Set(appointments.flatMap((a:any)=>(a.reminders || []).map((r:any)=>r.id)));
+ const named=[...appointments,...(context?.reminders || []).filter((r:any)=>!childAlerts.has(r.id))].filter(r=>r?.title && mentionsName(text,r.title));
  if(named.length===1)return;
  if(focused.length!==1 || /[?]|\b(?:nao|nunca|talvez|se)\b/.test(s)){
   intent.action="conversation";intent.reminderId=null;intent.appointmentId=null;intent.datetime=null;intent.search=null;intent.draft=null;

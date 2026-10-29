@@ -1,5 +1,12 @@
 # Roadmap priorizado — 28/10/2026
 
+Missão 04: [prontidão operacional](MISSAO_04_GO_NO_GO.md), 291 unitários,
+333 integrações, jornadas com Redis real e dois checkpoints OpenAI. Corrigidos
+isolamento entre contas, histórico de nota excluída e ambiguidade do aviso próprio.
+Ensaio local de PostgreSQL/Redis passou; produção não tem backups e falta template
+compatível. **NO-GO externo**, sem deploy. Próximo gate é backup real recuperável,
+configuração Meta e publicação coordenada autorizada — não mais uma feature.
+
 Progresso M03 na branch de desenvolvimento: revisão de regressões e primeira
 recuperação contextual implementadas, com jornadas locais de vários dias.
 Avaliação separada executada com OpenAI: 17 chamadas fictícias, US$ 0,0653804 de

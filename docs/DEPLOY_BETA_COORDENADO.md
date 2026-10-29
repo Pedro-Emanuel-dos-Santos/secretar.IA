@@ -1,5 +1,11 @@
 # Procedimento de publicação coordenada e recuperação
 
+Atualização M04: consultar [GO/NO-GO](MISSAO_04_GO_NO_GO.md) e o
+[procedimento concreto com pontos de parada](PUBLICACAO_M04.md). Não há backups
+nos volumes reais e o template de lembrete compatível está ausente. Restauração
+fictícia e incompatibilidade de versões foram ensaiadas localmente. As notas
+abaixo preservam a preparação anterior; não representam publicação autorizada.
+
 Preparado em 28/10/2026. **Não executado.** Cada alteração remota, restauração,
 normalização de dados ou envio real depende de autorização concreta de Pedro.
 

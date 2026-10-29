@@ -125,7 +125,10 @@ export async function conversationContext(store: Store, message: IncomingConvers
       const storageAction=(row.interpretation as {action?:string}|null)?.action;
       // Current records replace past storage instructions, including deleted
       // memories and notes. Never resurrect them from the presentation history.
-      if(personalMemoryActions.has(storageAction || "") || ["save_note","edit_note","search_notes","delete_note"].includes(storageAction || ""))return false;
+      // A compound proposal and its confirmation may quote an entire note.
+      // Present the current structured plan separately; never feed its historic
+      // storage instructions/results back after that note is edited or deleted.
+      if(personalMemoryActions.has(storageAction || "") || ["save_note","edit_note","search_notes","delete_note","assistant_plan","confirm_assistant_plan","discard_assistant_plan"].includes(storageAction || ""))return false;
       if(memoryEnabled)return true;
       if(memoryPolicy.omitHistory || memoryPolicy.hideHistoryBefore && row.receivedAt<=memoryPolicy.hideHistoryBefore)return false;
       const action=(row.interpretation as {action?:string}|null)?.action;

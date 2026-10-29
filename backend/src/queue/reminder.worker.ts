@@ -1,29 +1,18 @@
 import "dotenv/config";
-import { Worker, DelayedError } from "bullmq";
+import { Worker } from "bullmq";
 import { prisma } from "../config/prisma";
 import { redisConnection } from "../config/redis";
 import { sendWhatsAppReminder } from "../services/whatsapp.service";
-import { deliverReminder } from "../domain/reminder.delivery";
 import { reconcileStoredDelivery } from "../domain/delivery.receipts";
-import { maximumLateness, prepareReminderExecution } from "../domain/reminder.execution";
+import {maximumLateness} from "../domain/reminder.execution";
+import {createReminderProcessor} from "./reminder.processor";
 
 const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 if (!phoneNumberId) throw new Error("Configure WHATSAPP_PHONE_NUMBER_ID.");
 
 const maxLateMs = maximumLateness();
-const worker = new Worker("reminders", async (job, token) => {
-  if (typeof job.data.reminderId !== "string" || !job.data.reminderId) throw new Error("Job sem identidade persistente de lembrete.");
-  const version = job.data.scheduleVersion ?? 0;
-  if (!Number.isSafeInteger(version) || version < 0) throw new Error("Versão de agendamento inválida.");
-  const decision = await prepareReminderExecution(prisma,job.data.reminderId,phoneNumberId,version,Date.now(),maxLateMs);
-  if (decision.kind === "defer") {
-    await job.moveToDelayed(decision.until,token);
-    throw new DelayedError();
-  }
-  if (decision.kind !== "ready") return;
-  await deliverReminder(job.data.reminderId, phoneNumberId, prisma, sendWhatsAppReminder, version,
-    id => reconcileStoredDelivery(prisma, phoneNumberId, id));
-}, { connection: redisConnection, autorun:false });
+const worker = new Worker("reminders",createReminderProcessor(prisma,phoneNumberId,sendWhatsAppReminder,
+ id=>reconcileStoredDelivery(prisma,phoneNumberId,id),{maxLateMs}), { connection: redisConnection, autorun:false });
 
 worker.on("error", () => console.error("Worker de lembretes: falha de conexão."));
 

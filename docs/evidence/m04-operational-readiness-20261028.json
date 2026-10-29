@@ -1,0 +1,1317 @@
+{
+  "mission": "04",
+  "dateLocal": "2026-10-28",
+  "timezone": "America/Sao_Paulo",
+  "recordedAt": "2026-10-29T02:46:54.137Z",
+  "decision": "NO-GO production and external beta; GO isolated development",
+  "baseCommit": "2772da29f44b9d5a2245dc0f3c8f458a0d63bfd0",
+  "branch": "codex/dev-beta-reliability-20261028",
+  "productionReadOnly": {
+    "capturedAt": "2026-10-29T02:18:34.100Z",
+    "mode": "read-only",
+    "database": {
+      "version": [
+        {
+          "server_version": "18.6 (Debian 18.6-1.pgdg13+2)"
+        }
+      ],
+      "readOnly": [
+        {
+          "transaction_read_only": "on"
+        }
+      ],
+      "migrations": [
+        {
+          "migration_name": "20260610195112_init",
+          "finished_at": "2026-10-20T21:12:27.026Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20260702212824_add_events",
+          "finished_at": "2026-10-20T21:12:27.038Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261019120000_add_incoming_messages",
+          "finished_at": "2026-10-20T21:12:27.048Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261019130000_add_schedule_outbox",
+          "finished_at": "2026-10-20T21:12:27.062Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261019140000_add_reply_outbox",
+          "finished_at": "2026-10-20T21:12:27.079Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261019150000_add_reminder_state",
+          "finished_at": "2026-10-20T21:12:27.088Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020130000_reschedule_and_delivery",
+          "finished_at": "2026-10-20T21:12:27.100Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020190000_bounded_recurrence",
+          "finished_at": "2026-10-20T21:12:27.107Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020200000_audio_inbox",
+          "finished_at": "2026-10-20T21:12:27.112Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020210000_contact_preferences",
+          "finished_at": "2026-10-20T21:12:27.118Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020211000_contact_lookup_indexes",
+          "finished_at": "2026-10-20T21:12:27.125Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261020233000_appointments_and_business_memory",
+          "finished_at": "2026-10-22T22:34:54.645Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261021030000_task_progress",
+          "finished_at": "2026-10-22T22:43:03.342Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261021120000_pilot_preferences_and_usage",
+          "finished_at": "2026-10-22T22:43:03.362Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261021130000_daily_summaries",
+          "finished_at": "2026-10-22T22:43:03.376Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261021150000_tasks_by_subject",
+          "finished_at": "2026-10-22T22:43:03.386Z",
+          "rolled_back_at": null
+        },
+        {
+          "migration_name": "20261027170000_add_subject_pendings",
+          "finished_at": "2026-10-27T20:58:30.282Z",
+          "rolled_back_at": null
+        }
+      ],
+      "states": {
+        "IncomingMessage": [
+          {
+            "status": "completed",
+            "count": 23
+          }
+        ],
+        "ReplyOutbox": [
+          {
+            "status": "provider_accepted",
+            "count": 23
+          }
+        ],
+        "ScheduleOutbox": [
+          {
+            "status": "cancelled",
+            "count": 5
+          },
+          {
+            "status": "published",
+            "count": 3
+          }
+        ],
+        "Reminder": [
+          {
+            "status": "blocked_template",
+            "count": 1
+          },
+          {
+            "status": "provider_accepted",
+            "count": 4
+          },
+          {
+            "status": "scheduled",
+            "count": 3
+          }
+        ]
+      },
+      "attention": [
+        {
+          "in_flight": 0,
+          "expired_leases": 0,
+          "uncertain_replies": 0,
+          "uncertain_reminders": 0,
+          "pending_reminders": 0,
+          "overdue_pending": 0,
+          "pending_new_actions": 0
+        }
+      ],
+      "releaseColumns": []
+    },
+    "redis": {
+      "persistence": {
+        "rdb_last_save_time": "1793240279",
+        "rdb_last_bgsave_status": "ok",
+        "rdb_changes_since_last_save": "1",
+        "aof_enabled": "0",
+        "aof_last_write_status": "ok"
+      },
+      "counts": {
+        "wait": 0,
+        "active": 0,
+        "paused": 0,
+        "delayed": 0,
+        "completed": 7,
+        "failed": 1,
+        "prioritized": 0,
+        "waiting-children": 0
+      }
+    },
+    "meta": {
+      "wabaSource": "previously supplied account ID; read probe only",
+      "wabaId": "1128643199613102",
+      "phoneNumberId": "1384674954731707",
+      "numberQuery": {
+        "httpStatus": 200,
+        "errorCode": null,
+        "belongsToWaba": true
+      },
+      "configuration": {
+        "name": null,
+        "language": "pt_BR",
+        "approvedFlag": false,
+        "wabaConfigured": false
+      },
+      "templateQuery": {
+        "httpStatus": 200,
+        "errorCode": null,
+        "hasMore": false,
+        "templates": [
+          {
+            "name": "jaspers_market_media_carousel_v1",
+            "language": "en_US",
+            "category": "MARKETING",
+            "status": "APPROVED",
+            "parameterFormat": "POSITIONAL",
+            "components": [
+              {
+                "type": "BODY",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BUTTONS",
+                "parameters": [],
+                "hasButtons": true
+              },
+              {
+                "type": "CAROUSEL",
+                "parameters": [],
+                "hasButtons": false
+              }
+            ]
+          },
+          {
+            "name": "jaspers_market_image_cta_v1",
+            "language": "en_US",
+            "category": "MARKETING",
+            "status": "APPROVED",
+            "parameterFormat": "POSITIONAL",
+            "components": [
+              {
+                "type": "HEADER",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BODY",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "FOOTER",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BUTTONS",
+                "parameters": [],
+                "hasButtons": true
+              }
+            ]
+          },
+          {
+            "name": "hello_world",
+            "language": "en_US",
+            "category": "UTILITY",
+            "status": "APPROVED",
+            "parameterFormat": "POSITIONAL",
+            "components": [
+              {
+                "type": "HEADER",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BODY",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "FOOTER",
+                "parameters": [],
+                "hasButtons": false
+              }
+            ]
+          },
+          {
+            "name": "jaspers_market_plain_text_v1",
+            "language": "en_US",
+            "category": "MARKETING",
+            "status": "APPROVED",
+            "parameterFormat": "POSITIONAL",
+            "components": [
+              {
+                "type": "BODY",
+                "parameters": [],
+                "hasButtons": false
+              }
+            ]
+          },
+          {
+            "name": "jaspers_market_order_confirmation_v1",
+            "language": "en_US",
+            "category": "UTILITY",
+            "status": "APPROVED",
+            "parameterFormat": "POSITIONAL",
+            "components": [
+              {
+                "type": "HEADER",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BODY",
+                "parameters": [
+                  "1",
+                  "2",
+                  "3"
+                ],
+                "hasButtons": false
+              },
+              {
+                "type": "FOOTER",
+                "parameters": [],
+                "hasButtons": false
+              },
+              {
+                "type": "BUTTONS",
+                "parameters": [],
+                "hasButtons": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "metaPermissionsAndSubscriptions": {
+    "permissions": {
+      "httpStatus": 200,
+      "errorCode": null,
+      "data": [
+        {
+          "permission": "business_management",
+          "status": "granted"
+        },
+        {
+          "permission": "whatsapp_business_management",
+          "status": "granted"
+        },
+        {
+          "permission": "whatsapp_business_messaging",
+          "status": "granted"
+        },
+        {
+          "permission": "public_profile",
+          "status": "granted"
+        }
+      ]
+    },
+    "subscriptions": {
+      "httpStatus": 200,
+      "errorCode": null,
+      "data": [
+        {
+          "id": "1132748059692328"
+        },
+        {
+          "id": "2202427980234937"
+        }
+      ]
+    }
+  },
+  "backups": {
+    "postgres": {
+      "page": "https://railway.com/project/5ae6cd0c-9e1b-46df-9916-8b18d77244a9/service/ecb0291c-7ede-4855-a6bd-19994de74741/backups?environmentId=db1eb480-9f4f-4ee8-b2b0-8d6d9129d011",
+      "observed": "No Backups. This service's volume does not have any backups.",
+      "newBackupsAndSchedulesRestrictedToPro": true,
+      "productionRestoreAttempted": false
+    },
+    "redis": {
+      "observed": "No Backups. This service's volume does not have any backups.",
+      "newBackupsAndSchedulesRestrictedToPro": true,
+      "productionRestoreAttempted": false
+    },
+    "conclusion": "No hosted backup exists to verify or restore. Local fictional restore is separate evidence, not proof of protection of real data."
+  },
+  "model": {
+    "callsThisMission": 2,
+    "priorCalls": 17,
+    "totalCalls": 19,
+    "missionCostUsd": 0.0090912,
+    "cumulativeCostUsd": 0.0744716,
+    "approvedCumulativeBudgetUsd": 0.1,
+    "remainingUsd": 0.0255284,
+    "missionInputTokens": 22056,
+    "missionOutputTokens": 168,
+    "knownUsage": true,
+    "provider": "openai",
+    "model": "gpt-4.1-mini-2025-04-14",
+    "transport": "Current credential used internally in ephemeral authenticated diagnostic session. Two fictional local DB context checkpoints transported by file, exact prompt/context SHA binding. No key copied. Not an unattended direct-RPC hosted end-to-end test."
+  },
+  "contexts": [
+    {
+      "label": "plan",
+      "fictional": true,
+      "messageId": "5a35b0c8-5251-4c99-8d5e-526a70595eef",
+      "context": {
+        "now": "2099-06-01T12:00:05.000Z",
+        "processingAt": "2026-10-29T02:23:31.265Z",
+        "user": {
+          "name": null,
+          "timezone": "America/Sao_Paulo"
+        },
+        "preferences": {
+          "onboarded": false,
+          "businessType": null,
+          "audioConsent": false
+        },
+        "currentMessage": "Organiza minha preparação para aquela entrevista técnica: anota que preciso revisar meus projetos e me lembra de preparar o portfólio amanhã às 10h. Quero revisar as duas ações antes.",
+        "memories": [],
+        "personalMemories": [
+          {
+            "id": "d494efe4-5f84-4c5e-b24d-b8f1fdd3f4e6",
+            "kind": "goal",
+            "label": "Carreira",
+            "text": "Estou buscando emprego em desenvolvimento de software.",
+            "version": 0,
+            "updatedAt": "2099-05-20T12:00:00.000Z",
+            "sourceMessageId": "9f18a826-3f5a-4212-b0e6-bba191e0d2de"
+          }
+        ],
+        "personalMemoryEnabled": true,
+        "subjects": [],
+        "subjectPendings": [],
+        "appointments": [
+          {
+            "id": "c1b5aa16-6b9d-4017-bfd2-f1589d157228",
+            "userId": "602fe40e-685a-4b17-8a25-363901092ff0",
+            "phoneNumberId": "m04-ff95fcc7-78c8-4090-9e86-d854a24580d6",
+            "subjectId": null,
+            "title": "Entrevista técnica de software",
+            "description": null,
+            "startsAt": "2099-06-02T17:00:00.000Z",
+            "endsAt": "2099-06-02T18:00:00.000Z",
+            "state": "active",
+            "version": 0,
+            "sourceMessageId": "0ed1c1d2-86d7-43de-ada4-937ebe2bbb8e",
+            "createdAt": "2026-10-29T02:23:30.985Z",
+            "updatedAt": "2026-10-29T02:23:30.985Z",
+            "reminders": [
+              {
+                "id": "5b19023f-8767-4387-af98-e136c4262a91",
+                "remindAt": "2099-06-02T16:45:00.000Z",
+                "appointmentOffsetMinutes": 15
+              }
+            ]
+          }
+        ],
+        "recentAlerts": [],
+        "habits": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "c1b5aa16-6b9d-4017-bfd2-f1589d157228",
+              "kind": "appointment",
+              "title": "Entrevista técnica de software",
+              "text": "Entrevista técnica de software",
+              "recordedAt": "2026-10-29T02:23:30.985Z",
+              "updatedAt": "2026-10-29T02:23:30.985Z",
+              "sourceMessageId": "0ed1c1d2-86d7-43de-ada4-937ebe2bbb8e",
+              "version": 0,
+              "startsAt": "2099-06-02T17:00:00.000Z",
+              "state": "active",
+              "score": 10,
+              "matchedConcepts": [
+                "interview"
+              ],
+              "match": "concept"
+            }
+          ],
+          "ambiguous": false,
+          "limited": false,
+          "personalMemoryEnabled": true
+        },
+        "conversationState": {
+          "pendingRequest": null,
+          "focusedReminder": null,
+          "focusedAppointment": null,
+          "focusedSubject": null,
+          "pendingFollowup": null,
+          "pendingContinuation": null,
+          "assistantPlan": null,
+          "shownTaskList": null,
+          "selectedTask": null,
+          "appointmentSuggestions": null,
+          "latestReminderNotice": null,
+          "focusWindowMinutes": 30,
+          "draftWindowDays": 7,
+          "notesSearchAvailable": true,
+          "factsSearchAvailable": true
+        },
+        "reminders": [
+          {
+            "id": "5b19023f-8767-4387-af98-e136c4262a91",
+            "title": "Entrevista técnica de software",
+            "remindAt": "2099-06-02T16:45:00.000Z",
+            "status": "scheduling_pending",
+            "state": "active",
+            "taskProgress": "pending",
+            "waitingFor": null,
+            "subjectId": null,
+            "scheduleVersion": 0,
+            "subject": null,
+            "seriesId": null,
+            "occurrenceIndex": null,
+            "recurrenceCount": null,
+            "recurrenceFrequency": null
+          }
+        ],
+        "lastMessages": [
+          {
+            "user": "MEMORIA PESSOAL",
+            "receivedAt": "2099-06-01T12:00:01.000Z",
+            "assistant": "Posso guardar informações que você pedir sobre rotina, preferências, pessoas e objetivos para personalizar nossas conversas. Essas memórias serão armazenadas pela Secretár.IA e enviadas à OpenAI junto do contexto; podem conter dados sensíveis, inclusive de saúde, se você os informar. Não vou aprender hábitos silenciosamente nem criar avisos por conta própria. Para autorizar, envie ACEITO MEMORIA depois de receber esta explicação. DESATIVAR MEMORIA interrompe o uso e o envio futuro dessas memórias; dados já processados pelo provedor não são apagados por isso. MINHAS MEMORIAS consulta os registros e APAGAR MEUS DADOS inicia a limpeza completa local.",
+            "createdReminder": null
+          },
+          {
+            "user": "ACEITO MEMORIA",
+            "receivedAt": "2099-06-01T12:00:02.000Z",
+            "assistant": "Memória pessoal ativada com sua autorização para uso nas respostas da OpenAI. Diga o que quer que eu guarde; você pode consultar, corrigir ou desativar quando quiser.",
+            "createdReminder": null
+          }
+        ],
+        "contextWindowMinutes": 30
+      },
+      "requestSha256": "a268e618c5005f07ea9bcc27101ae13fb7bb9f915ca9d95c27b6f2f3983c64b2",
+      "promptSha256": "1325de16148137335c42fa4876db01cd17c4718cdb4fb099907d7340055c5916",
+      "response": {
+        "requestSha256": "a268e618c5005f07ea9bcc27101ae13fb7bb9f915ca9d95c27b6f2f3983c64b2",
+        "requestedModel": "gpt-4.1-mini",
+        "model": "gpt-4.1-mini-2025-04-14",
+        "status": "completed",
+        "output_text": "{\"action\":\"assistant_plan\",\"reply\":\"Organizei um plano para revisar seus projetos e preparar o portfólio amanhã às 10h antes da entrevista.\",\"planSteps\":[{\"action\":\"save_note\",\"description\":\"Preciso revisar meus projetos para a entrevista técnica.\"},{\"action\":\"create_reminder\",\"title\":\"Preparar portfólio para entrevista técnica\",\"datetime\":\"2099-06-02T10:00:00-03:00\"}]}",
+        "usage": {
+          "input_tokens": 10622,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 91,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 10713
+        },
+        "latencyMs": 2397,
+        "estimatedCostUsd": 0.0043944,
+        "budget": {
+          "budgetUsd": 0.1,
+          "priorSpentUsd": 0.0653804,
+          "estimatedCostUsd": 0.0043944,
+          "cumulativeEstimatedCostUsd": 0.0697748,
+          "uncertainReservedUsd": 0,
+          "blocked": false
+        }
+      },
+      "persisted": {
+        "incoming": {
+          "id": "5a35b0c8-5251-4c99-8d5e-526a70595eef",
+          "providerMessageId": "fixture.0637ffdf-c8de-45f8-b49c-c11bad583de5",
+          "phoneNumberId": "m04-ff95fcc7-78c8-4090-9e86-d854a24580d6",
+          "phone": "5500000609049",
+          "text": "Organiza minha preparação para aquela entrevista técnica: anota que preciso revisar meus projetos e me lembra de preparar o portfólio amanhã às 10h. Quero revisar as duas ações antes.",
+          "mediaId": null,
+          "mediaMimeType": null,
+          "transcribedAt": null,
+          "status": "reply_pending",
+          "receivedAt": "2099-06-01T12:00:05.000Z",
+          "startedAt": "2026-10-29T02:25:48.001Z",
+          "finishedAt": null,
+          "interpretation": {
+            "reply": "Organizei um plano para revisar seus projetos e preparar o portfólio amanhã às 10h antes da entrevista.",
+            "title": null,
+            "action": "assistant_plan",
+            "amount": null,
+            "category": null,
+            "datetime": null,
+            "planSteps": [
+              {
+                "reply": "interno",
+                "title": null,
+                "action": "save_note",
+                "amount": null,
+                "category": null,
+                "datetime": null,
+                "description": "Preciso revisar meus projetos para a entrevista técnica."
+              },
+              {
+                "reply": "interno",
+                "title": "Preparar portfólio para entrevista técnica",
+                "action": "create_reminder",
+                "amount": null,
+                "category": null,
+                "datetime": "2099-06-02T10:00:00-03:00",
+                "description": null
+              }
+            ],
+            "description": null
+          },
+          "interpretationAttempts": 1,
+          "executionAttempts": 1,
+          "maxAttempts": 5,
+          "nextAttemptAt": "2026-10-29T02:25:48.226Z",
+          "leaseToken": null,
+          "leaseUntil": null,
+          "lastError": null,
+          "reply": {
+            "id": "033c330f-14ee-4218-b444-e4483dad4594",
+            "messageId": "5a35b0c8-5251-4c99-8d5e-526a70595eef",
+            "text": "Posso organizar assim:\n1. Guardar anotação: Preciso revisar meus projetos para a entrevista técnica.\n2. Criar lembrete: Preparar portfólio para entrevista técnica — 02/06/2099, 10:00\nFuso: America/Sao_Paulo.\nAinda não executei essas ações. Se estiver certo, pode responder “pode fazer”. Para cancelar, “descartar plano”. A proposta vale por 15 minutos, enquanto esta for a última proposta respondida.",
+            "refreshReminder": false,
+            "status": "pending",
+            "attempts": 0,
+            "providerMessageId": null,
+            "startedAt": null,
+            "deliveryStatus": null,
+            "deliveryErrorCodes": null,
+            "deliveryUpdatedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-10-29T02:25:48.312Z"
+          }
+        },
+        "usage": {
+          "id": "7316cadc-7bf0-43b7-868f-6e2540212815",
+          "messageId": "5a35b0c8-5251-4c99-8d5e-526a70595eef",
+          "attempt": 1,
+          "provider": "openai",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "inputTokens": 10622,
+          "outputTokens": 91,
+          "cachedInputTokens": 0,
+          "elapsedMs": 0,
+          "outcome": "completed",
+          "routingReason": "configured_primary_openai",
+          "fallbackUsed": false,
+          "providerAttempts": [
+            {
+              "model": "gpt-4.1-mini-2025-04-14",
+              "outcome": "completed",
+              "provider": "openai",
+              "elapsedMs": 0,
+              "inputTokens": 10622,
+              "outputTokens": 91,
+              "requestedModel": "gpt-4.1-mini",
+              "cachedInputTokens": 0
+            }
+          ],
+          "estimatedCostUsd": 0.0043944,
+          "pricingVersion": "openai-standard-text-2026-10-28",
+          "costStatus": "estimated",
+          "createdAt": "2026-10-29T02:25:48.094Z"
+        }
+      }
+    },
+    {
+      "label": "correction",
+      "fictional": true,
+      "messageId": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+      "context": {
+        "now": "2099-06-01T12:00:10.000Z",
+        "processingAt": "2026-10-29T02:27:11.312Z",
+        "user": {
+          "name": null,
+          "timezone": "America/Sao_Paulo"
+        },
+        "preferences": {
+          "onboarded": false,
+          "businessType": null,
+          "audioConsent": false
+        },
+        "currentMessage": "Na verdade, o compromisso Entrevista técnica de software mudou para as 16h.",
+        "memories": [
+          {
+            "id": "04b16a99-0fb8-44b9-af5f-2398d5881acc",
+            "text": "Preciso revisar meus projetos para a entrevista técnica.",
+            "version": 0,
+            "createdAt": "2026-10-29T02:25:48.615Z"
+          }
+        ],
+        "personalMemories": [
+          {
+            "id": "d494efe4-5f84-4c5e-b24d-b8f1fdd3f4e6",
+            "kind": "goal",
+            "label": "Carreira",
+            "text": "Estou buscando emprego em desenvolvimento de software.",
+            "version": 0,
+            "updatedAt": "2099-05-20T12:00:00.000Z",
+            "sourceMessageId": "9f18a826-3f5a-4212-b0e6-bba191e0d2de"
+          }
+        ],
+        "personalMemoryEnabled": true,
+        "subjects": [],
+        "subjectPendings": [],
+        "appointments": [
+          {
+            "id": "c1b5aa16-6b9d-4017-bfd2-f1589d157228",
+            "userId": "602fe40e-685a-4b17-8a25-363901092ff0",
+            "phoneNumberId": "m04-ff95fcc7-78c8-4090-9e86-d854a24580d6",
+            "subjectId": null,
+            "title": "Entrevista técnica de software",
+            "description": null,
+            "startsAt": "2099-06-02T17:00:00.000Z",
+            "endsAt": "2099-06-02T18:00:00.000Z",
+            "state": "active",
+            "version": 0,
+            "sourceMessageId": "0ed1c1d2-86d7-43de-ada4-937ebe2bbb8e",
+            "createdAt": "2026-10-29T02:23:30.985Z",
+            "updatedAt": "2026-10-29T02:23:30.985Z",
+            "reminders": [
+              {
+                "id": "5b19023f-8767-4387-af98-e136c4262a91",
+                "remindAt": "2099-06-02T16:45:00.000Z",
+                "appointmentOffsetMinutes": 15
+              }
+            ]
+          }
+        ],
+        "recentAlerts": [],
+        "habits": [],
+        "contextualMemory": {
+          "method": "concepts-lexical-v1",
+          "items": [
+            {
+              "id": "c1b5aa16-6b9d-4017-bfd2-f1589d157228",
+              "kind": "appointment",
+              "title": "Entrevista técnica de software",
+              "text": "Entrevista técnica de software",
+              "recordedAt": "2026-10-29T02:23:30.985Z",
+              "updatedAt": "2026-10-29T02:23:30.985Z",
+              "sourceMessageId": "0ed1c1d2-86d7-43de-ada4-937ebe2bbb8e",
+              "version": 0,
+              "startsAt": "2099-06-02T17:00:00.000Z",
+              "state": "active",
+              "score": 17,
+              "matchedConcepts": [
+                "interview",
+                "programming"
+              ],
+              "match": "concept"
+            },
+            {
+              "id": "e4ec6c17-e4ee-43ba-9484-30f5d719388d",
+              "kind": "reminder",
+              "title": "Preparar portfólio para entrevista técnica",
+              "text": "Preparar portfólio para entrevista técnica",
+              "recordedAt": "2026-10-29T02:25:48.636Z",
+              "updatedAt": "2026-10-29T02:25:48.636Z",
+              "sourceMessageId": "plan_step:assistant_plan:5a35b0c8-5251-4c99-8d5e-526a70595eef:1",
+              "version": 0,
+              "startsAt": "2099-06-02T13:00:00.000Z",
+              "state": "pending",
+              "score": 10,
+              "matchedConcepts": [
+                "interview"
+              ],
+              "match": "concept"
+            },
+            {
+              "id": "04b16a99-0fb8-44b9-af5f-2398d5881acc",
+              "kind": "note",
+              "title": "Anotação",
+              "text": "Preciso revisar meus projetos para a entrevista técnica.",
+              "recordedAt": "2026-10-29T02:25:48.615Z",
+              "updatedAt": "2026-10-29T02:25:48.615Z",
+              "sourceMessageId": "5a35b0c8-5251-4c99-8d5e-526a70595eef",
+              "version": 0,
+              "score": 10,
+              "matchedConcepts": [
+                "interview"
+              ],
+              "match": "concept"
+            },
+            {
+              "id": "d494efe4-5f84-4c5e-b24d-b8f1fdd3f4e6",
+              "kind": "personal",
+              "category": "goal",
+              "title": "Carreira",
+              "text": "Estou buscando emprego em desenvolvimento de software.",
+              "recordedAt": "2099-05-20T12:00:00.000Z",
+              "updatedAt": "2099-05-20T12:00:00.000Z",
+              "sourceMessageId": "9f18a826-3f5a-4212-b0e6-bba191e0d2de",
+              "version": 0,
+              "score": 7,
+              "matchedConcepts": [
+                "programming"
+              ],
+              "match": "concept"
+            }
+          ],
+          "ambiguous": false,
+          "limited": false,
+          "personalMemoryEnabled": true
+        },
+        "conversationState": {
+          "pendingRequest": null,
+          "focusedReminder": null,
+          "focusedAppointment": null,
+          "focusedSubject": null,
+          "pendingFollowup": null,
+          "pendingContinuation": null,
+          "assistantPlan": null,
+          "shownTaskList": null,
+          "selectedTask": null,
+          "appointmentSuggestions": null,
+          "latestReminderNotice": null,
+          "focusWindowMinutes": 30,
+          "draftWindowDays": 7,
+          "notesSearchAvailable": true,
+          "factsSearchAvailable": true
+        },
+        "reminders": [
+          {
+            "id": "e4ec6c17-e4ee-43ba-9484-30f5d719388d",
+            "title": "Preparar portfólio para entrevista técnica",
+            "remindAt": "2099-06-02T13:00:00.000Z",
+            "status": "scheduling_pending",
+            "state": "active",
+            "taskProgress": "pending",
+            "waitingFor": null,
+            "subjectId": null,
+            "scheduleVersion": 0,
+            "subject": null,
+            "seriesId": null,
+            "occurrenceIndex": null,
+            "recurrenceCount": null,
+            "recurrenceFrequency": null
+          },
+          {
+            "id": "5b19023f-8767-4387-af98-e136c4262a91",
+            "title": "Entrevista técnica de software",
+            "remindAt": "2099-06-02T16:45:00.000Z",
+            "status": "scheduling_pending",
+            "state": "active",
+            "taskProgress": "pending",
+            "waitingFor": null,
+            "subjectId": null,
+            "scheduleVersion": 0,
+            "subject": null,
+            "seriesId": null,
+            "occurrenceIndex": null,
+            "recurrenceCount": null,
+            "recurrenceFrequency": null
+          }
+        ],
+        "lastMessages": [
+          {
+            "user": "CONFIRMAR PLANO",
+            "receivedAt": "2099-06-01T12:00:06.000Z",
+            "assistant": "Plano aplicado:\n1. Anotei: Preciso revisar meus projetos para a entrevista técnica.\n2. Lembrete registrado: Preparar portfólio para entrevista técnica. Agendamento do envio em confirmação.",
+            "createdReminder": null
+          },
+          {
+            "user": "Você lembra da área em que estou procurando trabalho?",
+            "receivedAt": "2099-06-01T12:00:07.000Z",
+            "assistant": "Encontrei estes registros seus:\n• Carreira: Estou buscando emprego em desenvolvimento de software.\n  Fonte: memória autorizada, atualizada em 20/05/2099, 09:00, com origem na sua mensagem.",
+            "createdReminder": null
+          },
+          {
+            "user": "Você lembra daquela entrevista técnica?",
+            "receivedAt": "2099-06-01T12:00:08.000Z",
+            "assistant": "Encontrei estes registros seus:\n• Preparar portfólio para entrevista técnica: Preparar portfólio para entrevista técnica\n  Horário registrado: 02/06/2099, 10:00 (America/Sao_Paulo).\n  Fonte: tarefa, atualizada em 28/10/2026, 23:25, com origem na sua mensagem.\n• Anotação: Preciso revisar meus projetos para a entrevista técnica.\n  Fonte: anotação, atualizada em 28/10/2026, 23:25, com origem na sua mensagem.\n• Entrevista técnica de software: Entrevista técnica de software\n  Horário registrado: 02/06/2099, 14:00 (America/Sao_Paulo).\n  Fonte: compromisso, atualizada em 28/10/2026, 23:23, com origem na sua mensagem.",
+            "createdReminder": null
+          },
+          {
+            "user": "Na verdade, mudou para as 16h.",
+            "receivedAt": "2099-06-01T12:00:09.000Z",
+            "assistant": "Qual tarefa ou compromisso mudou? Preciso identificar o registro antes de alterar o horário.",
+            "createdReminder": null
+          }
+        ],
+        "contextWindowMinutes": 30
+      },
+      "requestSha256": "5a41f70c810c4d492cb7a5d60deb07848db02e7fcc1938bc1ab22e9724d2a2c8",
+      "promptSha256": "1325de16148137335c42fa4876db01cd17c4718cdb4fb099907d7340055c5916",
+      "response": {
+        "requestSha256": "5a41f70c810c4d492cb7a5d60deb07848db02e7fcc1938bc1ab22e9724d2a2c8",
+        "requestedModel": "gpt-4.1-mini",
+        "model": "gpt-4.1-mini-2025-04-14",
+        "status": "completed",
+        "output_text": "{\"action\":\"reschedule_appointment\",\"appointmentId\":\"c1b5aa16-6b9d-4017-bfd2-f1589d157228\",\"datetime\":\"2099-06-02T19:00:00.000-03:00\",\"reply\":\"Vou ajustar o horário da entrevista técnica para as 16h no seu fuso.\"}",
+        "usage": {
+          "input_tokens": 11434,
+          "input_tokens_details": {
+            "cache_write_tokens": 0,
+            "cached_tokens": 0
+          },
+          "output_tokens": 77,
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "total_tokens": 11511
+        },
+        "latencyMs": 1484,
+        "estimatedCostUsd": 0.0046968,
+        "budget": {
+          "budgetUsd": 0.1,
+          "priorSpentUsd": 0.0697748,
+          "estimatedCostUsd": 0.0046968,
+          "cumulativeEstimatedCostUsd": 0.0744716,
+          "uncertainReservedUsd": 0,
+          "blocked": false
+        }
+      },
+      "persisted": {
+        "incoming": {
+          "id": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+          "providerMessageId": "fixture.860b727f-093e-4960-a5b9-38abe07eb6f8",
+          "phoneNumberId": "m04-ff95fcc7-78c8-4090-9e86-d854a24580d6",
+          "phone": "5500000609049",
+          "text": "Na verdade, o compromisso Entrevista técnica de software mudou para as 16h.",
+          "mediaId": null,
+          "mediaMimeType": null,
+          "transcribedAt": null,
+          "status": "reply_pending",
+          "receivedAt": "2099-06-01T12:00:10.000Z",
+          "startedAt": "2026-10-29T02:29:46.518Z",
+          "finishedAt": null,
+          "interpretation": {
+            "reply": "Vou ajustar o horário da entrevista técnica para as 16h no seu fuso.",
+            "title": null,
+            "action": "reschedule_appointment",
+            "amount": null,
+            "category": null,
+            "datetime": "2099-06-02T19:00:00.000Z",
+            "description": null,
+            "appointmentId": "c1b5aa16-6b9d-4017-bfd2-f1589d157228",
+            "expectedVersion": 0
+          },
+          "interpretationAttempts": 1,
+          "executionAttempts": 1,
+          "maxAttempts": 5,
+          "nextAttemptAt": "2026-10-29T02:29:46.661Z",
+          "leaseToken": null,
+          "leaseUntil": null,
+          "lastError": null,
+          "reply": {
+            "id": "b4283f1d-95be-4c81-869f-91f6c09d88b6",
+            "messageId": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+            "text": "Anotei Entrevista técnica de software para dia 02/06/2099 às 16:00, até 02/06/2099, 17:00. Avisos: 15 minutos antes. O agendamento dos avisos está sendo confirmado.",
+            "refreshReminder": false,
+            "status": "pending",
+            "attempts": 0,
+            "providerMessageId": null,
+            "startedAt": null,
+            "deliveryStatus": null,
+            "deliveryErrorCodes": null,
+            "deliveryUpdatedAt": null,
+            "finishedAt": null,
+            "createdAt": "2026-10-29T02:29:46.786Z"
+          }
+        },
+        "usage": {
+          "id": "c3ed005f-b82c-4bd3-97ce-e5cae8174f1e",
+          "messageId": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+          "attempt": 1,
+          "provider": "openai",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "inputTokens": 11434,
+          "outputTokens": 77,
+          "cachedInputTokens": 0,
+          "elapsedMs": 0,
+          "outcome": "completed",
+          "routingReason": "configured_primary_openai",
+          "fallbackUsed": false,
+          "providerAttempts": [
+            {
+              "model": "gpt-4.1-mini-2025-04-14",
+              "outcome": "completed",
+              "provider": "openai",
+              "elapsedMs": 0,
+              "inputTokens": 11434,
+              "outputTokens": 77,
+              "requestedModel": "gpt-4.1-mini",
+              "cachedInputTokens": 0
+            }
+          ],
+          "estimatedCostUsd": 0.0046968,
+          "pricingVersion": "openai-standard-text-2026-10-28",
+          "costStatus": "estimated",
+          "createdAt": "2026-10-29T02:29:46.584Z"
+        }
+      }
+    }
+  ],
+  "assertions": {
+    "plan": {
+      "proposalCreatedNoActions": true,
+      "confirmationAtomic": true,
+      "duplicateWebhookNoDuplicate": true,
+      "oldMemoryRecovered": true,
+      "sourceNoteId": "04b16a99-0fb8-44b9-af5f-2398d5881acc",
+      "reminders": 2
+    },
+    "ambiguity": {
+      "multipleRelatedRecordsDoNotChooseFocus": true,
+      "unsafeModelGuessBlocked": true,
+      "appointmentUnchanged": true,
+      "explicitTargetRequested": true
+    },
+    "correction": {
+      "sameId": true,
+      "sameDay": true,
+      "timezone": "America/Sao_Paulo",
+      "before": "2099-06-02T17:00:00.000Z",
+      "after": "2099-06-02T19:00:00.000Z",
+      "version": 1,
+      "queue": {
+        "active": 0,
+        "completed": 0,
+        "delayed": 2,
+        "failed": 0,
+        "paused": 0,
+        "prioritized": 0,
+        "waiting": 0,
+        "waiting-children": 0
+      }
+    },
+    "failures": {
+      "isolation": {
+        "differentUser": true,
+        "sameUserDifferentAccount": true
+      },
+      "optOut": {
+        "unsafeModelWriteBlocked": true
+      },
+      "revocation": {
+        "contextContainsPersonalMemory": false
+      },
+      "deletion": {
+        "personalRemoved": true,
+        "noteRemoved": true,
+        "deletedNoteInPresentationHistory": false
+      },
+      "interruptedInbox": {
+        "recoveredWithoutModel": true,
+        "reminderCount": 1,
+        "replyCount": 1
+      },
+      "publishInterruption": {
+        "outboxRecovered": true,
+        "stableJobIdNoDuplicate": true
+      },
+      "knownRetry": {
+        "attempts": 2,
+        "newQueueVersion": 1,
+        "persistedStatus": "provider_accepted"
+      },
+      "uncertainReminder": {
+        "persistedStatus": "delivery_unknown",
+        "attemptedEffects": 1,
+        "noAutomaticResend": true
+      },
+      "delivery": {
+        "outsideWindowTemplatesSimulated": 2,
+        "receiptPersisted": 4,
+        "staleJobSuppressed": true,
+        "acceptedNotAssumedDelivered": true
+      },
+      "uncertainReply": {
+        "persistedStatus": "delivery_unknown",
+        "attempts": 1
+      },
+      "queue": {
+        "active": 0,
+        "completed": 6,
+        "delayed": 0,
+        "failed": 1,
+        "paused": 0,
+        "prioritized": 0,
+        "waiting": 0,
+        "waiting-children": 0
+      },
+      "modelsUsedForFailures": "fixtures only; real OpenAI only in plan/correction checkpoints"
+    }
+  },
+  "rawModelCorrection": {
+    "rawDatetime": "2099-06-02T19:00:00.000-03:00",
+    "rawDatetimeCorrect": false,
+    "expectedUtc": "2099-06-02T19:00:00.000Z",
+    "persistedCorrect": true,
+    "serverNormalizedWallClock": true,
+    "beforeFixRejectedSafe": true
+  },
+  "beforeCorrectionGuardFix": {
+    "incoming": {
+      "id": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+      "providerMessageId": "fixture.860b727f-093e-4960-a5b9-38abe07eb6f8",
+      "phoneNumberId": "m04-ff95fcc7-78c8-4090-9e86-d854a24580d6",
+      "phone": "5500000609049",
+      "text": "Na verdade, o compromisso Entrevista técnica de software mudou para as 16h.",
+      "mediaId": null,
+      "mediaMimeType": null,
+      "transcribedAt": null,
+      "status": "reply_pending",
+      "receivedAt": "2099-06-01T12:00:10.000Z",
+      "startedAt": "2026-10-29T02:28:53.226Z",
+      "finishedAt": null,
+      "interpretation": {
+        "draft": null,
+        "reply": "Qual tarefa ou compromisso mudou? Preciso identificar o registro antes de alterar o horário.",
+        "title": null,
+        "action": "conversation",
+        "amount": null,
+        "search": null,
+        "category": null,
+        "datetime": null,
+        "reminderId": null,
+        "description": null,
+        "appointmentId": null
+      },
+      "interpretationAttempts": 1,
+      "executionAttempts": 1,
+      "maxAttempts": 5,
+      "nextAttemptAt": "2026-10-29T02:28:53.586Z",
+      "leaseToken": null,
+      "leaseUntil": null,
+      "lastError": null,
+      "reply": {
+        "id": "73882e09-3233-4357-bcea-61240b079194",
+        "messageId": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+        "text": "Qual tarefa ou compromisso mudou? Preciso identificar o registro antes de alterar o horário.",
+        "refreshReminder": false,
+        "status": "pending",
+        "attempts": 0,
+        "providerMessageId": null,
+        "startedAt": null,
+        "deliveryStatus": null,
+        "deliveryErrorCodes": null,
+        "deliveryUpdatedAt": null,
+        "finishedAt": null,
+        "createdAt": "2026-10-29T02:28:53.655Z"
+      }
+    },
+    "usage": {
+      "id": "529ed71f-e46b-43bf-9c33-2c6470be1411",
+      "messageId": "0b0ad32f-29b1-4ec4-84a5-d414dd73ab56",
+      "attempt": 1,
+      "provider": "openai",
+      "model": "gpt-4.1-mini-2025-04-14",
+      "inputTokens": 11434,
+      "outputTokens": 77,
+      "cachedInputTokens": 0,
+      "elapsedMs": 0,
+      "outcome": "completed",
+      "routingReason": "configured_primary_openai",
+      "fallbackUsed": false,
+      "providerAttempts": [
+        {
+          "model": "gpt-4.1-mini-2025-04-14",
+          "outcome": "completed",
+          "provider": "openai",
+          "elapsedMs": 0,
+          "inputTokens": 11434,
+          "outputTokens": 77,
+          "requestedModel": "gpt-4.1-mini",
+          "cachedInputTokens": 0
+        }
+      ],
+      "estimatedCostUsd": 0.0046968,
+      "pricingVersion": "openai-standard-text-2026-10-28",
+      "costStatus": "estimated",
+      "createdAt": "2026-10-29T02:28:53.424Z"
+    }
+  },
+  "recovery": {
+    "kind": "local-fixture-recovery",
+    "productionRestored": false,
+    "capturedAt": "2026-10-29T02:44:50.686Z",
+    "postgresVersion": "postgres (PostgreSQL) 18.6 (Debian 18.6-1.pgdg13+2)",
+    "redisVersion": "Redis server v=8.2.11 sha=00000000:1 malloc=jemalloc-5.3.0 bits=64 build=dc8f876b905637fe",
+    "rolloutGating": {
+      "globalPausePreventsClaims": true,
+      "resumeProcessesOnce": true,
+      "missingReminderSkippedWithoutSend": true
+    },
+    "postgres": {
+      "archiveBytes": 58354,
+      "archiveSha256": "c615777457c9091e02c9aaaac9d45504cd9bb058b15ff3a155607249b221e9b6",
+      "sourceDatabase": "secretaria_m04_test",
+      "restoreDatabase": "m04_restore_845d28a3_test",
+      "allTablesMatch": true,
+      "manifest": {
+        "AiUsage": {
+          "count": 32,
+          "sha256": "044e55df51162c307369716916fe96f9b9b2964bdb211414d29ffe15d4016807"
+        },
+        "Appointment": {
+          "count": 1,
+          "sha256": "31fbae638760813a822167b676b5f7b3a6ceb71c1e329880fab47756a8d5a895"
+        },
+        "BusinessSubject": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "ContactPreference": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "Event": {
+          "count": 17,
+          "sha256": "eea81a91fc9ac416c8fb2bba65561366fff09362ff64b9dc157b67976fd0f625"
+        },
+        "IncomingMessage": {
+          "count": 51,
+          "sha256": "677017210ae7bed00681af722d1f1fc50db54638ffc57c2945c4d24d946b46df"
+        },
+        "KnowledgeFact": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "Reminder": {
+          "count": 6,
+          "sha256": "b7abe55dd9c283d44d4f1411f05bdc75d4ee81387b280290ab5f5c51cef83bcd"
+        },
+        "ReplyOutbox": {
+          "count": 47,
+          "sha256": "583b1a94693d1fe49590951d4d6e9acc1438243cf8956b8a9606aed22f414793"
+        },
+        "ScheduleOutbox": {
+          "count": 6,
+          "sha256": "a269e5ba7a90ddc890064328219fee55e8ab4447f9e3557dd049dc4021129212"
+        },
+        "SubjectPending": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "User": {
+          "count": 2,
+          "sha256": "6eb75283225081037b2cb6d9dc9e93609f214576967db191ae412925844bc1e8"
+        },
+        "_prisma_migrations": {
+          "count": 18,
+          "sha256": "dfcf79e327716695789162650bb3b299bee79cf73f8f4f7295645e4de1361220"
+        }
+      },
+      "corruptArchiveRejected": true,
+      "corruptRestoreRolledBack": true,
+      "corruptDatabase": "m04_corrupt_c5280397_test"
+    },
+    "compatibility": {
+      "database": "m04_compat_59971c1a_test",
+      "existingRowUnchanged": true,
+      "newDefaultsVerified": true,
+      "oldWorkerSkipsNewRetry": true,
+      "newWorkerAcceptsRetry": true,
+      "oldParserRejectsRecallContext": true,
+      "historicalSourceHashes": {
+        "execution": "ecd8520db329f28fb0e04c813646919730d197a2a3bf5ab2d8fcc9046a34c37d",
+        "parser": "0bba7a15e65fbe4170090c81cdb6b93a054e44d9657f78064083b49531685d42"
+      },
+      "mixedVersionRolloutSafe": false
+    },
+    "redis": {
+      "forcedRestartSurvived": true,
+      "rdbChecksumVerified": true,
+      "restoredIntoSeparateContainer": "secretaria_m04_redis_restore_c2cbad8a_test",
+      "restoreHasNoNetwork": true,
+      "persistentKeysAndLogicalDigestsMatch": true,
+      "digest": "14\n589518f6f7b9ace0c8e478dd103417b8840c80a6",
+      "ttlMetadataExcluded": true,
+      "sourceAofEnabled": true,
+      "productionAofEnabled": false
+    },
+    "elapsedMs": 13222,
+    "passed": true
+  },
+  "tests": {
+    "unit": {
+      "passed": 291,
+      "failed": 0
+    },
+    "integration": {
+      "passed": 333,
+      "failed": 0,
+      "postgresMajor": 18,
+      "simulatedProviders": true
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "realRedisJourneys": "passed on 8.2.11, database 15, loopback 6381",
+    "productionWrites": 0,
+    "realWhatsAppSends": 0,
+    "remoteMigrations": 0
+  },
+  "findings": [
+    {
+      "severity": "critical",
+      "state": "fixed in development",
+      "id": "cross_account_reminder_retrieval",
+      "cause": "Lexical OR overwrote reminderScope OR; same phone could retrieve a task from another account. AND now preserves both conditions."
+    },
+    {
+      "severity": "high",
+      "state": "fixed in development",
+      "id": "deleted_plan_note_in_history",
+      "cause": "Historical proposal and confirmation reintroduced deleted note. Structured current plan is retained separately; raw plan storage history omitted."
+    },
+    {
+      "severity": "medium",
+      "state": "fixed in development",
+      "id": "appointment_own_alert_false_ambiguity",
+      "cause": "Appointment and own linked reminder counted as two named targets. Collapse only proven child IDs, preserve independent task ambiguity."
+    }
+  ],
+  "limitations": [
+    "No production config, services, callback, schema, credentials or real application records changed.",
+    "Only SQL read-only transaction, raw Redis inspection and Meta GET probes used for live inventory.",
+    "291 unit/333 integration providers are simulated; only the two recorded checkpoint responses use fresh OpenAI.",
+    "Raw model time had a timezone error; correctness is proved at guarded persisted result, not prose.",
+    "Fixture clock is June 2099; delayed jobs promoted to exercise worker without waiting. This is not a real 24h WhatsApp delivery.",
+    "Local Redis has AOF enabled; production has RDB with AOF disabled. Independent RDB restoration was also exercised.",
+    "Redis logical digest excludes expiring metadata; application jobs, lists, hashes, stream entries, scores and order are compared.",
+    "Rollout pause/resume was exercised locally; Railway removal, maintenance commands, migration and restart ordering were not executed remotely."
+  ]
+}

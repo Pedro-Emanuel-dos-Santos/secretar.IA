@@ -1,5 +1,29 @@
 # Continuidade da Secretár.IA — 28/10/2026
 
+## Missão 04 — prontidão operacional, sem deploy
+
+Ler ../docs/MISSAO_04_GO_NO_GO.md, PUBLICACAO_M04.md e EXECUTAR_M04_LOCAL.md.
+NO-GO produção/beta: PostgreSQL e Redis reais mostram No Backups; template
+pt_BR/UTILITY de um parâmetro ausente. GET Meta confirmou WABA/número, permissões
+e app inscrito (há segunda inscrição a conferir). Aplicações continuam a072f63,
+17 migrações; migração e920084 ausente. Inventário somente leitura: nenhum ativo,
+pendente ativo ou incerto; um bloqueio/job falho histórico de template.
+Corrigidos em dev: OR lexical removia escopo de conta em tarefas; nota de plano
+excluída voltava pelo histórico; aviso próprio criava ambiguidade falsa. Worker
+usa processador compartilhado para ensaio BullMQ, sem mudar domínio/contratos.
+291 unitários, 333 integrações PG18, build; jornadas reais Redis8.2 com envio fake;
+restauração de 13 tabelas/arquivo corrompido e RDB em contêiner sem rede passaram.
+Dois checkpoints OpenAI reais nesta missão custaram US$ 0,0090912. Total com missão
+anterior US$ 0,0744716 de US$ 0,10 (19 chamadas); não reiniciar orçamento. O modelo
+errou o instante bruto da correção; guarda determinística gravou o instante correto.
+Interpretações e efeitos persistidos estão no JSON de evidência. Não chamar isso
+de RPC contínuo hospedado ou entrega Meta real. Nenhuma produção/envio/migração
+remota alterados. Backups fictícios não comprovam proteção dos dados reais.
+Ensaio provou que consumidor antigo ignora delivery_retry e parser antigo rejeita
+recall_context: conter consumidores e seguir runbook, sem rollback cego/reset de
+estado incerto. Próxima ação exige proposta/autorização de backup real, template
+e janela de publicação; nenhuma feature adicional resolve esses bloqueios.
+
 ## Avaliação controlada concluída — sem deploy
 
 Ler ../docs/AVALIACAO_INTELIGENCIA_BETA_20261028.md e evidência JSON vinculada.

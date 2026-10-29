@@ -103,10 +103,27 @@ test('pedido de não guardar prevalece mesmo quando modelo sugere anotação',as
  await processInboxBatch(p,{buildContext:x=>conversationContext(p,x),interpret:async()=>({...base,action:'save_note',description:'Estou buscando emprego.'})},c.account);
  const row=await p.incomingMessage.findUniqueOrThrow({where:{id:m.id},include:{reply:true}});assert.equal(row.interpretation.action,'conversation');assert.match(row.reply.text,/Não salvei/);assert.equal(await p.event.count({where:{userId:c.user.id,type:{in:['secretary_note','personal_memory']}}}),0);assert.equal((await retrieveContext(p,c.phone,c.account,'trabalho')).items.length,0);
 });
+
+test('recuperação lexical de tarefa preserva OR de escopo para o mesmo telefone em outra conta',async()=>{
+ const c=await setup(),m=await message(c,'Me lembra de preparar portfólio para entrevista técnica');
+ const reminder=await p.reminder.create({data:{userId:c.user.id,title:'Preparar portfólio para entrevista técnica',remindAt:new Date('2099-06-02T13:00:00Z'),sourceMessageId:m.id,scheduleOutbox:{create:{phoneNumberId:c.account}}}});
+ assert.ok((await retrieveContext(p,c.phone,c.account,'entrevista')).items.some(r=>r.id===reminder.id));
+ assert.equal((await retrieveContext(p,c.phone,c.account+'other','entrevista')).items.some(r=>r.id===reminder.id),false);
+ const foreign=await p.businessSubject.create({data:{userId:c.user.id,phoneNumberId:c.account,name:'Entrevista',normalizedName:'entrevista',kind:'project'}});await p.reminder.update({where:{id:reminder.id},data:{subjectId:foreign.id}});
+ assert.equal((await retrieveContext(p,c.phone,c.account+'other','entrevista')).items.length,0);
+});
 test('notas têm origem, versão e exclusão imediata sem índice derivado obsoleto',async()=>{
  const c=await setup(),m=await message(c,'Anota que quero estudar língua inglesa');await p.$transaction(tx=>executeNote(c.phone,c.account,{...base,action:'save_note',description:'Quero estudar língua inglesa.'},tx,m.id));
  const result=await retrieveContext(p,c.phone,c.account,'aprender inglês');assert.equal(result.items[0].kind,'note');assert.equal(result.items[0].sourceMessageId,m.id);
  await p.$transaction(tx=>executeNote(c.phone,c.account,{...base,action:'delete_note',noteId:result.items[0].id,expectedVersion:0},tx,m.id));assert.equal((await retrieveContext(p,c.phone,c.account,'aprender inglês')).items.length,0);
+});
+
+test('excluir nota de plano aplicado não reintroduz seu texto pela proposta ou confirmação recente',async()=>{
+ const c=await setup(),text='Anota codinome fictício Andorinha e me lembra de revisar amanhã às 10h.';
+ const source=await message(c,text,{status:'received'});await processInboxBatch(p,{buildContext:x=>conversationContext(p,x),interpret:async()=>({...base,action:'assistant_plan',planSteps:[{...base,action:'save_note',description:'Codinome fictício Andorinha.'},{...base,action:'create_reminder',title:'Revisar',datetime:'2099-06-02T13:00:00Z'}]})},c.account);await accept(source);
+ const confirmed=await message(c,'CONFIRMAR PLANO',{status:'received'});await processInboxBatch(p,{buildContext:x=>conversationContext(p,x),interpret:()=>assert.fail()},c.account);await accept(confirmed);
+ const note=await p.event.findFirstOrThrow({where:{userId:c.user.id,type:'secretary_note'}}),deleted=await message(c,'Apaga a anotação',{status:'received'});await processInboxBatch(p,{buildContext:x=>conversationContext(p,x),interpret:async()=>({...base,action:'delete_note',noteId:note.id})},c.account);await accept(deleted);
+ assert.equal(await p.event.count({where:{id:note.id}}),0);const context=await conversationContext(p,{phone:c.phone,phoneNumberId:c.account,text:'O que você lembra?',receivedAt:new Date()});assert.doesNotMatch(JSON.stringify(context),/codinome fictício andorinha/i);
 });
 test('busca informa truncamento e limita conteúdo enviado ao modelo',async()=>{
  const c=await setup();await p.appointment.createMany({data:Array.from({length:45},(_,i)=>({userId:c.user.id,phoneNumberId:c.account,title:'Entrevista '+i,startsAt:new Date('2099-06-02T17:00:00Z')}))});

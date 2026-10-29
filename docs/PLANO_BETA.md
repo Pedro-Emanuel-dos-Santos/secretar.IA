@@ -1,5 +1,16 @@
 # Beta privado — critérios de entrada e avaliação
 
+## Missão 04 — NO-GO operacional
+
+Ver [relatório M04](MISSAO_04_GO_NO_GO.md) e [publicação](PUBLICACAO_M04.md).
+291 unitários, 333 integrações locais, contexto real de banco fictício → OpenAI
+→ proposta/confirmacão → persistência/fila real → transporte/recibo simulado,
+mais restauração isolada comprovados. Falhas críticas de isolamento e reintrodução
+de nota excluída foram corrigidas em desenvolvimento. Não publicar 2772da2 sozinho.
+Os volumes reais não têm backups; falta template compatível e jornada hospedada
+autorizada. Antes do participante: backup real/restauração privada, mesma release
+nos três serviços, template com recibo fora da janela e consentimento próprio.
+
 ## Avaliação controlada OpenAI — 28/10/2026
 
 [Relatório e prontidão](AVALIACAO_INTELIGENCIA_BETA_20261028.md): duas rodadas dos

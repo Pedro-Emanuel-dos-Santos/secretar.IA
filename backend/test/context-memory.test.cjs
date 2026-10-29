@@ -5,6 +5,15 @@ const {contextualRecallCommand}=require('../src/domain/context.recall.ts');
 const {guardContextCorrection}=require('../src/domain/context.guards.ts');
 const {formatReminderReply}=require('../src/domain/action.executor.ts');
 const {prepareConversation}=require('../src/domain/conversation.processor.ts');
+
+test('compromisso nomeado não fica ambíguo com seu próprio aviso e corrige o fuso do modelo',async()=>{
+ const appointment={id:'fixture-interview',title:'Entrevista técnica de software',state:'active',version:2,startsAt:'2099-06-02T17:00:00Z',endsAt:'2099-06-02T18:00:00Z',reminders:[{id:'fixture-alert'}]};
+ const context={user:{timezone:'America/Sao_Paulo'},appointments:[appointment],reminders:[{id:'fixture-alert',title:appointment.title,state:'active'}],conversationState:{}};
+ const input={phone:'fixture',phoneNumberId:'fixture',text:'Na verdade, o compromisso Entrevista técnica de software mudou para as 16h.',receivedAt:new Date('2099-06-01T12:00:00Z')};
+ const interpret=async()=>({action:'reschedule_appointment',appointmentId:appointment.id,datetime:'2099-06-02T19:00:00-03:00',reply:'Vou ajustar o horário.'});
+ const result=await prepareConversation(input,{buildContext:async()=>context,interpret});assert.equal(result.action,'reschedule_appointment');assert.equal(result.appointmentId,appointment.id);assert.equal(result.expectedVersion,2);assert.equal(result.datetime,'2099-06-02T19:00:00.000Z');
+ const ambiguous=await prepareConversation(input,{buildContext:async()=>({...context,reminders:[...context.reminders,{id:'independent',title:appointment.title,state:'active'}]}),interpret});assert.equal(ambiguous.action,'conversation');
+});
 test('conceitos recuperam paráfrases sem palavras idênticas, sem relacionar tudo a tudo',()=>{
  assert.ok(contextScore('trabalho','Estou em busca de emprego').score>=4);
  assert.ok(contextScore('programação','Desenvolvimento de software').score>=4);

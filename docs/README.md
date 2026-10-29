@@ -2,6 +2,10 @@
 
 Auditoria e planejamento de 28/10/2026, após a missão de evolução aprovada por Pedro.
 
+Estado mais recente: [Missão 04 — GO/NO-GO](MISSAO_04_GO_NO_GO.md).
+Correções e ensaios isolados publicados em desenvolvimento; produção permanece
+na versão anterior. Backups reais e template continuam bloqueios do beta.
+
 - [Visão do produto](VISAO_PRODUTO.md)
 - [Arquitetura atual e evidências](ARQUITETURA_ATUAL.md)
 - [Mapa de capacidades e maturidade](MAPA_CAPACIDADES.md)
@@ -13,6 +17,10 @@ Auditoria e planejamento de 28/10/2026, após a missão de evolução aprovada p
 - [Relatório da Missão 03](MISSAO_03.md)
 - [Memória contextual v1](MEMORIA_CONTEXTUAL.md)
 - [Publicação coordenada e rollback](DEPLOY_BETA_COORDENADO.md)
+- [Avaliação OpenAI controlada](AVALIACAO_INTELIGENCIA_BETA_20261028.md)
+- [Missão 04 — prontidão e evidências](MISSAO_04_GO_NO_GO.md)
+- [Publicação M04 com pontos de parada](PUBLICACAO_M04.md)
+- [Reproduzir ensaios locais](EXECUTAR_M04_LOCAL.md)
 
 ## Relatório da primeira etapa
 
