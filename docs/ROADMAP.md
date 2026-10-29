@@ -1,5 +1,13 @@
 # Roadmap priorizado — 28/10/2026
 
+Estado operacional posterior em 29/10: [ativação controlada](ATIVACAO_CONTROLADA_BACKUPS_20261029.md).
+Serviço isolado secretaria-backup + volume Hobby criados, pin9a4e2c8, somente plan,
+sem cron/credenciais/exportação. Healthchecks gratuito configurado; testes reais
+de email somente no check de TESTE. Chave definitiva depende de mídia/cofre que
+Pedro ainda não possui. TLS Redis e privilégios mínimos continuam gates separados.
+Nenhuma publicação da aplicação, migração, captura ou restauração real autorizada.
+O relato histórico abaixo deve ser lido com esta atualização.
+
 Integração operacional do backup em dev (29/10): compatibilidade R2 corrigida,
 executor único e planos de e-mail/identidade/renovação preparados. 31 testes locais
 e E2E de bancos fictícios → R2 → restauração passaram. Ver

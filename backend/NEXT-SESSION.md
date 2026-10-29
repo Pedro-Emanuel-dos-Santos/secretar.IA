@@ -1,5 +1,22 @@
 # Continuidade da Secretár.IA — 29/10/2026
 
+## Ativação controlada — serviço de backup em plan, sem exportação
+
+Ler ../docs/ATIVACAO_CONTROLADA_BACKUPS_20261029.md antes de alterar infraestrutura.
+Pedro autorizou serviço isolado/volume Hobby e monitor externo gratuito, NÃO
+captura real, cron real, migrações ou deploy/restart da aplicação e bancos.
+secretaria-backup criado, uma réplica, volume exclusivo 1000MB em /state, ams;
+pin em 9a4e2c8, plan terminou com sucesso e volume gravável pelo UID11001.
+Sem credenciais de fontes/R2, sem cron/domínio; configs só de paths/bootstrap.
+Healthchecks principal6h criado, sem pings/NEW; somente check TESTE recebe sinais.
+Falha explícita, ausência e recuperação recebidas no Gmail (4emails); check TESTE
+pausado ao concluir. URLs e IDs dos checks permanecem somente no painel privado.
+Identidade age definitiva NÃO gerada: Pedro não tem mídia/cofre independentes.
+Guia em ../docs/GUARDA_IDENTIDADE_AGE.md. Redis atual sem TLS explícito na partida;
+role/ACL/CA/SAN precisam de verificação/proposta separada, sem relaxar proteções.
+Deploys da API/inbox/lembretes/PG/Redis preservados. Código da aplicação não mudou.
+As seções abaixo descrevem etapas anteriores, não o estado mais recente.
+
 ## Integração operacional do backup — entregue em dev, sem ativação
 
 Ler ../docs/RESULTADO_OPERACAO_BACKUPS_20261029.md e OPERACAO_BACKUPS_20261029.md.

@@ -1,5 +1,10 @@
 # Integração operacional dos backups — proposta de implantação
 
+Atualização posterior autorizada: serviço isolado/volume e Healthchecks preparados
+na [ativação controlada](ATIVACAO_CONTROLADA_BACKUPS_20261029.md). O serviço real
+executa exclusivamente plan; cron e captura real permanecem desabilitados. Chave
+definitiva pendente. O restante deste documento registra a proposta da entrega9a4e2c8.
+
 29/10/2026, America/Sao_Paulo. Escopo exclusivo de backup. Nenhum serviço/variável
 Railway, migração, cron remoto, assinatura, identidade real de recuperação ou
 credencial foi criado/alterado nesta etapa. Somente fixtures usam o R2 autorizado;
