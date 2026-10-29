@@ -3,6 +3,13 @@
 29/10/2026. Base `ba08e27`, branch de desenvolvimento
 `codex/dev-beta-reliability-20261028`. **NO-GO de produção preservado.**
 
+Decisão posterior ao relatório: Pedro aprovou 6h/30d/7d condicionados à
+compatibilidade R2 e escolheu e-mail externo, sem Business. Preparará R2 e template;
+exportação real, deploy e serviços pagos não autorizados. As escolhas pendentes
+listadas ao final descrevem o momento da entrega e foram parcialmente resolvidas
+por essa decisão; ver procedimento atualizado. Nenhum novo teste necessário:
+esta atualização registra somente política, sem mudança de código/configuração.
+
 ## Evidência executada
 
 | Verificação | Resultado |

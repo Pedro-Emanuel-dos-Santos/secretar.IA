@@ -2,8 +2,10 @@
 
 Atualização 29/10: backup externo no Hobby em preparação local, conforme
 [procedimento](BACKUP_EXTERNO_BETA.md) e [checklist Meta](TEMPLATE_META_BETA_CHECKLIST.md).
-R2 ainda não configurado; alertas WhatsApp independentes escolhidos, contratação
-pendente. Nenhuma captura real, template submetido ou configuração remota feita.
+Política inicial 6h/30d/7d aprovada, sujeita à compatibilidade real do R2. E-mail
+externo escolhido para alertas, sem Healthchecks Business. Pedro preparará R2 e
+submeterá o template. Sem exportação real, deploy, serviços pagos ou nova
+implementação grande; branch estável. Nenhuma configuração remota feita pelo agente.
 Prova local não remove os dois bloqueios externos abaixo.
 
 Missão 04: [prontidão operacional](MISSAO_04_GO_NO_GO.md), 291 unitários,

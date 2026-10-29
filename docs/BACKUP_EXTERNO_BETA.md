@@ -5,6 +5,13 @@ Manter Railway Hobby. Nenhum dado real foi lido, capturado ou exportado nesta
 entrega. Nenhum bucket, plano, cron, credencial, template ou serviço remoto foi
 criado/alterado. A existência deste código não resolve o NO-GO da Missão 04.
 
+Decisão posterior de Pedro em 29/10: política inicial APROVADA de captura a cada
+6 horas, retenção de 30 dias e proteção contra exclusão de 7 dias, condicionada à
+compatibilidade real do R2. Alertas inicialmente por e-mail externo independente
+da aplicação; não contratar Healthchecks Business. Pedro preparará R2 e submeterá
+o template Meta. Não há autorização de exportação real, deploy ou serviços pagos.
+Manter a branch estável, sem outra implementação grande enquanto isso.
+
 ## Decisão de captura e disponibilidade, verificada antes da implementação
 
 PostgreSQL: `pg_dump` custom, sem owner/ACL, com snapshot exportado de uma
@@ -31,7 +38,7 @@ escopo; caso contrário, parar. PG e Redis não têm snapshot atômico entre si.
 | Cloudflare R2 | Pedro confirmou que não configurou | Conta, bucket privado, política e token restrito |
 | Criptografia | Somente chaves efêmeras fictícias nos testes | Identidade real fora da Railway e duas cópias privadas recuperáveis |
 | Agendamento | Só proposta, sem cron criado | Executor separado, na rede privada, uma única instância |
-| Alertas | Pedro escolheu WhatsApp independente da aplicação | Conta/canal do monitor, número confirmado, orçamento e teste autorizado |
+| Alertas | Pedro escolheu e-mail externo independente da aplicação | Conta/canal gratuito, destinatário e teste autorizado; nenhum Business contratado |
 
 ## Implementação preparada
 
@@ -99,25 +106,25 @@ validar uma ACL separada suficiente para PING/INFO e replicação inicial
 à instância toda; não prometer isolamento por key pattern. Não usar a senha
 administrativa da aplicação como escolha automática. Nenhuma role/ACL foi criada.
 
-## Monitor externo e WhatsApp
+## Monitor externo e e-mail
 
 Adaptador preparado para Healthchecks.io, fora da Railway e da Secretár.IA:
 `/start`, sucesso e `/fail` com UUID de execução; body vazio, sem logs/segredos.
 Rejeita redirecionamentos e respostas que não sejam `200 OK` com body `OK`.
 Não importa worker, fila, número remetente ou banco da Secretár.IA. Se Railway,
 cron ou aplicação ficarem fora, a falta de sucesso pode disparar aviso pelo
-monitor. É necessário habilitar e testar a integração WhatsApp no próprio monitor.
+monitor. É necessário habilitar e testar o e-mail externo no próprio monitor;
+nenhuma integração real de alertas foi ativada nesta entrega.
 
-Plano Business consultado: **US$20/mês, 50 créditos SMS/WhatsApp**; cotas e
-disponibilidade do canal devem ser conferidas ao contratar. Plano gratuito permite
-monitoramento, mas não presumimos WhatsApp grátis. Nada contratado. Uma opção
-mais barata com gateway independente exige decidir e validar outro provedor;
-não foi implementada uma ponte improvisada usando o WhatsApp da aplicação.
-O aviso ainda depende do monitor e da infraestrutura WhatsApp; independência da
-aplicação não significa independência desses fornecedores.
+WhatsApp nativo Business por US$20/mês foi uma alternativa pesquisada e NÃO
+selecionada. Usar inicialmente e-mail externo em solução sem assinatura paga;
+confirmar limites, destinatário e recebimento ao configurar. O adaptador de
+heartbeat já preparado não depende do canal de notificação e não exige alteração
+funcional agora. O aviso ainda depende do monitor e do provedor de e-mail;
+independência da aplicação não significa independência desses fornecedores.
 
 Criar dois checks após autorização: captura a cada 6 h + 30 min; restauração
-semanal + tolerância combinada. Vincular ambos ao canal WhatsApp; verificar aviso
+semanal + tolerância combinada. Vincular ambos ao e-mail externo; verificar aviso
 por falha, execução ausente e retorno ao normal. O código de captura já tem o
 adaptador; agendamento e check da restauração semanal ainda não instalados.
 
@@ -201,15 +208,16 @@ tempo de hash/criptografia, CPU e banda reais ainda não foram medidos. Pode hav
 uso já coberto pelos US$5 da conta ou cobrança adicional. Executor externo da
 restauração e guarda de chaves também precisam de disponibilidade/orçamento.
 
-Healthchecks WhatsApp nativo é o maior item fixo desta opção: US$20/mês. Portanto
-**não prometemos backup com WhatsApp independente por custo total zero**.
+Decisão atual: não contratar Healthchecks Business de US$20/mês; alertas por
+e-mail externo inicialmente. Confirmar a opção gratuita e seus limites antes de
+ativar. Isso não elimina eventuais custos de R2, tráfego e executor descritos acima.
 
 ## Gates e decisões de Pedro
 
-1. Aprovar posteriormente criação do R2 privado e políticas 30/7 dias; definir
-   responsável pela conta, MFA e chave de recuperação fora da Railway.
-2. Escolher WhatsApp nativo no Healthchecks por US$20/mês ou pedir comparação de
-   outro gateway independente antes de contratar. Nenhuma assinatura autorizada.
+1. Política 6h/30d/7d aprovada, sujeita à compatibilidade R2. Pedro preparará a
+   conta; confirmar bucket privado, lock/lifecycle, responsável e guarda da chave.
+2. E-mail externo escolhido; preparar conta/destinatário e teste de alerta sem
+   contratar Business. Nenhum serviço pago autorizado.
 3. Aprovar separadamente preparação de executor e credenciais atuais restritas,
    validação TLS/ACL/headroom e teste R2/alerta com artefato fictício.
 4. Só então autorizar captura de dados reais e seu escopo (RDB da instância toda),
